@@ -1,0 +1,24 @@
+<table>
+  <thread>
+    <tr>
+      <th>Name</th>
+      <th>Stock</th>
+      <th>Category</th>
+      <th>Image</th>
+      <th>Description</th>
+      <th>Actions</th>
+    </tr>
+  </thread>
+  <tbody>
+    @for (product of products; track $index) {
+      <tr>
+        <td>{{ product.name }}</td>
+        <td>{{ product.stock }}</td>
+        <td><img [src]="product.image" alt="image" width="50"></td>
+        <td>
+          <button (click)="goToEdit(product)">Edit</button>
+        </td>
+      </tr>
+    }
+  </tbody>
+</table>
