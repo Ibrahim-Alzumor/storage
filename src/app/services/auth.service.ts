@@ -2,13 +2,14 @@ import {Injectable} from '@angular/core';
 import {HttpClient} from '@angular/common/http';
 import {environment} from './enviroment';
 import {tap} from 'rxjs/operators';
+import {jwtDecode} from "jwt-decode";
+
 
 @Injectable({
   providedIn: 'root'
 })
 export class AuthService {
   private tokenkey = 'jwt_token';
-  private clearanceKey = 'clearanceLevel';
 
   constructor(private http: HttpClient) {
   }
@@ -18,8 +19,16 @@ export class AuthService {
   }
 
   get clearanceLevel(): number {
-    const level = Number(localStorage.getItem(this.clearanceKey));
-    return isNaN(level) ? 0 : level;
+    const token = this.token;
+    if (token) {
+      try {
+        const decodedToken: any = jwtDecode(token);
+        return decodedToken.clearanceLevel || 0;
+      } catch (error) {
+        return 0;
+      }
+    }
+    return 0;
   }
 
 
@@ -27,14 +36,12 @@ export class AuthService {
     return this.http.post<any>(`${environment.apiUrl}/auth/login`, {email, password}).pipe(
       tap(res => {
         localStorage.setItem(this.tokenkey, res.accessToken);
-        localStorage.setItem(this.clearanceKey, res.clearanceLevel);
       })
     )
   }
 
   logout() {
     localStorage.removeItem(this.tokenkey);
-    localStorage.removeItem(this.clearanceKey);
   }
 
   isLoggedIn() {

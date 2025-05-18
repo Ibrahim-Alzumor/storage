@@ -1,24 +1,40 @@
 <table>
-  <thread>
-    <tr>
-      <th>Name</th>
-      <th>Stock</th>
-      <th>Category</th>
-      <th>Image</th>
-      <th>Description</th>
-      <th>Actions</th>
-    </tr>
-  </thread>
+  <thead>
+  <tr>
+    <th>Name</th>
+    <th>Stock</th>
+    <th>Category</th>
+    <th>Image</th>
+    <th>Description</th>
+    <th>Actions</th>
+  </tr>
+  </thead>
   <tbody>
     @for (product of products; track $index) {
-      <tr>
-        <td>{{ product.name }}</td>
-        <td>{{ product.stock }}</td>
-        <td><img [src]="product.image" alt="image" width="50"></td>
-        <td>
-          <button (click)="goToEdit(product)">Edit</button>
-        </td>
-      </tr>
+      <div class="contact-card" (click)="openProductModal(product)">
+        <tr>
+          <td>{{ product.name }}</td>
+          <td>{{ product.stock }}</td>
+          <td><img [src]="product.image" alt="image" width="50"></td>
+          <td>
+            <button (click)="goToEdit(product)">Edit</button>
+          </td>
+        </tr>
+      </div>
     }
   </tbody>
 </table>
+
+
+@if (selectedProduct) {
+  <div class="modal">
+    <div class="modal-content">
+      <span class="close" (click)="closeModal()">&times;</span>
+      <h2>{{ selectedProduct.name }}</h2>
+      <p><strong>Stock:</strong> {{ selectedProduct.stock }}</p>
+      <p><strong>Category:</strong> {{ selectedProduct.category }}</p>
+      <p><strong>Description:</strong> {{ selectedProduct.description }}</p>
+      <p><img [src]="selectedProduct.image" alt="image" width="50"></p>
+    </div>
+  </div>
+}

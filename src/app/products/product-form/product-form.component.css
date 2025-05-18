@@ -1,25 +1,69 @@
 .container {
+  background-color: #1c1c1c;
+  padding: 30px;
+  border-radius: 8px;
+  color: white;
   max-width: 600px;
+  margin: 80px auto;
+  box-shadow: 0 0 10px rgba(255, 0, 0, 0.2);
 }
 
 h2 {
-  color: #337ab7;
-  margin-bottom: 24px;
+  color: #ff3b3b;
+  text-align: center;
+  margin-bottom: 30px;
 }
 
-.form-group label {
-  color: #2d4053;
+.form-group {
+  margin-bottom: 20px;
 }
 
-input, textarea, select {
-  background: #f8fafc;
-  border: 1px solid #dbe5f1;
+label {
+  display: block;
+  margin-bottom: 8px;
+  color: #f8f9fa;
+  font-weight: 500;
 }
 
-input.ng-invalid.ng-touched, textarea.ng-invalid.ng-touched, select.ng-invalid.ng-touched {
-  border-color: #e74c3c;
+input.form-control,
+textarea.form-control {
+  width: 100%;
+  background-color: #2c2c2c;
+  border: 1px solid #ff3b3b;
+  color: white;
+  padding: 10px 12px;
+  border-radius: 5px;
+  font-size: 1rem;
+  box-sizing: border-box;
 }
 
-button {
-  margin-top: 12px;
+input.form-control:focus,
+textarea.form-control:focus {
+  background-color: #2c2c2c;
+  border-color: #ff3b3b;
+  box-shadow: 0 0 5px rgba(255, 0, 0, 0.5);
+  outline: none;
+}
+
+.text-danger {
+  color: #ff6b6b;
+  font-size: 0.875rem;
+  margin-top: 5px;
+}
+
+.btn-success {
+  background-color: #ff3b3b;
+  border-color: #ff3b3b;
+  padding: 10px 20px;
+  font-size: 1rem;
+  font-weight: bold;
+  color: white;
+  border-radius: 5px;
+  width: 100%;
+  transition: background-color 0.2s ease;
+}
+
+.btn-success:hover {
+  background-color: #c82333;
+  border-color: #c82333;
 }

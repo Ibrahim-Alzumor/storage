@@ -2,15 +2,18 @@ import {Component} from '@angular/core';
 import {Router} from '@angular/router';
 import {FormBuilder, FormGroup, ReactiveFormsModule, Validators} from '@angular/forms';
 import {AuthService} from '../../services/auth.service';
-import {NgClass} from '@angular/common';
+import {NgClass, NgIf} from '@angular/common';
 
 @Component({
   selector: 'app-login',
   imports: [
     ReactiveFormsModule,
-    NgClass
+    NgClass,
+    NgIf
   ],
-  templateUrl: './login.component.html'
+  templateUrl: './login.component.html',
+  styleUrls: ['./login.component.css'],
+
 })
 export class LoginComponent {
   loginForm: FormGroup;
@@ -65,7 +68,7 @@ export class LoginComponent {
     if (this.loginForm.invalid) return;
     const {email, password} = this.loginForm.value;
     this.auth.login(email, password).subscribe({
-      next: () => this.router.navigate(['/products']),
+      next: () => this.router.navigate(['/']),
       error: err => alert(err.error?.message || 'Invalid credentials')
     });
   }

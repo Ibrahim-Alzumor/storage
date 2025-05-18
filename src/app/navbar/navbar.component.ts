@@ -2,12 +2,14 @@ import {Component} from '@angular/core';
 import {AuthService} from '../services/auth.service';
 import {Router, RouterLink} from '@angular/router';
 import {FormsModule} from '@angular/forms';
+import {NgIf} from '@angular/common';
 
 @Component({
   selector: 'app-navbar',
   imports: [
     RouterLink,
-    FormsModule
+    FormsModule,
+    NgIf
   ],
   templateUrl: './navbar.component.html',
   styleUrl: './navbar.component.css'
@@ -15,11 +17,11 @@ import {FormsModule} from '@angular/forms';
 export class NavbarComponent {
   searchTerm = "";
 
-  constructor(private authSvc: AuthService, private router: Router) {
+  constructor(protected auth: AuthService, private router: Router) {
   }
 
   logout(): void {
-    this.authSvc.logout();
+    this.auth.logout();
     this.router.navigate(['/login']);
   }
 

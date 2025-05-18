@@ -2,14 +2,16 @@ import {Component, OnInit} from '@angular/core';
 import {FormBuilder, FormGroup, ReactiveFormsModule, Validators} from '@angular/forms';
 import {AuthService} from '../../services/auth.service';
 import {UserService} from '../../services/user.service';
-import {NgClass} from '@angular/common';
+import {NgClass, NgIf} from '@angular/common';
 
 @Component({
   selector: 'app-user-register',
   templateUrl: './user-register.component.html',
+  styleUrls: ['./user-register.component.css'],
   imports: [
     ReactiveFormsModule,
-    NgClass
+    NgClass,
+    NgIf
   ]
 })
 export class UserRegisterComponent implements OnInit {
@@ -27,7 +29,7 @@ export class UserRegisterComponent implements OnInit {
       email: ['', [Validators.required, Validators.email, Validators.pattern(/^[^\s@]+@[^\s@]+\.[^\s@]+$/)]],
       password: ['', [Validators.required, Validators.minLength(8), Validators.pattern(/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/)]],
       jobTitle: [''],
-      phone: ['', Validators.minLength(10), Validators.pattern(/^\+?[1-9]\d{1,14}$/),],
+      phone: ['', [Validators.minLength(10), Validators.pattern(/^\+?[1-9]\d{1,14}$/),]],
       clearanceLevel: [0, Validators.required]
     });
     this.setPossibleClearanceLevels();
@@ -116,7 +118,7 @@ export class UserRegisterComponent implements OnInit {
 
   setPossibleClearanceLevels() {
     const myLevel: number = this.auth.clearanceLevel;
-    if (myLevel === 3) {
+    if (myLevel === 3 || myLevel === 4) {
       this.possibleClearanceLevels = [
         {value: 0, label: 'Worker'},
         {value: 1, label: 'Associate'},

@@ -1,6 +1,6 @@
 import {NgModule} from '@angular/core';
 import {BrowserModule} from '@angular/platform-browser';
-import {HTTP_INTERCEPTORS} from '@angular/common/http';
+import {HTTP_INTERCEPTORS, HttpClientModule, provideHttpClient} from '@angular/common/http';
 import {ReactiveFormsModule, FormsModule} from '@angular/forms';
 
 import {routes} from './app.routes';
@@ -19,27 +19,29 @@ import {UserService} from './services/user.service';
 import {AppComponent} from './app.component';
 
 @NgModule({
-  declarations: [],
-  imports: [
-    BrowserModule,
-    ReactiveFormsModule,
-    FormsModule,
-    routes,
-    AppComponent,
-    NavbarComponent,
-    LoginComponent,
-    ProductListComponent,
-    ProductFormComponent,
-    UserRegisterComponent,
-  ],
-  providers: [
-    AuthService,
-    AuthGuard,
-    ProductService,
-    UserService,
-    {provide: HTTP_INTERCEPTORS, useClass: TokenInterceptor, multi: true}
-  ],
-  bootstrap: []
+    declarations: [],
+    imports: [
+        BrowserModule,
+        ReactiveFormsModule,
+        FormsModule,
+        routes,
+        AppComponent,
+        NavbarComponent,
+        LoginComponent,
+        ProductListComponent,
+        ProductFormComponent,
+        UserRegisterComponent,
+    ],
+    providers: [
+        AuthService,
+        AuthGuard,
+        ProductService,
+        UserService,
+        {provide: HTTP_INTERCEPTORS, useClass: TokenInterceptor, multi: true},
+        provideHttpClient()
+
+    ],
+    bootstrap: []
 })
 export class AppModule {
 }
