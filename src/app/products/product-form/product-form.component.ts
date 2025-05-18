@@ -3,11 +3,13 @@ import {FormBuilder, FormGroup, ReactiveFormsModule, Validators} from '@angular/
 import {ProductService} from '../../services/product.service';
 import {ActivatedRoute, Router} from '@angular/router';
 import {Product} from '../../interfaces/product.interface';
+import {NgIf} from '@angular/common';
 
 @Component({
   selector: 'app-product-form',
   imports: [
     ReactiveFormsModule,
+    NgIf,
   ],
   templateUrl: './product-form.component.html',
   styleUrl: './product-form.component.css'
@@ -19,9 +21,9 @@ export class ProductFormComponent implements OnInit {
 
   constructor(private fb: FormBuilder, private productSvc: ProductService, private router: Router, private route: ActivatedRoute) {
     this.productForm = this.fb.group({
-      name: ['', Validators.required, Validators.maxLength(50)],
-      stock: [0, Validators.required, Validators.min(0)],
-      category: [0, Validators.required],
+      name: ['', [Validators.required, Validators.maxLength(50)]],
+      stock: [0, [Validators.required, Validators.min(0)]],
+      category: ['', Validators.required],
       image: [''],
       description: ['', Validators.required],
     })

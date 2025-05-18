@@ -1,31 +1,133 @@
-nav.navbar {
-  background: #337ab7 !important;
-  border-radius: 0 0 8px 8px;
-  box-shadow: 0 2px 8px rgba(0, 0, 50, 0.07);
+.navbar {
+  background-color: #000000;
+  padding: 10px 20px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  position: relative;
 }
 
-nav .navbar-brand, nav .nav-link, nav button, nav input[type="search"] {
-  color: #fff !important;
+.navbar-nav {
+  display: flex;
+  align-items: center;
+  margin-left: auto;
+  width: 100%;
+  justify-content: flex-end;
+  position: relative;
 }
 
-nav .nav-link.active {
-  background: rgba(255, 255, 255, 0.1);
-  border-radius: 5px;
+.navbar-brand {
+  position: absolute;
+  left: 20px;
+  color: white !important;
+  font-size: 1.5rem;
+  font-weight: bold;
 }
 
-nav .form-inline input {
-  border-radius: 3px;
+.navbar-toggler {
   border: none;
-  padding: 4px 10px;
-  margin-right: 8px;
+  background-color: transparent;
 }
 
-nav .btn-outline-success, nav .btn-outline-danger {
-  color: #fff !important;
-  border-color: #fff !important;
+.nav-item {
+  margin-right: 15px;
 }
 
-nav .btn-outline-success:hover, nav .btn-outline-danger:hover {
-  background: #28558b !important;
-  border-color: #fff !important;
+.nav-item a {
+  text-decoration: none;
+  color: white;
+  font-size: 1rem;
+}
+
+.nav-item a:hover {
+  color: #f8f9fa;
+}
+
+.btn {
+  border-radius: 5px;
+  padding: 8px 16px;
+  font-size: 1rem;
+}
+
+.btn-light {
+  background-color: #f30909;
+  color: #343a40;
+}
+
+.btn-light:hover {
+  background-color: #e2e6ea;
+}
+
+.btn-danger {
+  background-color: #dc3545;
+  color: white;
+}
+
+.btn-danger:hover {
+  background-color: #c82333;
+}
+
+.btn-outline-danger {
+  border: 1px solid #dc3545;
+  color: #dc3545;
+}
+
+.btn-outline-danger:hover {
+  background-color: #dc3545;
+  color: white;
+}
+
+.search-input {
+  width: 200px;
+  border-radius: 5px;
+  padding: 8px 12px;
+  font-size: 1rem;
+  border: 1px solid #dc3545;
+  color: white;
+  background-color: transparent;
+}
+
+.search-input::placeholder {
+  color: white;
+}
+
+.d-flex {
+  display: flex;
+  align-items: center;
+}
+
+button.ml-2 {
+  margin-left: 10px;
+}
+
+@media (max-width: 991px) {
+  .navbar-nav {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .navbar-nav .nav-item {
+    margin-bottom: 10px;
+  }
+
+  .search-input {
+    width: 100%;
+    margin-bottom: 10px;
+  }
+
+  .d-flex {
+    flex-direction: column;
+    width: 100%;
+    margin-top: 10px;
+  }
+}
+
+@media (max-width: 576px) {
+  .navbar-brand {
+    font-size: 1.2rem;
+  }
+
+  .search-input {
+    width: 80%;
+  }
 }

@@ -12,6 +12,9 @@ import {ActivatedRoute, Router} from '@angular/router';
 export class ProductListComponent implements OnInit {
   products: Product[] = [];
 
+  selectedProduct: Product | null = null;
+
+
   constructor(private productSvc: ProductService, private router: Router, private route: ActivatedRoute) {
   }
 
@@ -28,5 +31,13 @@ export class ProductListComponent implements OnInit {
 
   goToEdit(product: Product) {
     this.router.navigate(['/product-form', product.id]);
+  }
+
+  openProductModal(Product: Product): void {
+    this.selectedProduct = Product;
+  }
+
+  closeModal(): void {
+    this.selectedProduct = null;
   }
 }

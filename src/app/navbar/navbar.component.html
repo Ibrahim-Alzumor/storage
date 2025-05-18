@@ -1,27 +1,20 @@
-<nav class="navbar navbar-expand-lg navbar-light bg-light">
-  <a class="navbar-brand" routerLink="/">Storage System</a>
-  <div class="collapse navbar-collapse">
-    <ul class="navbar-nav mr-auto">
-      <li class="nav-item">
-        <a class="nav-link" routerLink="/products">Products</a>
-      </li>
-      <li *ngIf="auth.clearanceLevel >= 3" class="nav-item">
-        <a class="nav-link" routerLink="/product-form">Add Product</a>
-      </li>
-      <li *ngIf="auth.clearanceLevel >= 2" class="nav-item">
-        <a class="nav-link" routerLink="/user-register">Register User</a>
-      </li>
-    </ul>
-    <form (ngSubmit)="onSearch()" class="form-inline my-2 my-lg-0">
-      <input
-        [(ngModel)]="searchTerm"
-        class="form-control mr-sm-2"
-        name="search"
-        placeholder="Search"
-        type="search"
-      />
-      <button class="btn btn-outline-success my-2 my-sm-0" type="submit">Search</button>
+<nav class="navbar navbar-expand-lg navbar-dark bg-dark px-4">
+  <ul class="navbar-nav d-flex align-items-center ml-auto">
+    <a class="navbar-brand" routerLink="/"><strong>Storage System</strong></a>
+    <li class="nav-item">
+      <a class="btn btn-light mx-1" routerLink="/">Products</a>
+    </li>
+    <li *ngIf="auth.clearanceLevel >= 3" class="nav-item">
+      <a class="btn btn-light mx-1" routerLink="/add">Add Product</a>
+    </li>
+    <li *ngIf="auth.clearanceLevel >= 2" class="nav-item">
+      <a class="btn btn-light mx-1" routerLink="/register">Register User</a>
+    </li>
+    <form (ngSubmit)="onSearch()" class="d-flex align-items-center mx-2">
+      <input [(ngModel)]="searchTerm" class="form-control search-input" name="search" placeholder="Search"
+             type="search">
+      <button class="btn btn-danger ml-2" type="submit">Search</button>
     </form>
     <button (click)="logout()" *ngIf="auth.isLoggedIn()" class="btn btn-outline-danger ml-2">Logout</button>
-  </div>
+  </ul>
 </nav>
