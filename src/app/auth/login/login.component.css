@@ -1,0 +1,19 @@
+.container {
+  max-width: 400px;
+  margin-top: 64px;
+  background: #fff;
+  border-radius: 10px;
+  box-shadow: 0 3px 15px rgba(30, 40, 80, 0.12);
+}
+
+h2 {
+  margin-bottom: 30px;
+  text-align: center;
+  font-weight: 600;
+  color: #28558b;
+}
+
+button {
+  width: 100%;
+  margin-top: 18px;
+}

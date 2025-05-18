@@ -1,0 +1,32 @@
+<div class="container mt-5">
+  <h2>Login</h2>
+  <form (ngSubmit)="onLogin()" [formGroup]="loginForm">
+    <div class="form-group">
+      <label>Email</label>
+      <input
+        [ngClass]="{'invalid': this.loginForm.controls['email'].invalid && this.loginForm.controls['email'].touched}"
+        formControlName="email"
+        id="email"
+        placeholder="Enter your email"
+        type="email"
+      />
+      <div *ngIf="emailErrorMessage" class="error-message">
+        <span>{{ emailErrorMessage }}</span>
+      </div>
+    </div>
+    <div class="form-group">
+      <label>Password</label>
+      <input
+        [ngClass]="{'invalid': this.loginForm.controls['password'].invalid && this.loginForm.controls['password'].touched}"
+        formControlName="password"
+        id="password"
+        placeholder="Enter your password"
+        type="password"
+      />
+      <div *ngIf="passwordErrorMessage" class="error-message">
+        <span>{{ passwordErrorMessage }}</span>
+      </div>
+    </div>
+    <button [disabled]="loginForm.invalid" class="btn btn-success">Login</button>
+  </form>
+</div>

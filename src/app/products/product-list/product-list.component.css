@@ -1,0 +1,27 @@
+h2 {
+  color: #28558b;
+  margin-bottom: 16px;
+}
+
+.table {
+  background: #fff;
+  border-radius: 6px;
+  overflow: hidden;
+}
+
+.table th {
+  background: #e6eefd;
+  color: #28558b;
+}
+
+.table td img {
+  max-width: 50px;
+  max-height: 48px;
+  border: 1px solid #eee;
+  background: #fafbfc;
+}
+
+.btn-primary, .btn-danger {
+  font-size: 0.96em;
+  padding: 4px 13px;
+}

@@ -1,0 +1,45 @@
+<div class="container mt-4">
+  <h2>{{ editMode ? 'Edit Product' : 'Add Product' }}</h2>
+  <form (ngSubmit)="onSubmit()" [formGroup]="productForm">
+    <div class="form-group">
+      <label for="name">Name</label>
+      <input class="form-control" formControlName="name" id="name"/>
+      <div *ngIf="productForm.controls['name'].invalid && productForm.controls['name'].touched" class="text-danger">
+        Name is required, max 50 chars.
+      </div>
+    </div>
+    <div class="form-group">
+      <label for="stock">Stock</label>
+      <input class="form-control" formControlName="stock" id="stock" type="number"/>
+      <div *ngIf="productForm.controls['stock'].invalid && productForm.controls['stock'].touched" class="text-danger">
+        Stock must be 0 or greater.
+      </div>
+    </div>
+    <div class="form-group">
+      <label for="category">Category</label>
+      <input class="form-control" formControlName="category" id="category"/>
+      <div *ngIf="productForm.controls['category'].invalid && productForm.controls['category'].touched"
+           class="text-danger">
+        Category is required.
+      </div>
+    </div>
+    <div class="form-group">
+      <label for="image">Image URL</label>
+      <input class="form-control" formControlName="image" id="image"/>
+      <div *ngIf="productForm.controls['image'].invalid && productForm.controls['image'].touched" class="text-danger">
+        Image URL is required.
+      </div>
+    </div>
+    <div class="form-group">
+      <label for="description">Description</label>
+      <textarea class="form-control" formControlName="description" id="description"></textarea>
+      <div *ngIf="productForm.controls['description'].invalid && productForm.controls['description'].touched"
+           class="text-danger">
+        Description is required, max 200 chars.
+      </div>
+    </div>
+    <button [disabled]="productForm.invalid" class="btn btn-success" type="submit">
+      {{ editMode ? 'Update' : 'Add' }} Product
+    </button>
+  </form>
+</div>
