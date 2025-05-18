@@ -1,0 +1,25 @@
+.container {
+  max-width: 600px;
+}
+
+h2 {
+  color: #28558b;
+  margin-bottom: 20px;
+}
+
+.form-group label {
+  color: #2d4053;
+}
+
+input, select {
+  background: #f8fafc;
+  border: 1px solid #dbe5f1;
+}
+
+input.ng-invalid.ng-touched, select.ng-invalid.ng-touched {
+  border-color: #e74c3c;
+}
+
+button {
+  margin-top: 12px;
+}

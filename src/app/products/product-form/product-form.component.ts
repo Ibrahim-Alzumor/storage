@@ -3,13 +3,11 @@ import {FormBuilder, FormGroup, ReactiveFormsModule, Validators} from '@angular/
 import {ProductService} from '../../services/product.service';
 import {ActivatedRoute, Router} from '@angular/router';
 import {Product} from '../../interfaces/product.interface';
-import {NgClass} from '@angular/common';
 
 @Component({
   selector: 'app-product-form',
   imports: [
     ReactiveFormsModule,
-    NgClass
   ],
   templateUrl: './product-form.component.html',
   styleUrl: './product-form.component.css'

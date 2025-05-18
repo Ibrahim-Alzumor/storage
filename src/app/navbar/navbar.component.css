@@ -1,0 +1,31 @@
+nav.navbar {
+  background: #337ab7 !important;
+  border-radius: 0 0 8px 8px;
+  box-shadow: 0 2px 8px rgba(0, 0, 50, 0.07);
+}
+
+nav .navbar-brand, nav .nav-link, nav button, nav input[type="search"] {
+  color: #fff !important;
+}
+
+nav .nav-link.active {
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 5px;
+}
+
+nav .form-inline input {
+  border-radius: 3px;
+  border: none;
+  padding: 4px 10px;
+  margin-right: 8px;
+}
+
+nav .btn-outline-success, nav .btn-outline-danger {
+  color: #fff !important;
+  border-color: #fff !important;
+}
+
+nav .btn-outline-success:hover, nav .btn-outline-danger:hover {
+  background: #28558b !important;
+  border-color: #fff !important;
+}
