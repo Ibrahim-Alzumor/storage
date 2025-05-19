@@ -15,6 +15,16 @@
              type="search">
       <button class="btn btn-danger ml-2" type="submit">Search</button>
     </form>
+    @if (searchResults.length > 0) {
+      <ul class="list-group mt-2">
+        @for (product of searchResults; track $index) {
+          <li (click)="goToEdit(product.id)"
+              class="list-group-item list-group-item-action">
+            {{ product.name }}
+          </li>
+        }
+      </ul>
+    }
     <button (click)="logout()" *ngIf="auth.isLoggedIn()" class="btn btn-outline-danger ml-2">Logout</button>
   </ul>
 </nav>
