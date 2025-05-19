@@ -1,48 +1,43 @@
 import {Component} from '@angular/core';
 import {Router} from '@angular/router';
-import {FormBuilder, FormGroup, ReactiveFormsModule, Validators} from '@angular/forms';
+import {FormBuilder, FormControl, FormGroup, ReactiveFormsModule, Validators} from '@angular/forms';
 import {AuthService} from '../../services/auth.service';
-import {NgClass, NgIf} from '@angular/common';
+import {NgClass} from '@angular/common';
 
 @Component({
   selector: 'app-login',
   imports: [
     ReactiveFormsModule,
     NgClass,
-    NgIf
   ],
   templateUrl: './login.component.html',
   styleUrls: ['./login.component.css'],
 
 })
 export class LoginComponent {
-  loginForm: FormGroup;
+  loginForm: FormGroup<loginForm>;
 
   constructor(
-    private fb: FormBuilder,
-    private auth: AuthService,
+    private authService: AuthService,
     private router: Router
   ) {
-    this.loginForm = this.fb.group({
-      email: [
-        '',
+    this.loginForm = new FormGroup({
+      email: new FormControl('',
         [
           Validators.required,
           Validators.email,
-        ],
-      ],
-      password: [
+        ]),
+      password: new FormControl(
         '',
         [
           Validators.required,
           Validators.minLength(8),
-        ],
-      ],
-    });
+        ],)
+    })
   }
 
   get emailErrorMessage(): string | null {
-    const emailControl = this.loginForm.controls['email'];
+    const emailControl = this.loginForm.controls.email;
     if (emailControl.touched && emailControl.invalid) {
       if (emailControl.errors?.['required']) {
         return 'Email is required';
@@ -65,11 +60,21 @@ export class LoginComponent {
   }
 
   onLogin() {
-    if (this.loginForm.invalid) return;
-    const {email, password} = this.loginForm.value;
-    this.auth.login(email, password).subscribe({
-      next: () => this.router.navigate(['/']),
-      error: err => alert(err.error?.message || 'Invalid credentials')
-    });
+    if (this.loginForm.invalid) {
+      return
+    }
+    const {email, password} = this.loginForm.getRawValue();
+    if (email && password) {
+      this.authService.login(email, password).subscribe({
+        next: () => this.router.navigate(['/']),
+        error: err => alert(err.error?.message || 'Invalid credentials')
+      });
+    }
   }
+}
+
+
+interface loginForm {
+  email: FormControl<string | null>;
+  password: FormControl<string | null>;
 }

@@ -1,6 +1,6 @@
 <div class="container mt-4">
   <h2>{{ editMode ? 'Edit Product' : 'Add Product' }}</h2>
-  <form (ngSubmit)="onSubmit()" [formGroup]="productForm">
+  <form [formGroup]="productForm">
     <div class="form-group">
       <label for="name">Name</label>
       <input class="form-control" formControlName="name" id="name"/>
@@ -38,7 +38,7 @@
         Description is required, max 200 chars.
       </div>
     </div>
-    <button [disabled]="productForm.invalid" class="btn btn-success" type="submit">
+    <button (click)="this.onSubmit()" [disabled]="productForm.invalid" class="btn btn-success" type="submit">
       {{ editMode ? 'Update' : 'Add' }} Product
     </button>
   </form>

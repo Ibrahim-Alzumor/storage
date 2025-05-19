@@ -2,7 +2,6 @@ import {Component} from '@angular/core';
 import {AuthService} from '../services/auth.service';
 import {Router, RouterLink} from '@angular/router';
 import {FormsModule} from '@angular/forms';
-import {NgIf} from '@angular/common';
 import {Product} from '../interfaces/product.interface';
 import {ProductService} from '../services/product.service';
 
@@ -11,7 +10,6 @@ import {ProductService} from '../services/product.service';
   imports: [
     RouterLink,
     FormsModule,
-    NgIf
   ],
   templateUrl: './navbar.component.html',
   styleUrl: './navbar.component.css'
@@ -19,12 +17,13 @@ import {ProductService} from '../services/product.service';
 export class NavbarComponent {
   searchTerm: string = '';
   searchResults: Product[] = [];
+  clearanceLevel: number | undefined;
 
-  constructor(protected auth: AuthService, private router: Router, private productSvc: ProductService) {
+  constructor(private authService: AuthService, private router: Router, private productService: ProductService) {
   }
 
   logout(): void {
-    this.auth.logout();
+    this.authService.logout();
     this.router.navigate(['/login']);
   }
 
@@ -33,14 +32,21 @@ export class NavbarComponent {
       this.searchResults = [];
       return;
     }
-    this.productSvc.getByName(this.searchTerm).subscribe(results => {
+    this.productService.getByName(this.searchTerm).subscribe(results => {
       this.searchResults = results;
     });
+  }
+
+  getClearanceLevel(): number {
+    return this.clearanceLevel = this.authService.clearanceLevel;
   }
 
   goToEdit(productId: number): void {
     this.router.navigate(['/edit', productId]);
   }
 
+  isLoggedIn(): boolean {
+    return this.authService.isLoggedIn();
+  }
 
 }

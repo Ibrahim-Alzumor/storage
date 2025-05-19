@@ -5,31 +5,33 @@
       <div class="form-group">
         <label class="form-label" for="email">Email</label>
         <input
-          [ngClass]="{'is-invalid': this.loginForm.controls['email'].invalid && this.loginForm.controls['email'].touched}"
+          [ngClass]="{'is-invalid': this.loginForm.controls.email.invalid && this.loginForm.controls.email.touched}"
           class="form-control"
           formControlName="email"
-          id="email"
           placeholder="Enter your email"
           type="email"
         />
-        <div *ngIf="emailErrorMessage" class="invalid-feedback">
-          <span>{{ emailErrorMessage }}</span>
-        </div>
+        @if (emailErrorMessage) {
+          <div class="invalid-feedback">
+            <span>{{ emailErrorMessage }}</span>
+          </div>
+        }
       </div>
 
       <div class="form-group">
         <label class="form-label" for="password">Password</label>
         <input
-          [ngClass]="{'is-invalid': this.loginForm.controls['password'].invalid && this.loginForm.controls['password'].touched}"
+          [ngClass]="{'is-invalid': this.loginForm.controls.password.invalid && this.loginForm.controls.password.touched}"
           class="form-control"
           formControlName="password"
-          id="password"
           placeholder="Enter your password"
           type="password"
         />
-        <div *ngIf="passwordErrorMessage" class="invalid-feedback">
-          <span>{{ passwordErrorMessage }}</span>
-        </div>
+        @if (passwordErrorMessage) {
+          <div class="invalid-feedback">
+            <span>{{ passwordErrorMessage }}</span>
+          </div>
+        }
       </div>
 
       <button [disabled]="loginForm.invalid" class="btn btn-primary btn-block">Login</button>

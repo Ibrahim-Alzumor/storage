@@ -3,8 +3,8 @@ import {FormBuilder, FormGroup, ReactiveFormsModule, Validators} from '@angular/
 import {ProductService} from '../../services/product.service';
 import {ActivatedRoute, Router} from '@angular/router';
 import {Product} from '../../interfaces/product.interface';
-import {NgIf} from '@angular/common';
 import {AuthService} from '../../services/auth.service';
+import {NgIf} from '@angular/common';
 
 @Component({
   selector: 'app-product-form',
@@ -20,7 +20,7 @@ export class ProductFormComponent implements OnInit {
   editMode = false;
   productId: number | null = null;
 
-  constructor(private fb: FormBuilder, private productSvc: ProductService, private router: Router, private route: ActivatedRoute, private auth: AuthService) {
+  constructor(private fb: FormBuilder, private productService: ProductService, private router: Router, private route: ActivatedRoute, private authService: AuthService) {
     this.productForm = this.fb.group({
       name: ['', [Validators.required, Validators.maxLength(50)]],
       stock: [0, [Validators.required, Validators.min(0)]],
@@ -31,7 +31,7 @@ export class ProductFormComponent implements OnInit {
   }
 
   ngOnInit() {
-    const level: number = this.auth.clearanceLevel;
+    const level: number = this.authService.clearanceLevel;
     if (level < 2) {
       this.router.navigate(['/']);
       alert('Only Managers and lower are allowed!!')
@@ -40,7 +40,7 @@ export class ProductFormComponent implements OnInit {
       if (params['id']) {
         this.editMode = true;
         this.productId = +params['id'];
-        this.productSvc.getOne(this.productId).subscribe(product => {
+        this.productService.getOne(this.productId).subscribe(product => {
           this.productForm.patchValue(product)
         })
       }
@@ -50,11 +50,10 @@ export class ProductFormComponent implements OnInit {
   onSubmit(): void {
     if (!this.productForm.valid) {
       alert('Not valid product form')
-      return;
     }
     const product: Product = {id: this.productId || 0, ...this.productForm.value};
     if (this.editMode && this.productId) {
-      this.productSvc.update(this.productId, this.productForm.value).subscribe({
+      this.productService.update(this.productId, this.productForm.value).subscribe({
         next: () => {
           alert('Product Updated!');
           this.router.navigate(['/']);
@@ -62,7 +61,7 @@ export class ProductFormComponent implements OnInit {
         error: err => alert(err.error?.message || 'Error updating product'),
       })
     } else {
-      this.productSvc.create(product).subscribe({
+      this.productService.create(product).subscribe({
         next: () => {
           alert('Product Added!');
           this.router.navigate(['/']);

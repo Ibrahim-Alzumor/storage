@@ -12,16 +12,18 @@ import {Router} from '@angular/router';
   imports: [
     ReactiveFormsModule,
     NgClass,
-    NgIf
+    NgIf,
   ]
 })
 export class UserRegisterComponent implements OnInit {
   registerForm: FormGroup;
   possibleClearanceLevels: { value: number; label: string }[] = [];
+  clearanceLevel: number | undefined;
+
 
   constructor(
     private fb: FormBuilder,
-    public auth: AuthService,
+    public authService: AuthService,
     private userService: UserService,
     private router: Router,
   ) {
@@ -116,7 +118,7 @@ export class UserRegisterComponent implements OnInit {
   }
 
   ngOnInit() {
-    const level: number = this.auth.clearanceLevel;
+    const level: number = this.authService.clearanceLevel;
     if (level < 2) {
       this.router.navigate(['/']);
       alert('Only Managers and lower are allowed!!')
@@ -124,7 +126,7 @@ export class UserRegisterComponent implements OnInit {
   }
 
   setPossibleClearanceLevels() {
-    const myLevel: number = this.auth.clearanceLevel;
+    const myLevel: number = this.authService.clearanceLevel;
     if (myLevel === 3 || myLevel === 4) {
       this.possibleClearanceLevels = [
         {value: 0, label: 'Worker'},
@@ -145,7 +147,7 @@ export class UserRegisterComponent implements OnInit {
 
   onRegister() {
     if (this.registerForm.invalid) return;
-    if (this.auth.clearanceLevel < 2) {
+    if (this.authService.clearanceLevel < 2) {
       alert('You do not have clearance to register users.');
       return;
     }
@@ -153,5 +155,9 @@ export class UserRegisterComponent implements OnInit {
       next: () => alert('User registered!'),
       error: err => alert(err.error?.message || 'Error registering user')
     });
+  }
+
+  getClearanceLevel(): number {
+    return this.clearanceLevel = this.authService.clearanceLevel;
   }
 }

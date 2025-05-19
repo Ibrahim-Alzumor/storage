@@ -4,7 +4,9 @@
     <th>Name</th>
     <th>Stock</th>
     <th>Category</th>
-    <th *ngIf="hasImage()">Image</th>
+    @if (hasImage()) {
+      <th>Image</th>
+    }
     <th>Actions</th>
   </tr>
   </thead>
@@ -14,27 +16,38 @@
     </tr>
     <tr (click)="openProductModal(product)">
       <td>{{ product.name }}</td>
-      <td *ngIf="product.stock !== undefined">{{ product.stock }}</td>
-      <td *ngIf="product.category">{{ product.category }}</td>
-      <td *ngIf="product.image"><img [src]="product.image" width="50" alt="No image available"/></td>
+      @if (product.stock !== undefined) {
+        <td>{{ product.stock }}</td>
+      }
+      @if (product.category) {
+        <td>{{ product.category }}</td>
+      }
+      @if (product.image) {
+        <td><img [src]="product.image" width="50" alt="No image available"/></td>
+      }
+      @if (product.description) {
+        <td>{{ product.description }}</td>
+      }
+
       <td>
         <button (click)="goToEdit(product)">Edit</button>
-        <button (click)="this.productSvc.delete(product.id); $event.stopPropagation()">Delete</button>
+        <button (click)="this.deleteProduct(product.id); $event.stopPropagation()">Delete</button>
       </td>
     </tr>
     </tbody>
   }
 </table>
 
-@if (selectedProduct) {
-  <div class="modal">
-    <div class="modal-content">
-      <span class="close" (click)="closeModal()">&times;</span>
-      <h2>{{ selectedProduct.name }}</h2>
-      <p><strong>Stock:</strong> {{ selectedProduct.stock }}</p>
-      <p><strong>Category:</strong> {{ selectedProduct.category }}</p>
-      <p><strong>Description:</strong> {{ selectedProduct.description }}</p>
-      <p><img [src]="selectedProduct.image" alt="image" width="50"></p>
-    </div>
-  </div>
-}
+
+<!--@if (selectedProduct) {-->
+<!--    <div class="modal">-->
+<!--        <div class="modal-content">-->
+<!--            <span class="close" (click)="closeModal()">&times;</span>-->
+<!--            <h2>{{ selectedProduct.name }}</h2>-->
+<!--            <p><strong>Stock:</strong> {{ selectedProduct.stock }}</p>-->
+<!--            <p><strong>Category:</strong> {{ selectedProduct.category }}</p>-->
+<!--            <p><strong>Description:</strong> {{ selectedProduct.description }}</p>-->
+<!--            <p><img [src]="selectedProduct.image" alt="image" width="50"></p>-->
+<!--        </div>-->
+<!--    </div>-->
+<!--}-->

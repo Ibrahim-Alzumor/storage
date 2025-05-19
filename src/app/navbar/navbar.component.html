@@ -4,12 +4,16 @@
     <li class="nav-item">
       <a class="btn btn-light mx-1" routerLink="/">Products</a>
     </li>
-    <li *ngIf="auth.clearanceLevel >= 3" class="nav-item">
-      <a class="btn btn-light mx-1" routerLink="/add">Add Product</a>
-    </li>
-    <li *ngIf="auth.clearanceLevel >= 2" class="nav-item">
-      <a class="btn btn-light mx-1" routerLink="/register">Register User</a>
-    </li>
+    @if (this.getClearanceLevel() >= 3) {
+      <li class="nav-item">
+        <a class="btn btn-light mx-1" routerLink="/add">Add Product</a>
+      </li>
+    }
+    @if (this.getClearanceLevel() >= 2) {
+      <li class="nav-item">
+        <a class="btn btn-light mx-1" routerLink="/register">Register User</a>
+      </li>
+    }
     <form (ngSubmit)="onSearch()" class="d-flex align-items-center mx-2">
       <input [(ngModel)]="searchTerm" class="form-control search-input" name="search" placeholder="Search"
              type="search">
@@ -25,6 +29,8 @@
         }
       </ul>
     }
-    <button (click)="logout()" *ngIf="auth.isLoggedIn()" class="btn btn-outline-danger ml-2">Logout</button>
+    @if (this.isLoggedIn()) {
+      <button (click)="logout()" class="btn btn-outline-danger ml-2">Logout</button>
+    }
   </ul>
 </nav>
