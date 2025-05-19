@@ -19,7 +19,7 @@
       <td *ngIf="product.image"><img [src]="product.image" width="50" alt="No image available"/></td>
       <td>
         <button (click)="goToEdit(product)">Edit</button>
-        <button (click)="this.productSvc.delete(product.id)">Delete</button>
+        <button (click)="this.productSvc.delete(product.id); $event.stopPropagation()">Delete</button>
       </td>
     </tr>
     </tbody>
