@@ -1,19 +1,13 @@
-import {HttpEvent, HttpHandler, HttpInterceptor, HttpRequest} from '@angular/common/http';
-import {AuthService} from './auth.service';
+import {HttpEvent, HttpHandlerFn, HttpRequest} from '@angular/common/http';
 import {Observable} from 'rxjs';
 
 
-export class TokenInterceptor implements HttpInterceptor {
-  constructor(private auth: AuthService) {
+export function TokenInterceptor(req: HttpRequest<unknown>, next: HttpHandlerFn): Observable<HttpEvent<unknown>> {
+  const token = localStorage.getItem('jwt_token');
+  if (token) {
+    req = req.clone({
+      setHeaders: {authorization: `Bearer ${token}`}
+    });
   }
-
-  intercept(req: HttpRequest<any>, next: HttpHandler) {
-    const token = this.auth.token;
-    if (token) {
-      req = req.clone({
-        setHeaders: {Authorization: `Bearer ${token}`},
-      })
-    }
-    return next.handle(req);
-  }
+  return next(req);
 }

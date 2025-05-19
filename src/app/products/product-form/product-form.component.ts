@@ -4,6 +4,7 @@ import {ProductService} from '../../services/product.service';
 import {ActivatedRoute, Router} from '@angular/router';
 import {Product} from '../../interfaces/product.interface';
 import {NgIf} from '@angular/common';
+import {AuthService} from '../../services/auth.service';
 
 @Component({
   selector: 'app-product-form',
@@ -19,7 +20,7 @@ export class ProductFormComponent implements OnInit {
   editMode = false;
   productId: number | null = null;
 
-  constructor(private fb: FormBuilder, private productSvc: ProductService, private router: Router, private route: ActivatedRoute) {
+  constructor(private fb: FormBuilder, private productSvc: ProductService, private router: Router, private route: ActivatedRoute, private auth: AuthService) {
     this.productForm = this.fb.group({
       name: ['', [Validators.required, Validators.maxLength(50)]],
       stock: [0, [Validators.required, Validators.min(0)]],
@@ -30,6 +31,11 @@ export class ProductFormComponent implements OnInit {
   }
 
   ngOnInit() {
+    const level: number = this.auth.clearanceLevel;
+    if (level < 2) {
+      this.router.navigate(['/']);
+      alert('Only Managers and lower are allowed!!')
+    }
     this.route.params.subscribe(params => {
       if (params['id']) {
         this.editMode = true;
@@ -42,13 +48,16 @@ export class ProductFormComponent implements OnInit {
   }
 
   onSubmit(): void {
-    if (this.productForm.valid) return;
+    if (!this.productForm.valid) {
+      alert('Not valid product form')
+      return;
+    }
     const product: Product = {id: this.productId || 0, ...this.productForm.value};
     if (this.editMode && this.productId) {
       this.productSvc.update(this.productId, this.productForm.value).subscribe({
         next: () => {
           alert('Product Updated!');
-          this.router.navigate(['/products']);
+          this.router.navigate(['/']);
         },
         error: err => alert(err.error?.message || 'Error updating product'),
       })
@@ -56,9 +65,9 @@ export class ProductFormComponent implements OnInit {
       this.productSvc.create(product).subscribe({
         next: () => {
           alert('Product Added!');
-          this.router.navigate(['/products']);
+          this.router.navigate(['/']);
         },
-        error: err => alert(err.error?.message || 'Error adding product'),
+        error: err => alert('Error adding product'),
       })
     }
   }

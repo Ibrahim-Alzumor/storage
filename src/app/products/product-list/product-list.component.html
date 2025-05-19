@@ -4,26 +4,28 @@
     <th>Name</th>
     <th>Stock</th>
     <th>Category</th>
-    <th>Image</th>
-    <th>Description</th>
+    <th *ngIf="hasImage()">Image</th>
     <th>Actions</th>
   </tr>
   </thead>
-  <tbody>
-    @for (product of products; track $index) {
-      <div class="contact-card" (click)="openProductModal(product)">
-        <tr>
-          <td>{{ product.name }}</td>
-          <td>{{ product.stock }}</td>
-          <td><img [src]="product.image" alt="image" width="50"></td>
-          <td>
-            <button (click)="goToEdit(product)">Edit</button>
-          </td>
-        </tr>
-      </div>
-    }
-  </tbody>
+  @for (product of products; track $index) {
+    <tbody>
+    <tr class="thread-header">
+    </tr>
+    <tr (click)="openProductModal(product)">
+      <td>{{ product.name }}</td>
+      <td *ngIf="product.stock !== undefined">{{ product.stock }}</td>
+      <td *ngIf="product.category">{{ product.category }}</td>
+      <td *ngIf="product.image"><img [src]="product.image" width="50" alt="No image available"/></td>
+      <td>
+        <button (click)="goToEdit(product)">Edit</button>
+        <button (click)="this.productSvc.delete(product.id); $event.stopPropagation()">Delete</button>
+      </td>
+    </tr>
+    </tbody>
+  }
 </table>
+
 
 
 @if (selectedProduct) {

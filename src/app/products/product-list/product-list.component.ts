@@ -2,10 +2,13 @@ import {Component, OnInit} from '@angular/core';
 import {Product} from '../../interfaces/product.interface';
 import {ProductService} from '../../services/product.service';
 import {ActivatedRoute, Router} from '@angular/router';
+import {NgIf} from '@angular/common';
 
 @Component({
   selector: 'app-product-list',
-  imports: [],
+  imports: [
+    NgIf,
+  ],
   templateUrl: './product-list.component.html',
   styleUrl: './product-list.component.css'
 })
@@ -15,7 +18,7 @@ export class ProductListComponent implements OnInit {
   selectedProduct: Product | null = null;
 
 
-  constructor(private productSvc: ProductService, private router: Router, private route: ActivatedRoute) {
+  constructor(protected productSvc: ProductService, private router: Router, private route: ActivatedRoute) {
   }
 
   ngOnInit() {
@@ -30,7 +33,7 @@ export class ProductListComponent implements OnInit {
   }
 
   goToEdit(product: Product) {
-    this.router.navigate(['/product-form', product.id]);
+    this.router.navigate(['/add', product.id]);
   }
 
   openProductModal(Product: Product): void {
@@ -40,4 +43,9 @@ export class ProductListComponent implements OnInit {
   closeModal(): void {
     this.selectedProduct = null;
   }
+
+  hasImage(): boolean {
+    return Object.values(this.products).flat().some(p => p.image);
+  }
+
 }
