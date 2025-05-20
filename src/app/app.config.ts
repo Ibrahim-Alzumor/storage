@@ -9,11 +9,11 @@ import {LoginComponent} from './auth/login/login.component';
 import {UserRegisterComponent} from './users/user-register/user-register.component';
 
 const routes: Routes = [
-  {path: '', component: ProductListComponent, canActivate: [AuthGuard], data: {requiredLevel: 0}},
-  {path: 'add', component: ProductFormComponent, canActivate: [AuthGuard], data: {requiredLevel: 2}},
-  {path: 'add/:id', component: ProductFormComponent, canActivate: [AuthGuard], data: {requiredLevel: 2}},
+  {path: '', component: ProductListComponent, canActivate: [AuthGuard], data: {minimumRequiredLevel: 0}},
+  {path: 'add', component: ProductFormComponent, canActivate: [AuthGuard], data: {minimumRequiredLevel: 2}},
+  {path: 'add/:id', component: ProductFormComponent, canActivate: [AuthGuard], data: {minimumRequiredLevel: 2}},
   {path: 'login', component: LoginComponent},
-  {path: 'register', component: UserRegisterComponent, canActivate: [AuthGuard], data: {requiredLevel: 2}},
+  {path: 'register', component: UserRegisterComponent, canActivate: [AuthGuard], data: {minimumRequiredLevel: 2}},
 ];
 
 export const appConfig: ApplicationConfig = {

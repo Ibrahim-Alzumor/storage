@@ -14,18 +14,17 @@ export class AuthGuard implements CanActivate {
       this.router.navigate(['/login']);
       this.authService.logout();
     }
-    const requiredLevel = route.data['requiredLevel'] || 0;
+    const minimumRequiredLevel = route.data['minimumRequiredLevel'] || 0;
     const currentLevel = this.authService.clearanceLevel;
 
-    if (requiredLevel > currentLevel) {
-      if (requiredLevel === 0) {
+    if (minimumRequiredLevel > currentLevel) {
+      if (minimumRequiredLevel === 0) {
         alert('Only Employees are allowed!!');
-      } else if (requiredLevel === 1) {
+      } else if (minimumRequiredLevel === 1) {
         alert('Only Associates and higher are allowed!!');
-      } else if (requiredLevel === 2) {
+      } else if (minimumRequiredLevel === 2) {
         alert('Only Managers and higher are allowed!!');
       }
-      this.router.navigate(['/login']);
       this.authService.logout();
       return false;
     }

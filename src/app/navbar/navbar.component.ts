@@ -30,13 +30,13 @@ export class NavbarComponent {
   onSearch(): void {
     if (!this.searchTerm.trim()) {
       this.searchResults = [];
-      this.router.navigate(['/products']);
+      this.router.navigate(['/']);
       return;
     }
 
     this.productService.getByName(this.searchTerm).subscribe(results => {
       this.searchResults = results;
-      this.router.navigate(['/products'], {
+      this.router.navigate(['/'], {
         queryParams: {name: this.searchTerm}
       });
     });

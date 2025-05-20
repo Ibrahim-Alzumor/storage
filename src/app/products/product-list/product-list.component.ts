@@ -79,37 +79,43 @@ export class ProductListComponent implements OnInit {
 
   toggleEditMode(): void {
     this.isEditMode = !this.isEditMode;
-    if (!this.isEditMode) {
+    if (this.isEditMode) {
       this.initializeForm();
     }
   }
 
   clearSearch(): void {
-    this.router.navigate(['/products'], {
+    this.router.navigate(['/'], {
       queryParams: {}
     });
   }
 
-  saveChanges(): void {
-    if (this.productForm.valid) {
-      const updatedProducts = this.productsFormArray.value as Product[];
-      const updatePromises = updatedProducts.map(product =>
-        firstValueFrom(this.productService.update(product.id, product))
-      );
-
-      Promise.all(updatePromises)
-        .then(() => {
-          alert('All changes saved successfully');
-          this.isEditMode = false;
-          this.productService.getAll().subscribe(products => this.products = products);
-        })
-        .catch(error => {
-          alert('Error saving changes: ' + error.message);
-        });
-    } else {
+  async saveChanges(): Promise<void> {
+    if (!this.productForm.valid) {
       alert('Please fix the form errors before saving');
+      return;
+    }
+    try {
+      const updatedProducts = this.productsFormArray.value as Product[];
+      const updatePromises = updatedProducts.map((updatedProduct, index) => {
+        const originalProduct = this.products[index];
+        const changes = this.getChangedProperties(originalProduct, updatedProduct);
+        if (Object.keys(changes).length > 1) {
+          return firstValueFrom(this.productService.update(changes.id, changes));
+        }
+        return Promise.resolve();
+      }).filter(promise => promise !== undefined);
+      if (updatePromises.length > 0) {
+        await Promise.all(updatePromises);
+        alert('All changes saved successfully');
+      }
+      this.isEditMode = false;
+      this.products = await firstValueFrom(this.productService.getAll());
+    } catch (error) {
+      alert('Error saving changes: ' + (error as Error).message);
     }
   }
+
 
   goToEdit(product: Product): void {
     this.router.navigate(['/add', product.id]);
@@ -121,6 +127,18 @@ export class ProductListComponent implements OnInit {
 
   deleteProduct(id: number): void {
     this.productService.delete(id).subscribe();
+  }
+
+  getChangedProperties(original: Product, updated: Product): PartialProduct {
+    const changes: PartialProduct = {id: original.id};
+
+    (Object.keys(original) as (keyof Product)[]).forEach(key => {
+      if (key !== 'id' && original[key] !== updated[key]) {
+        changes[key] = updated[key] as any;
+      }
+    });
+
+    return changes;
   }
 
   private createForm(): FormGroup {
@@ -148,3 +166,8 @@ export class ProductListComponent implements OnInit {
     });
   }
 }
+
+interface PartialProduct extends Partial<Product> {
+  id: number;
+}
+

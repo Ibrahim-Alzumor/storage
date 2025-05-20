@@ -1,5 +1,5 @@
 import {Injectable} from '@angular/core';
-import {HttpClient} from '@angular/common/http';
+import {HttpClient, HttpParams} from '@angular/common/http';
 import {Product} from '../interfaces/product.interface';
 import {Observable} from 'rxjs';
 import {environment} from './enviroment';
@@ -16,9 +16,9 @@ export class ProductService {
   }
 
   getByName(searchTerm: string): Observable<Product[]> {
-    return this.http.get<Product[]>(`${environment.apiUrl}/products/search?name=${encodeURIComponent(searchTerm)}`);
+    const params = new HttpParams().set('name', searchTerm.trim());
+    return this.http.get<Product[]>(`${environment.apiUrl}/products/search`, {params});
   }
-
 
   getOne(id: number): Observable<Product> {
     return this.http.get<Product>(`${environment.apiUrl}/products/${id}`);
