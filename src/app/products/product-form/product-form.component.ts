@@ -1,16 +1,20 @@
 import {Component, OnInit} from '@angular/core';
-import {FormBuilder, FormGroup, ReactiveFormsModule, Validators} from '@angular/forms';
+import {FormBuilder, FormControl, FormGroup, ReactiveFormsModule, Validators} from '@angular/forms';
 import {ProductService} from '../../services/product.service';
 import {ActivatedRoute, Router} from '@angular/router';
 import {Product} from '../../interfaces/product.interface';
 import {AuthService} from '../../services/auth.service';
-import {NgIf} from '@angular/common';
+import {MatFormFieldModule} from '@angular/material/form-field';
+import {MatInputModule} from '@angular/material/input';
+import {MatButtonModule} from '@angular/material/button';
 
 @Component({
   selector: 'app-product-form',
   imports: [
     ReactiveFormsModule,
-    NgIf,
+    MatFormFieldModule,
+    MatInputModule,
+    MatButtonModule
   ],
   templateUrl: './product-form.component.html',
   styleUrl: './product-form.component.css'
@@ -20,7 +24,7 @@ export class ProductFormComponent implements OnInit {
   editMode = false;
   productId: number | null = null;
 
-  constructor(private fb: FormBuilder, private productService: ProductService, private router: Router, private route: ActivatedRoute, private authService: AuthService) {
+  constructor(private fb: FormBuilder, private productService: ProductService, private router: Router, private route: ActivatedRoute) {
     this.productForm = this.fb.group({
       name: ['', [Validators.required, Validators.maxLength(50)]],
       stock: [0, [Validators.required, Validators.min(0)]],
@@ -31,11 +35,6 @@ export class ProductFormComponent implements OnInit {
   }
 
   ngOnInit() {
-    const level: number = this.authService.clearanceLevel;
-    if (level < 2) {
-      this.router.navigate(['/']);
-      alert('Only Managers and lower are allowed!!')
-    }
     this.route.params.subscribe(params => {
       if (params['id']) {
         this.editMode = true;
@@ -66,7 +65,7 @@ export class ProductFormComponent implements OnInit {
           alert('Product Added!');
           this.router.navigate(['/']);
         },
-        error: err => alert('Error adding product'),
+        error: err => alert(err.error?.message || 'Error adding product'),
       })
     }
   }

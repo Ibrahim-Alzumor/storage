@@ -1,53 +1,109 @@
-<table>
-  <thead>
-  <tr>
-    <th>Name</th>
-    <th>Stock</th>
-    <th>Category</th>
-    @if (hasImage()) {
-      <th>Image</th>
+<div class="table-container">
+  <div class="table-actions">
+    @if (route.snapshot.queryParams['name']) {
+      <div class="search-status">
+        Showing results for: "{{ route.snapshot.queryParams['name'] }}"
+        <button mat-button (click)="clearSearch()">Clear Search</button>
+      </div>
     }
-    <th>Actions</th>
-  </tr>
-  </thead>
-  @for (product of products; track $index) {
-    <tbody>
-    <tr class="thread-header">
-    </tr>
-    <tr (click)="openProductModal(product)">
-      <td>{{ product.name }}</td>
-      @if (product.stock !== undefined) {
-        <td>{{ product.stock }}</td>
-      }
-      @if (product.category) {
-        <td>{{ product.category }}</td>
-      }
-      @if (product.image) {
-        <td><img [src]="product.image" width="50" alt="No image available"/></td>
-      }
-      @if (product.description) {
-        <td>{{ product.description }}</td>
-      }
+    <button (click)="toggleEditMode()" class="edit-button" color="primary" mat-raised-button>
+      {{ isEditMode ? 'Cancel Editing' : 'Edit Products' }}
+    </button>
+    @if (isEditMode) {
+      <button class="edit-button" mat-raised-button color="primary" (click)="saveChanges()">
+        Save Changes
+      </button>
+    }
+  </div>
 
-      <td>
-        <button (click)="goToEdit(product)">Edit</button>
-        <button (click)="this.deleteProduct(product.id); $event.stopPropagation()">Delete</button>
-      </td>
-    </tr>
-    </tbody>
+  @if (loading) {
+    <div class="loading-spinner">
+      <mat-spinner diameter="40"></mat-spinner>
+    </div>
   }
-</table>
 
+  @if (!loading && products.length === 0) {
+    <div class="no-results">
+      No products found. @if (route.snapshot.queryParams['name']) {
+      Try a different search term.
+    }
+    </div>
+  }
 
-<!--@if (selectedProduct) {-->
-<!--    <div class="modal">-->
-<!--        <div class="modal-content">-->
-<!--            <span class="close" (click)="closeModal()">&times;</span>-->
-<!--            <h2>{{ selectedProduct.name }}</h2>-->
-<!--            <p><strong>Stock:</strong> {{ selectedProduct.stock }}</p>-->
-<!--            <p><strong>Category:</strong> {{ selectedProduct.category }}</p>-->
-<!--            <p><strong>Description:</strong> {{ selectedProduct.description }}</p>-->
-<!--            <p><img [src]="selectedProduct.image" alt="image" width="50"></p>-->
-<!--        </div>-->
-<!--    </div>-->
-<!--}-->
+  <form [formGroup]="productForm">
+    <table>
+      <thead>
+      <tr>
+        <th>Name</th>
+        <th>Stock</th>
+        <th>Category</th>
+        @if (hasImage()) {
+          <th>Image</th>
+        }
+        <th>Description</th>
+        @if (!isEditMode) {
+          <th>Actions</th>
+        }
+      </tr>
+      </thead>
+      <tbody formArrayName="products">
+        @for (productGroup of productsFormArray.controls; track $index) {
+          <tr [formGroupName]="$index">
+            <td>
+              @if (isEditMode) {
+                <mat-form-field class="edit-mode-input" appearance="fill">
+                  <input matInput [formControlName]="'name'" class="custom-input">
+                </mat-form-field>
+              } @else {
+                {{ products[$index].name }}
+              }
+            </td>
+            <td>
+              @if (isEditMode) {
+                <mat-form-field [class.edit-mode-input]="isEditMode">
+                  <input matInput type="number" [formControlName]="'stock'" class="custom-input">
+                </mat-form-field>
+              } @else {
+                {{ products[$index].stock }}
+              }
+            </td>
+            <td>
+              @if (isEditMode) {
+                <mat-form-field [class.edit-mode-input]="isEditMode">
+                  <input matInput [formControlName]="'category'" class="custom-input">
+                </mat-form-field>
+              } @else {
+                {{ products[$index].category }}
+              }
+            </td>
+            @if (hasImage()) {
+              <td>
+                <img [ngSrc]="products[$index].image" height="50" width="50" alt="No image available"/>
+              </td>
+            }
+            <td>
+              @if (isEditMode) {
+                <mat-form-field [class.edit-mode-input]="isEditMode">
+                  <input matInput [formControlName]="'description'" class="custom-input">
+                </mat-form-field>
+              } @else {
+                {{ products[$index].description }}
+              }
+            </td>
+            <td>
+              @if (!isEditMode) {
+                <button class="edit-button" color="primary" mat-raised-button (click)="goToEdit(products[$index])">
+                  Edit
+                </button>
+                <button class="edit-button" color="primary" mat-raised-button
+                        (click)="deleteProduct(products[$index].id); $event.stopPropagation()">
+                  Delete
+                </button>
+              }
+            </td>
+          </tr>
+        }
+      </tbody>
+    </table>
+  </form>
+</div>

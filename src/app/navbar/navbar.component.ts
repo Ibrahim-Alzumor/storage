@@ -30,19 +30,26 @@ export class NavbarComponent {
   onSearch(): void {
     if (!this.searchTerm.trim()) {
       this.searchResults = [];
+      this.router.navigate(['/products']);
       return;
     }
+
     this.productService.getByName(this.searchTerm).subscribe(results => {
       this.searchResults = results;
+      this.router.navigate(['/products'], {
+        queryParams: {name: this.searchTerm}
+      });
     });
-  }
-
-  getClearanceLevel(): number {
-    return this.clearanceLevel = this.authService.clearanceLevel;
   }
 
   goToEdit(productId: number): void {
     this.router.navigate(['/edit', productId]);
+    this.searchResults = [];
+    this.searchTerm = '';
+  }
+
+  getClearanceLevel(): number {
+    return this.clearanceLevel = this.authService.clearanceLevel;
   }
 
   isLoggedIn(): boolean {

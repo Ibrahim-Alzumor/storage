@@ -2,51 +2,149 @@ import {Component, OnInit} from '@angular/core';
 import {Product} from '../../interfaces/product.interface';
 import {ProductService} from '../../services/product.service';
 import {ActivatedRoute, Router} from '@angular/router';
+import {FormBuilder, FormGroup, FormArray, Validators, ReactiveFormsModule} from '@angular/forms';
+import {MatButton} from '@angular/material/button';
+import {MatFormField, MatInput} from '@angular/material/input';
+import {MatProgressSpinner} from '@angular/material/progress-spinner';
+import {NgOptimizedImage} from '@angular/common';
+import {firstValueFrom} from 'rxjs';
 
 @Component({
-    selector: 'app-product-list',
-    imports: [],
-    templateUrl: './product-list.component.html',
-    styleUrl: './product-list.component.css'
+  selector: 'app-product-list',
+  imports: [
+    MatButton,
+    ReactiveFormsModule,
+    MatFormField,
+    MatInput,
+    MatFormField,
+    MatProgressSpinner,
+    NgOptimizedImage,
+  ],
+  templateUrl: './product-list.component.html',
+  styleUrl: './product-list.component.css'
 })
 export class ProductListComponent implements OnInit {
-    products: Product[] = [];
+  products: Product[] = [];
+  isEditMode = false;
+  productForm: FormGroup;
+  loading = false;
 
-    selectedProduct: Product | null = null;
+
+  constructor(
+    private productService: ProductService,
+    private router: Router,
+    protected route: ActivatedRoute,
+    private fb: FormBuilder,
+  ) {
+    this.productForm = this.createForm();
+  }
+
+  get productsFormArray(): FormArray {
+    return this.productForm.get('products') as FormArray;
+  }
+
+  ngOnInit() {
+    this.route.queryParams.subscribe(params => {
+      const name = params['name'];
+      this.loading = true;
+
+      if (name) {
+        this.productService.getByName(name).subscribe({
+          next: (products) => {
+            this.products = products;
+            this.initializeForm();
+            this.loading = false;
+          },
+          error: (error) => {
+            console.error('Error fetching products:', error);
+            this.loading = false;
+          }
+        });
+      } else {
+        this.productService.getAll().subscribe({
+          next: (products) => {
+            this.products = products;
+            this.initializeForm();
+            this.loading = false;
+          },
+          error: (error) => {
+            console.error('Error fetching products:', error);
+            this.loading = false;
+          }
+        });
+      }
+    });
+  }
 
 
-    constructor(private productService: ProductService, private router: Router, private route: ActivatedRoute) {
+  toggleEditMode(): void {
+    this.isEditMode = !this.isEditMode;
+    if (!this.isEditMode) {
+      this.initializeForm();
     }
+  }
 
-    ngOnInit() {
-        this.route.queryParams.subscribe(params => {
-            const name = params['name'];
-            if (name) {
-                this.productService.getByName(name).subscribe(products => this.products = products);
-            } else {
-                this.productService.getAll().subscribe(products => this.products = products);
-            }
+  clearSearch(): void {
+    this.router.navigate(['/products'], {
+      queryParams: {}
+    });
+  }
+
+  saveChanges(): void {
+    if (this.productForm.valid) {
+      const updatedProducts = this.productsFormArray.value as Product[];
+      const updatePromises = updatedProducts.map(product =>
+        firstValueFrom(this.productService.update(product.id, product))
+      );
+
+      Promise.all(updatePromises)
+        .then(() => {
+          alert('All changes saved successfully');
+          this.isEditMode = false;
+          this.productService.getAll().subscribe(products => this.products = products);
         })
+        .catch(error => {
+          alert('Error saving changes: ' + error.message);
+        });
+    } else {
+      alert('Please fix the form errors before saving');
     }
+  }
 
-    goToEdit(product: Product) {
-        this.router.navigate(['/add', product.id]);
-    }
+  goToEdit(product: Product): void {
+    this.router.navigate(['/add', product.id]);
+  }
 
-    openProductModal(Product: Product): void {
-        this.selectedProduct = Product;
-    }
+  hasImage(): boolean {
+    return this.products.some(p => p.image);
+  }
 
-    closeModal(): void {
-        this.selectedProduct = null;
-    }
+  deleteProduct(id: number): void {
+    this.productService.delete(id).subscribe();
+  }
 
-    hasImage(): boolean {
-        return Object.values(this.products).flat().some(p => p.image);
-    }
+  private createForm(): FormGroup {
+    return this.fb.group({
+      products: this.fb.array([])
+    });
+  }
 
-    deleteProduct(id: number): void {
-        this.productService.delete(id).subscribe()
-    }
+  private createProductFormGroup(product: Product): FormGroup {
+    return this.fb.group({
+      id: [product.id],
+      name: [product.name, [Validators.required, Validators.maxLength(50)]],
+      stock: [product.stock, [Validators.required, Validators.min(0)]],
+      category: [product.category, Validators.required],
+      image: [product.image],
+      description: [product.description, Validators.required]
+    });
+  }
 
+  private initializeForm(): void {
+    const products = this.products.map(product => this.createProductFormGroup(product));
+
+    this.productForm = this.fb.group({
+      products: this.fb.array(products)
+    });
+  }
 }

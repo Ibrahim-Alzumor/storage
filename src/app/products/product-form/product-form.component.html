@@ -1,45 +1,75 @@
-<div class="container mt-4">
-  <h2>{{ editMode ? 'Edit Product' : 'Add Product' }}</h2>
-  <form [formGroup]="productForm">
-    <div class="form-group">
-      <label for="name">Name</label>
-      <input class="form-control" formControlName="name" id="name"/>
-      <div *ngIf="productForm.controls['name'].invalid && productForm.controls['name'].touched" class="text-danger">
-        Name is required, max 50 chars.
-      </div>
-    </div>
-    <div class="form-group">
-      <label for="stock">Stock</label>
-      <input class="form-control" formControlName="stock" id="stock" type="number"/>
-      <div *ngIf="productForm.controls['stock'].invalid && productForm.controls['stock'].touched" class="text-danger">
-        Stock must be 0 or greater.
-      </div>
-    </div>
-    <div class="form-group">
-      <label for="category">Category</label>
-      <input class="form-control" formControlName="category" id="category"/>
-      <div *ngIf="productForm.controls['category'].invalid && productForm.controls['category'].touched"
-           class="text-danger">
-        Category is required.
-      </div>
-    </div>
-    <div class="form-group">
-      <label for="image">Image URL</label>
-      <input class="form-control" formControlName="image" id="image"/>
-      <div *ngIf="productForm.controls['image'].invalid && productForm.controls['image'].touched" class="text-danger">
-        Image URL is required.
-      </div>
-    </div>
-    <div class="form-group">
-      <label for="description">Description</label>
-      <textarea class="form-control" formControlName="description" id="description"></textarea>
-      <div *ngIf="productForm.controls['description'].invalid && productForm.controls['description'].touched"
-           class="text-danger">
-        Description is required, max 200 chars.
-      </div>
-    </div>
-    <button (click)="this.onSubmit()" [disabled]="productForm.invalid" class="btn btn-success" type="submit">
-      {{ editMode ? 'Update' : 'Add' }} Product
-    </button>
-  </form>
+<div class="container">
+  <div class="product-card">
+    <h2>{{ editMode ? 'Edit Product' : 'Add Product' }}</h2>
+    <form (ngSubmit)="onSubmit()" [formGroup]="productForm">
+      <mat-form-field appearance="outline">
+        <mat-label>Name</mat-label>
+        <input formControlName="name"
+               matInput
+               placeholder="Enter product name">
+        @if (productForm.controls['name'].invalid && productForm.controls['name'].touched) {
+          <mat-error>
+            Name is required, max 50 chars.
+          </mat-error>
+        }
+      </mat-form-field>
+
+      <mat-form-field appearance="outline">
+        <mat-label>Stock</mat-label>
+        <input formControlName="stock"
+               matInput
+               placeholder="Enter stock quantity"
+               type="number">
+        @if (productForm.controls['stock'].invalid && productForm.controls['stock'].touched) {
+          <mat-error>
+            Stock must be 0 or greater.
+          </mat-error>
+        }
+      </mat-form-field>
+
+      <mat-form-field appearance="outline">
+        <mat-label>Category</mat-label>
+        <input formControlName="category"
+               matInput
+               placeholder="Enter category">
+        @if (productForm.controls['category'].invalid && productForm.controls['category'].touched) {
+          <mat-error>
+            Category is required.
+          </mat-error>
+        }
+      </mat-form-field>
+
+      <mat-form-field appearance="outline">
+        <mat-label>Image URL</mat-label>
+        <input formControlName="image"
+               matInput
+               placeholder="Enter image URL">
+        @if (productForm.controls['image'].invalid && productForm.controls['image'].touched) {
+          <mat-error>
+            Image URL is required.
+          </mat-error>
+        }
+      </mat-form-field>
+
+      <mat-form-field appearance="outline">
+        <mat-label>Description</mat-label>
+        <textarea formControlName="description"
+                  matInput
+                  placeholder="Enter description"
+                  rows="4"></textarea>
+        @if (productForm.controls['description'].invalid && productForm.controls['description'].touched) {
+          <mat-error>
+            Description is required, max 200 chars.
+          </mat-error>
+        }
+      </mat-form-field>
+
+      <button [disabled]="productForm.invalid"
+              color="primary"
+              mat-raised-button
+              type="submit">
+        {{ editMode ? 'Update' : 'Add' }} Product
+      </button>
+    </form>
+  </div>
 </div>

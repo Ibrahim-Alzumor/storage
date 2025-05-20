@@ -15,9 +15,10 @@ export class ProductService {
     return this.http.get<Product[]>(`${environment.apiUrl}/products`);
   }
 
-  getByName(name: string): Observable<Product[]> {
-    return this.http.get<Product[]>(`${environment.apiUrl}/products/search?name=${name}`);
+  getByName(searchTerm: string): Observable<Product[]> {
+    return this.http.get<Product[]>(`${environment.apiUrl}/products/search?name=${encodeURIComponent(searchTerm)}`);
   }
+
 
   getOne(id: number): Observable<Product> {
     return this.http.get<Product>(`${environment.apiUrl}/products/${id}`);

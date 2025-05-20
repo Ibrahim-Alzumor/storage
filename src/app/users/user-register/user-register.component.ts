@@ -3,7 +3,6 @@ import {FormBuilder, FormGroup, ReactiveFormsModule, Validators} from '@angular/
 import {AuthService} from '../../services/auth.service';
 import {UserService} from '../../services/user.service';
 import {NgClass, NgIf} from '@angular/common';
-import {Router} from '@angular/router';
 
 @Component({
   selector: 'app-user-register',
@@ -25,7 +24,6 @@ export class UserRegisterComponent implements OnInit {
     private fb: FormBuilder,
     public authService: AuthService,
     private userService: UserService,
-    private router: Router,
   ) {
     this.registerForm = this.fb.group({
       firstName: ['', [Validators.required, Validators.maxLength(30), Validators.pattern(/^[a-zA-Z\s]+$/),]],
@@ -118,11 +116,6 @@ export class UserRegisterComponent implements OnInit {
   }
 
   ngOnInit() {
-    const level: number = this.authService.clearanceLevel;
-    if (level < 2) {
-      this.router.navigate(['/']);
-      alert('Only Managers and lower are allowed!!')
-    }
   }
 
   setPossibleClearanceLevels() {
