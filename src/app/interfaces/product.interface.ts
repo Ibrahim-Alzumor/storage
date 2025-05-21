@@ -5,5 +5,6 @@ export interface Product {
   category: string;
   image: string;
   description: string;
-  isEmpty: boolean;
+  barcode: number;
+  isEmpty?: boolean;
 }
