@@ -7,6 +7,7 @@ import {AuthGuard} from './auth/auth.guard';
 import {ProductFormComponent} from './products/product-form/product-form.component';
 import {LoginComponent} from './users/login/login.component';
 import {UserRegisterComponent} from './users/user-register/user-register.component';
+import {BarcodeScannerComponent} from './products/barcode-scanner/barcode-scanner.component';
 
 const routes: Routes = [
   {path: '', component: ProductListComponent, canActivate: [AuthGuard], data: {minimumRequiredLevel: 0}},
@@ -14,6 +15,7 @@ const routes: Routes = [
   {path: 'add/:id', component: ProductFormComponent, canActivate: [AuthGuard], data: {minimumRequiredLevel: 2}},
   {path: 'login', component: LoginComponent},
   {path: 'register', component: UserRegisterComponent, canActivate: [AuthGuard], data: {minimumRequiredLevel: 2}},
+  {path: 'barcode', component: BarcodeScannerComponent, canActivate: [AuthGuard], data: {minimumRequiredLevel: 1}},
 ];
 
 export const appConfig: ApplicationConfig = {

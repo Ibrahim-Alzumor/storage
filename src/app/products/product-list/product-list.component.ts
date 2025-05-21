@@ -48,11 +48,13 @@ export class ProductListComponent implements OnInit {
   }
 
   ngOnInit() {
+    this.authService.isLoggedIn();
     if (!this.isEditMode) {
       this.loadProductsNotEdit()
     } else if (this.isEditMode) {
       this.loadProductsEdit()
     }
+
   }
 
   toggleEditMode(): void {

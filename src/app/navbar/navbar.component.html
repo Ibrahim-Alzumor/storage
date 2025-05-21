@@ -4,6 +4,11 @@
     <li class="nav-item">
       <a class="btn btn-light mx-1" routerLink="/">Products</a>
     </li>
+    @if (this.getClearanceLevel() >= 1) {
+      <li class="nav-item">
+        <a class="btn btn-light mx-1" routerLink="/barcode">Barcode Scanning</a>
+      </li>
+    }
     @if (this.getClearanceLevel() >= 2) {
       <li class="nav-item">
         <a class="btn btn-light mx-1" routerLink="/add">Add Product</a>

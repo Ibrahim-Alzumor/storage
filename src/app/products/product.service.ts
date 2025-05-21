@@ -31,9 +31,7 @@ export class ProductService {
   }
 
   create(product: Product): Observable<Product> {
-    return this.http.post<Product>(`${environment.apiUrl}/products`, product).pipe(
-      map(this.cleanUpProduct)
-    );
+    return this.http.post<Product>(`${environment.apiUrl}/products`, product);
   }
 
   update(id: number, product: Partial<Product>): Observable<Product> {
@@ -46,20 +44,25 @@ export class ProductService {
     return this.http.delete<void>(`${environment.apiUrl}/products/${id}`);
   }
 
-  addStock(id: number, amount: number): Observable<Product> {
-    return this.http.post<Product>(`${environment.apiUrl}/products/${id}/add-stock`, amount).pipe(
+  addStock(id: number): Observable<Product> {
+    const amount = 1;
+    return this.http.patch<Product>(`${environment.apiUrl}/products/${id}/add-stock`, amount).pipe(
       map(this.cleanUpProduct)
     );
   }
 
-  removeStock(id: number, amount: number): Observable<Product> {
-    return this.http.post<Product>(`${environment.apiUrl}/products/${id}/remove-stock`, amount).pipe(
+  addBarcodeToProduct(id: number, barcodeId: number): Observable<Product> {
+    return this.http.put<Product>(`${environment.apiUrl}/products/${id}/barcode`, {barcodeId}).pipe(
       map(this.cleanUpProduct)
     );
+  }
+
+  getByBarcode(barcodeId: number): Observable<Product> {
+    return this.http.get<Product>(`${environment.apiUrl}/products/by-barcode/${barcodeId}`);
   }
 
   private cleanUpProduct(product: any): Product {
-    const {id, name, stock, category, image, description} = product;
-    return {id, name, stock, category, image, description};
+    const {id, name, stock, category, image, description, barcode} = product;
+    return {id, name, stock, category, image, description, barcode};
   }
 }

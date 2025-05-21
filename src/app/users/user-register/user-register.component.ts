@@ -116,6 +116,7 @@ export class UserRegisterComponent implements OnInit {
   }
 
   ngOnInit() {
+    this.authService.isLoggedIn();
   }
 
   setPossibleClearanceLevels() {

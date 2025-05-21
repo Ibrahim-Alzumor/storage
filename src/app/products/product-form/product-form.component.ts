@@ -6,6 +6,7 @@ import {Product} from '../../interfaces/product.interface';
 import {MatFormFieldModule} from '@angular/material/form-field';
 import {MatInputModule} from '@angular/material/input';
 import {MatButtonModule} from '@angular/material/button';
+import {AuthService} from '../../auth/auth.service';
 
 @Component({
   selector: 'app-product-form',
@@ -23,7 +24,7 @@ export class ProductFormComponent implements OnInit {
   editMode = false;
   productId: number | null = null;
 
-  constructor(private fb: FormBuilder, private productService: ProductService, private router: Router, private route: ActivatedRoute) {
+  constructor(private authService: AuthService, private fb: FormBuilder, private productService: ProductService, private router: Router, private route: ActivatedRoute) {
     this.productForm = this.fb.group({
       name: ['', [Validators.required, Validators.maxLength(50)]],
       stock: [0, [Validators.required, Validators.min(0)]],
@@ -43,6 +44,7 @@ export class ProductFormComponent implements OnInit {
         })
       }
     })
+    this.authService.isLoggedIn();
   }
 
   onSubmit(): void {
