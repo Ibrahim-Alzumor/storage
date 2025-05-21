@@ -1,9 +1,9 @@
 import {Component} from '@angular/core';
-import {AuthService} from '../services/auth.service';
+import {AuthService} from '../auth/auth.service';
 import {Router, RouterLink} from '@angular/router';
 import {FormsModule} from '@angular/forms';
 import {Product} from '../interfaces/product.interface';
-import {ProductService} from '../services/product.service';
+import {ProductService} from '../products/product.service';
 
 @Component({
   selector: 'app-navbar',

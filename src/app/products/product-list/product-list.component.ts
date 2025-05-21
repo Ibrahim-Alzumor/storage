@@ -1,6 +1,6 @@
 import {Component, OnInit} from '@angular/core';
 import {Product} from '../../interfaces/product.interface';
-import {ProductService} from '../../services/product.service';
+import {ProductService} from '../product.service';
 import {ActivatedRoute, Router} from '@angular/router';
 import {FormBuilder, FormGroup, FormArray, Validators, ReactiveFormsModule} from '@angular/forms';
 import {MatButton} from '@angular/material/button';
@@ -8,6 +8,7 @@ import {MatFormField, MatInput} from '@angular/material/input';
 import {MatProgressSpinner} from '@angular/material/progress-spinner';
 import {NgOptimizedImage} from '@angular/common';
 import {firstValueFrom} from 'rxjs';
+import {AuthService} from '../../auth/auth.service';
 
 @Component({
   selector: 'app-product-list',
@@ -28,15 +29,18 @@ export class ProductListComponent implements OnInit {
   isEditMode = false;
   productForm: FormGroup;
   loading = false;
-
+  clearanceLevel: number | undefined;
 
   constructor(
     private productService: ProductService,
     private router: Router,
     protected route: ActivatedRoute,
     private fb: FormBuilder,
+    private authService: AuthService,
   ) {
-    this.productForm = this.createForm();
+    this.productForm = this.fb.group({
+      products: this.fb.array([])
+    });
   }
 
   get productsFormArray(): FormArray {
@@ -44,10 +48,49 @@ export class ProductListComponent implements OnInit {
   }
 
   ngOnInit() {
+    if (!this.isEditMode) {
+      this.loadProductsNotEdit()
+    } else if (this.isEditMode) {
+      this.loadProductsEdit()
+    }
+  }
+
+  toggleEditMode(): void {
+    this.isEditMode = !this.isEditMode;
+    if (this.isEditMode) {
+      this.loadProductsEdit()
+    } else if (!this.isEditMode) {
+      this.loadProductsNotEdit()
+    }
+  }
+
+  clearSearch(): void {
+    this.router.navigate(['/'], {
+      queryParams: {}
+    });
+  }
+
+  goToEdit(product: Product): void {
+    this.router.navigate(['/add', product.id]);
+  }
+
+  hasImage(): boolean {
+    return this.products.some(p => p.image);
+  }
+
+  deleteProduct(id: number): void {
+    this.productService.delete(id).subscribe();
+
+  }
+
+  getClearanceLevel(): number {
+    return this.clearanceLevel = this.authService.clearanceLevel;
+  }
+
+  loadProductsEdit() {
     this.route.queryParams.subscribe(params => {
       const name = params['name'];
       this.loading = true;
-
       if (name) {
         this.productService.getByName(name).subscribe({
           next: (products) => {
@@ -76,17 +119,17 @@ export class ProductListComponent implements OnInit {
     });
   }
 
-
-  toggleEditMode(): void {
-    this.isEditMode = !this.isEditMode;
-    if (this.isEditMode) {
-      this.initializeForm();
-    }
-  }
-
-  clearSearch(): void {
-    this.router.navigate(['/'], {
-      queryParams: {}
+  loadProductsNotEdit() {
+    this.route.queryParams.subscribe(params => {
+      const name = params['name'];
+      this.loading = true;
+      if (name) {
+        this.productService.getByName(name).subscribe(products => this.products = products);
+        this.loading = false;
+      } else {
+        this.initializeProducts()
+        this.loading = false;
+      }
     });
   }
 
@@ -100,7 +143,7 @@ export class ProductListComponent implements OnInit {
       const updatePromises = updatedProducts.map((updatedProduct, index) => {
         const originalProduct = this.products[index];
         const changes = this.getChangedProperties(originalProduct, updatedProduct);
-        if (Object.keys(changes).length > 1) {
+        if (Object.keys(changes).length > 1 && changes.id) {
           return firstValueFrom(this.productService.update(changes.id, changes));
         }
         return Promise.resolve();
@@ -116,35 +159,27 @@ export class ProductListComponent implements OnInit {
     }
   }
 
+  getChangedProperties(original: Product, updated: Product): Partial<Product> {
+    const changes: Partial<Product> = {id: original.id};
 
-  goToEdit(product: Product): void {
-    this.router.navigate(['/add', product.id]);
-  }
-
-  hasImage(): boolean {
-    return this.products.some(p => p.image);
-  }
-
-  deleteProduct(id: number): void {
-    this.productService.delete(id).subscribe();
-  }
-
-  getChangedProperties(original: Product, updated: Product): PartialProduct {
-    const changes: PartialProduct = {id: original.id};
-
-    (Object.keys(original) as (keyof Product)[]).forEach(key => {
+    for (const key of Object.keys(original) as (keyof Product)[]) {
       if (key !== 'id' && original[key] !== updated[key]) {
-        changes[key] = updated[key] as any;
+        (changes as Record<keyof Product, Product[keyof Product]>)[key] = updated[key];
       }
-    });
-
+    }
     return changes;
   }
 
-  private createForm(): FormGroup {
-    return this.fb.group({
-      products: this.fb.array([])
+  private initializeForm(): void {
+    const products = this.products.map(product => this.createProductFormGroup(product));
+
+    this.productForm = this.fb.group({
+      products: this.fb.array(products)
     });
+  }
+
+  private initializeProducts(): void {
+    this.productService.getAll().subscribe(products => this.products = products);
   }
 
   private createProductFormGroup(product: Product): FormGroup {
@@ -157,17 +192,5 @@ export class ProductListComponent implements OnInit {
       description: [product.description, Validators.required]
     });
   }
-
-  private initializeForm(): void {
-    const products = this.products.map(product => this.createProductFormGroup(product));
-
-    this.productForm = this.fb.group({
-      products: this.fb.array(products)
-    });
-  }
-}
-
-interface PartialProduct extends Partial<Product> {
-  id: number;
 }
 

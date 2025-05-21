@@ -1,6 +1,6 @@
 import {Component, OnInit} from '@angular/core';
 import {FormBuilder, FormGroup, ReactiveFormsModule, Validators} from '@angular/forms';
-import {ProductService} from '../../services/product.service';
+import {ProductService} from '../product.service';
 import {ActivatedRoute, Router} from '@angular/router';
 import {Product} from '../../interfaces/product.interface';
 import {MatFormFieldModule} from '@angular/material/form-field';
