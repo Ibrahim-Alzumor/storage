@@ -1,8 +1,27 @@
-import { ApplicationConfig, provideZoneChangeDetection } from '@angular/core';
-import { provideRouter } from '@angular/router';
+import {ApplicationConfig} from '@angular/core';
+import {provideHttpClient, withInterceptors} from '@angular/common/http';
+import {provideRouter, Routes} from '@angular/router';
+import {TokenInterceptor} from './services/token.interceptor';
+import {ProductListComponent} from './products/product-list/product-list.component';
+import {AuthGuard} from './services/auth.guard';
+import {ProductFormComponent} from './products/product-form/product-form.component';
+import {LoginComponent} from './auth/login/login.component';
+import {UserRegisterComponent} from './users/user-register/user-register.component';
 
-import { routes } from './app.routes';
+const routes: Routes = [
+  {path: '', component: ProductListComponent, canActivate: [AuthGuard], data: {minimumRequiredLevel: 0}},
+  {path: 'add', component: ProductFormComponent, canActivate: [AuthGuard], data: {minimumRequiredLevel: 2}},
+  {path: 'add/:id', component: ProductFormComponent, canActivate: [AuthGuard], data: {minimumRequiredLevel: 2}},
+  {path: 'login', component: LoginComponent},
+  {path: 'register', component: UserRegisterComponent, canActivate: [AuthGuard], data: {minimumRequiredLevel: 2}},
+];
 
 export const appConfig: ApplicationConfig = {
-  providers: [provideZoneChangeDetection({ eventCoalescing: true }), provideRouter(routes)]
+  providers: [
+    provideHttpClient(withInterceptors([TokenInterceptor])),
+    provideRouter(routes),
+
+  ]
 };
+
+
