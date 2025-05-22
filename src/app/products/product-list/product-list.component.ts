@@ -69,8 +69,7 @@ export class ProductListComponent implements OnInit {
     this.initializeBarcodeScanner();
     this.barcodeService.startListening();
   }
-
-
+  
   initializeBarcodeScanner(): void {
     this.barcodeService.startListening();
 
@@ -101,7 +100,6 @@ export class ProductListComponent implements OnInit {
       });
     });
   }
-
 
   confirmScannedAdditions(): void {
     const updateRequests = [];
@@ -229,7 +227,6 @@ export class ProductListComponent implements OnInit {
     });
   }
 
-
   async saveChanges(): Promise<void> {
     if (!this.productForm.valid) {
       alert('Please fix the form errors before saving');
@@ -289,7 +286,6 @@ export class ProductListComponent implements OnInit {
       });
     });
   }
-
 
   private createProductFormGroup(product: Product): FormGroup {
     return this.fb.group({

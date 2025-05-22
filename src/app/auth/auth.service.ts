@@ -4,7 +4,6 @@ import {environment} from '../enviroments/enviroment';
 import {tap} from 'rxjs/operators';
 import {jwtDecode} from "jwt-decode";
 
-
 @Injectable({
   providedIn: 'root'
 })
@@ -30,7 +29,6 @@ export class AuthService {
     }
     return 0;
   }
-
 
   login(email: string, password: string) {
     return this.http.post<any>(`${environment.apiUrl}/auth/login`, {email, password}).pipe(

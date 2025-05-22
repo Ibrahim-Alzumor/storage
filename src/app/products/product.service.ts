@@ -44,12 +44,6 @@ export class ProductService {
     return this.http.delete<void>(`${environment.apiUrl}/products/${id}`);
   }
 
-  addStock(id: number): Observable<Product> {
-    return this.http.patch<Product>(`${environment.apiUrl}/products/${id}/add-stock`, {amount: 1}).pipe(
-      map(this.cleanUpProduct)
-    );
-  }
-
   addBarcodeToProduct(id: number, barcodeId: string): Observable<Product> {
     return this.http.put<Product>(`${environment.apiUrl}/products/${id}/barcode`, {barcodeId});
   }

@@ -35,7 +35,6 @@ export class BarcodeScannerComponent implements OnInit {
       this.router.navigate(['/']);
       return;
     }
-
     this.pendingBarcode = barcode;
     this.loadProducts();
   }

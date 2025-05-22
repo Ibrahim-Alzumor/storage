@@ -22,13 +22,11 @@
       </button>
     }
   </div>
-
   @if (loading) {
     <div class="loading-spinner">
       <mat-spinner diameter="40"></mat-spinner>
     </div>
   }
-
   @if (!loading && products.length === 0) {
     <div class="no-results">
       No products found. @if (route.snapshot.queryParams['name']) {
@@ -36,7 +34,6 @@
     }
     </div>
   }
-
   <form [formGroup]="productForm">
     <table>
       <thead>
@@ -112,7 +109,6 @@
           }
         }
       </tbody>
-
     </table>
   </form>
 </div>

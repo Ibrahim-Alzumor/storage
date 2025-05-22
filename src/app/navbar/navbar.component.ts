@@ -39,7 +39,6 @@ export class NavbarComponent {
       });
       return;
     }
-
     this.productService.getByName(this.searchTerm).subscribe(results => {
       this.searchResults = results;
       this.router.navigate([], {
@@ -50,7 +49,6 @@ export class NavbarComponent {
       });
     });
   }
-
 
   goToEdit(productId: number): void {
     this.router.navigate(['/edit', productId]);
@@ -65,5 +63,4 @@ export class NavbarComponent {
   isLoggedIn(): boolean {
     return this.authService.isLoggedIn();
   }
-
 }

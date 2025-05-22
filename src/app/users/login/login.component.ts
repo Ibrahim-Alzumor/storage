@@ -42,7 +42,6 @@ export class LoginComponent {
     })
   }
 
-
   get emailErrorMessage(): string | null {
     const emailControl = this.loginForm.controls.email;
     if (emailControl.touched && emailControl.invalid) {
@@ -79,7 +78,6 @@ export class LoginComponent {
     }
   }
 }
-
 
 interface loginForm {
   email: FormControl<string | null>;

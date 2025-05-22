@@ -15,7 +15,6 @@ export class BarcodeService {
 
   handleKey(event: KeyboardEvent) {
     if (!this.isListening) return;
-
     if (event.key === 'Enter') {
       const code = this.buffer.trim();
       this.buffer = '';
