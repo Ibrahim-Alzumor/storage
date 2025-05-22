@@ -81,7 +81,13 @@ export class ProductListComponent implements OnInit {
   }
 
   deleteProduct(id: number): void {
-    this.productService.delete(id).subscribe();
+    this.productService.delete(id).subscribe({
+      next: () => {
+        alert('Product Deleted!');
+        this.loadProductsNotEdit()
+      },
+      error: err => alert(err.error?.message || 'Error updating product'),
+    });
 
   }
 
