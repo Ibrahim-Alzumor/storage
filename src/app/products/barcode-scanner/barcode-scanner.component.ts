@@ -20,10 +20,10 @@ import {MatProgressSpinner} from '@angular/material/progress-spinner';
 export class BarcodeScannerComponent implements OnInit {
   @ViewChild('video', {static: true}) video!: ElementRef<HTMLVideoElement>;
   resultBuffer: string = '';
-  lastScannedId: number | null = null;
+  lastScannedId: string = '';
   products: Product[] = [];
   loading = false;
-  pendingBarcode: number | null = null;
+  pendingBarcode: string | null = null;
   showAssignmentUI = false;
 
   constructor(
@@ -55,32 +55,34 @@ export class BarcodeScannerComponent implements OnInit {
   listenToKeyPresses() {
     window.addEventListener('keydown', (e: KeyboardEvent) => {
       if (e.key === 'Enter') {
-        const scannedId = Number(this.resultBuffer);
-        if (!isNaN(scannedId) && scannedId !== this.lastScannedId) {
-          this.lastScannedId = scannedId;
-
-          this.productService.getByBarcode(scannedId).subscribe({
-            next: (product: any) => {
-              if (product) {
-                this.handleScannedBarcode(scannedId);
-              } else {
-                this.askUserToAssignBarcode(scannedId);
-              }
-            },
-            error: () => {
-              this.askUserToAssignBarcode(scannedId);
-            }
-          });
-        }
+        const scannedBarcode = this.resultBuffer.trim();
         this.resultBuffer = '';
-      } else if (!isNaN(Number(e.key))) {
+
+        if (scannedBarcode.length < 8 || scannedBarcode.length > 20) {
+          console.warn(`Ignored barcode (invalid length): ${scannedBarcode}`);
+          return;
+        }
+
+        if (scannedBarcode === this.lastScannedId) return;
+
+        this.lastScannedId = scannedBarcode;
+
+        this.productService.getByBarcode(scannedBarcode).subscribe({
+          next: (product: any) => {
+            this.handleScannedBarcode(scannedBarcode);
+          },
+          error: () => {
+            this.askUserToAssignBarcode(scannedBarcode);
+          }
+        });
+      } else if (e.key.length === 1 && !isNaN(Number(e.key))) {
         this.resultBuffer += e.key;
       }
     });
   }
 
 
-  handleScannedBarcode(barcodeId: number) {
+  handleScannedBarcode(barcodeId: string) {
     this.productService.getByBarcode(barcodeId).subscribe({
       next: (product: any) => {
         if (product) {
@@ -97,7 +99,7 @@ export class BarcodeScannerComponent implements OnInit {
     });
   }
 
-  askUserToAssignBarcode(barcodeId: number) {
+  askUserToAssignBarcode(barcodeId: string) {
     this.pendingBarcode = barcodeId;
     this.showAssignmentUI = true;
     this.loadProducts()

@@ -45,19 +45,16 @@ export class ProductService {
   }
 
   addStock(id: number): Observable<Product> {
-    const amount = 1;
-    return this.http.patch<Product>(`${environment.apiUrl}/products/${id}/add-stock`, amount).pipe(
+    return this.http.patch<Product>(`${environment.apiUrl}/products/${id}/add-stock`, {amount: 1}).pipe(
       map(this.cleanUpProduct)
     );
   }
 
-  addBarcodeToProduct(id: number, barcodeId: number): Observable<Product> {
-    return this.http.put<Product>(`${environment.apiUrl}/products/${id}/barcode`, {barcodeId}).pipe(
-      map(this.cleanUpProduct)
-    );
+  addBarcodeToProduct(id: number, barcodeId: string): Observable<Product> {
+    return this.http.put<Product>(`${environment.apiUrl}/products/${id}/barcode`, {barcodeId});
   }
 
-  getByBarcode(barcodeId: number): Observable<Product> {
+  getByBarcode(barcodeId: string): Observable<Product> {
     return this.http.get<Product>(`${environment.apiUrl}/products/by-barcode/${barcodeId}`);
   }
 
