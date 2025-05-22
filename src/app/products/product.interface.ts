@@ -7,4 +7,5 @@ export interface Product {
   description: string;
   barcode: string;
   isEmpty?: boolean;
+  stockDisplay?: string;
 }

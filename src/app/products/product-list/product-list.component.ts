@@ -1,35 +1,50 @@
-import {Component, OnInit} from '@angular/core';
-import {Product} from '../../interfaces/product.interface';
-import {ProductService} from '../product.service';
+import {
+  Component,
+  HostListener,
+  OnInit
+} from '@angular/core';
+import {
+  FormArray,
+  FormBuilder,
+  FormGroup,
+  ReactiveFormsModule,
+  Validators
+} from '@angular/forms';
 import {ActivatedRoute, Router} from '@angular/router';
-import {FormBuilder, FormGroup, FormArray, Validators, ReactiveFormsModule} from '@angular/forms';
 import {MatButton} from '@angular/material/button';
 import {MatFormField, MatInput} from '@angular/material/input';
 import {MatProgressSpinner} from '@angular/material/progress-spinner';
 import {NgOptimizedImage} from '@angular/common';
 import {firstValueFrom} from 'rxjs';
+
+import {Product} from '../product.interface';
+import {ProductService} from '../product.service';
 import {AuthService} from '../../auth/auth.service';
+import {BarcodeService} from '../barcode.service';
 
 @Component({
   selector: 'app-product-list',
+  standalone: true,
   imports: [
-    MatButton,
     ReactiveFormsModule,
+    MatButton,
     MatFormField,
     MatInput,
-    MatFormField,
     MatProgressSpinner,
-    NgOptimizedImage,
+    NgOptimizedImage
   ],
   templateUrl: './product-list.component.html',
   styleUrl: './product-list.component.css'
 })
 export class ProductListComponent implements OnInit {
   products: Product[] = [];
-  isEditMode = false;
   productForm: FormGroup;
+  isEditMode = false;
   loading = false;
   clearanceLevel: number | undefined;
+  scannedAdditions: Map<number, number> = new Map();
+  hasStartedScanning = false;
+  showPendingChanges = false;
 
   constructor(
     private productService: ProductService,
@@ -37,6 +52,7 @@ export class ProductListComponent implements OnInit {
     protected route: ActivatedRoute,
     private fb: FormBuilder,
     private authService: AuthService,
+    private barcodeService: BarcodeService
   ) {
     this.productForm = this.fb.group({
       products: this.fb.array([])
@@ -49,27 +65,91 @@ export class ProductListComponent implements OnInit {
 
   ngOnInit() {
     this.authService.isLoggedIn();
-    if (!this.isEditMode) {
-      this.loadProductsNotEdit()
-    } else if (this.isEditMode) {
-      this.loadProductsEdit()
-    }
+    this.loadProductsNotEdit()
+    this.initializeBarcodeScanner();
+    this.barcodeService.startListening();
+  }
 
+
+  initializeBarcodeScanner(): void {
+    this.barcodeService.startListening();
+
+    this.barcodeService.scannedBarcode$.subscribe(barcode => {
+      this.hasStartedScanning = true;
+
+      this.productService.getByBarcode(barcode).subscribe({
+        next: (product) => {
+          if (product) {
+            const current = this.scannedAdditions.get(product.id) || 0;
+            const updatedAmount = current + 1;
+            this.scannedAdditions.set(product.id, updatedAmount);
+
+            const foundProduct = this.products.find(p => p.id === product.id);
+            if (foundProduct) {
+              foundProduct.stockDisplay = `${foundProduct.stock} + ${updatedAmount}`;
+            }
+
+            this.showPendingChanges = true;
+            this.barcodeService.startListening();
+          } else {
+            this.router.navigate(['/barcode'], {queryParams: {barcode}});
+          }
+        },
+        error: () => {
+          this.router.navigate(['/barcode'], {queryParams: {barcode}});
+        }
+      });
+    });
+  }
+
+
+  confirmScannedAdditions(): void {
+    const updateRequests = [];
+
+    for (const [productId, addedAmount] of this.scannedAdditions.entries()) {
+      const product = this.products.find(p => p.id === productId);
+      if (product) {
+        const newStock = product.stock + addedAmount;
+        updateRequests.push(
+          firstValueFrom(this.productService.update(product.id, {stock: newStock}))
+        );
+      }
+    }
+    Promise.all(updateRequests).then(() => {
+      alert('All additions confirmed');
+      this.scannedAdditions.clear();
+      this.hasStartedScanning = false;
+      this.loadProductsNotEdit();
+      this.showPendingChanges = false;
+    })
+      .catch(error => {
+        alert('Error confirming additions: ' + (error as Error).message);
+      })
+  }
+
+  getInProgressAdditions(): Product[] {
+    return this.products.filter(p => this.scannedAdditions.has(p.id))
+      .map(p => ({
+        ...p, stockDisplay: `${p.stock} + ${this.scannedAdditions.get(p.id)}`
+      }));
+  }
+
+  @HostListener('window:keydown', ['$event'])
+  onKeyDown(event: KeyboardEvent) {
+    this.barcodeService.handleKey(event);
   }
 
   toggleEditMode(): void {
     this.isEditMode = !this.isEditMode;
     if (this.isEditMode) {
-      this.loadProductsEdit()
-    } else if (!this.isEditMode) {
-      this.loadProductsNotEdit()
+      this.loadProductsEdit();
+    } else {
+      this.loadProductsNotEdit();
     }
   }
 
   clearSearch(): void {
-    this.router.navigate(['/'], {
-      queryParams: {}
-    });
+    this.router.navigate(['/'], {queryParams: {}});
   }
 
   goToEdit(product: Product): void {
@@ -84,11 +164,10 @@ export class ProductListComponent implements OnInit {
     this.productService.delete(id).subscribe({
       next: () => {
         alert('Product Deleted!');
-        this.loadProductsNotEdit()
+        this.loadProductsNotEdit();
       },
-      error: err => alert(err.error?.message || 'Error updating product'),
+      error: err => alert(err.error?.message || 'Error deleting product')
     });
-
   }
 
   getClearanceLevel(): number {
@@ -131,21 +210,32 @@ export class ProductListComponent implements OnInit {
     this.route.queryParams.subscribe(params => {
       const name = params['name'];
       this.loading = true;
+
       if (name) {
-        this.productService.getByName(name).subscribe(products => this.products = products);
-        this.loading = false;
+        this.productService.getByName(name).subscribe(products => {
+          this.products = products.map(p => {
+            const pending = this.scannedAdditions.get(p.id) || 0;
+            return {
+              ...p,
+              stockDisplay: pending > 0 ? `${p.stock} + ${pending}` : `${p.stock}`
+            };
+          });
+          this.loading = false;
+        });
       } else {
-        this.initializeProducts()
+        this.initializeProducts();
         this.loading = false;
       }
     });
   }
+
 
   async saveChanges(): Promise<void> {
     if (!this.productForm.valid) {
       alert('Please fix the form errors before saving');
       return;
     }
+
     try {
       const updatedProducts = this.productsFormArray.value as Product[];
       const updatePromises = updatedProducts.map((updatedProduct, index) => {
@@ -155,11 +245,13 @@ export class ProductListComponent implements OnInit {
           return firstValueFrom(this.productService.update(changes.id, changes));
         }
         return Promise.resolve();
-      }).filter(promise => promise !== undefined);
+      }).filter(p => p !== undefined);
+
       if (updatePromises.length > 0) {
         await Promise.all(updatePromises);
         alert('All changes saved successfully');
       }
+
       this.isEditMode = false;
       this.products = await firstValueFrom(this.productService.getAll());
     } catch (error) {
@@ -175,20 +267,29 @@ export class ProductListComponent implements OnInit {
         (changes as Record<keyof Product, Product[keyof Product]>)[key] = updated[key];
       }
     }
+
     return changes;
   }
 
   private initializeForm(): void {
     const products = this.products.map(product => this.createProductFormGroup(product));
-
     this.productForm = this.fb.group({
       products: this.fb.array(products)
     });
   }
 
   private initializeProducts(): void {
-    this.productService.getAll().subscribe(products => this.products = products);
+    this.productService.getAll().subscribe(products => {
+      this.products = products.map(p => {
+        const pending = this.scannedAdditions.get(p.id) || 0;
+        return {
+          ...p,
+          stockDisplay: pending > 0 ? `${p.stock} + ${pending}` : `${p.stock}`
+        };
+      });
+    });
   }
+
 
   private createProductFormGroup(product: Product): FormGroup {
     return this.fb.group({
@@ -201,4 +302,3 @@ export class ProductListComponent implements OnInit {
     });
   }
 }
-

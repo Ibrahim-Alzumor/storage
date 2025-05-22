@@ -16,6 +16,11 @@
         Save Changes
       </button>
     }
+    @if (hasStartedScanning && scannedAdditions.size > 0) {
+      <button class="edit-button" mat-raised-button color="primary" (click)="confirmScannedAdditions()">
+        Confirm Scanned Additions
+      </button>
+    }
   </div>
 
   @if (loading) {
@@ -72,6 +77,15 @@
                   <input matInput [formControlName]="'description'" class="custom-input">
                 </mat-form-field>
               </td>
+            </tr>
+          }
+        } @else if (showPendingChanges && getInProgressAdditions().length > 0) {
+          @for (product of getInProgressAdditions(); track $index) {
+            <tr>
+              <td>{{ product.name }}</td>
+              <td>{{ product.stockDisplay }}</td>
+              <td>{{ product.category }}</td>
+              <td>{{ product.description }}</td>
             </tr>
           }
         } @else {
