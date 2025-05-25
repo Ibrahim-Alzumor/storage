@@ -45,6 +45,8 @@ export class ProductListComponent implements OnInit {
   scannedAdditions: Map<number, number> = new Map();
   hasStartedScanning = false;
   showPendingChanges = false;
+  isOrderMode = false;
+  orderItems: Map<number, number> = new Map();
 
   constructor(
     private productService: ProductService,
@@ -69,7 +71,138 @@ export class ProductListComponent implements OnInit {
     this.initializeBarcodeScanner();
     this.barcodeService.startListening();
   }
-  
+
+  getClearanceLevel(): number {
+    return this.clearanceLevel = this.authService.clearanceLevel;
+  }
+
+  loadProductsNotEdit() {
+    this.route.queryParams.subscribe(params => {
+      const name = params['name'];
+      this.loading = true;
+
+      if (name) {
+        this.productService.getByName(name).subscribe(products => {
+          this.products = products.map(p => {
+            const pending = this.scannedAdditions.get(p.id) || 0;
+            return {
+              ...p,
+              stockDisplay: pending > 0 ? `${p.stock} + ${pending}` : `${p.stock}`
+            };
+          });
+          this.loading = false;
+        });
+      } else {
+        this.initializeProducts();
+        this.loading = false;
+      }
+    });
+  }
+
+  deleteProduct(id: number): void {
+    this.productService.delete(id).subscribe({
+      next: () => {
+        alert('Product Deleted!');
+        this.loadProductsNotEdit();
+      },
+      error: err => alert(err.error?.message || 'Error deleting product')
+    });
+  }
+
+  hasImage(): boolean {
+    return this.products.some(p => p.image);
+  }
+
+  clearSearch(): void {
+    this.router.navigate(['/'], {queryParams: {}});
+  }
+
+  toggleEditMode(): void {
+    this.isEditMode = !this.isEditMode;
+    if (this.isEditMode) {
+      this.loadProductsEdit();
+    } else {
+      this.loadProductsNotEdit();
+    }
+  }
+
+  goToEdit(product: Product): void {
+    this.router.navigate(['/add', product.id]);
+  }
+
+  loadProductsEdit() {
+    this.route.queryParams.subscribe(params => {
+      const name = params['name'];
+      this.loading = true;
+      if (name) {
+        this.productService.getByName(name).subscribe({
+          next: (products) => {
+            this.products = products;
+            this.initializeForm();
+            this.loading = false;
+          },
+          error: (error) => {
+            console.error('Error fetching products:', error);
+            this.loading = false;
+          }
+        });
+      } else {
+        this.productService.getAll().subscribe({
+          next: (products) => {
+            this.products = products;
+            this.initializeForm();
+            this.loading = false;
+          },
+          error: (error) => {
+            console.error('Error fetching products:', error);
+            this.loading = false;
+          }
+        });
+      }
+    });
+  }
+
+  async saveChanges(): Promise<void> {
+    if (!this.productForm.valid) {
+      alert('Please fix the form errors before saving');
+      return;
+    }
+
+    try {
+      const updatedProducts = this.productsFormArray.value as Product[];
+      const updatePromises = updatedProducts.map((updatedProduct, index) => {
+        const originalProduct = this.products[index];
+        const changes = this.getChangedProperties(originalProduct, updatedProduct);
+        if (Object.keys(changes).length > 1 && changes.id) {
+          return firstValueFrom(this.productService.update(changes.id, changes));
+        }
+        return Promise.resolve();
+      }).filter(p => p !== undefined);
+
+      if (updatePromises.length > 0) {
+        await Promise.all(updatePromises);
+        alert('All changes saved successfully');
+      }
+
+      this.isEditMode = false;
+      this.products = await firstValueFrom(this.productService.getAll());
+    } catch (error) {
+      alert('Error saving changes: ' + (error as Error).message);
+    }
+  }
+
+  getChangedProperties(original: Product, updated: Product): Partial<Product> {
+    const changes: Partial<Product> = {id: original.id};
+
+    for (const key of Object.keys(original) as (keyof Product)[]) {
+      if (key !== 'id' && original[key] !== updated[key]) {
+        (changes as Record<keyof Product, Product[keyof Product]>)[key] = updated[key];
+      }
+    }
+
+    return changes;
+  }
+
   initializeBarcodeScanner(): void {
     this.barcodeService.startListening();
 
@@ -137,142 +270,47 @@ export class ProductListComponent implements OnInit {
     this.barcodeService.handleKey(event);
   }
 
-  toggleEditMode(): void {
-    this.isEditMode = !this.isEditMode;
-    if (this.isEditMode) {
-      this.loadProductsEdit();
-    } else {
+  toggleOrderMode(): void {
+    this.isOrderMode = !this.isOrderMode;
+    if (this.isOrderMode) {
       this.loadProductsNotEdit();
+    } else {
+      this.orderItems.clear();
     }
   }
 
-  clearSearch(): void {
-    this.router.navigate(['/'], {queryParams: {}});
+  addToOrder(product: Product): void {
+    const current = this.orderItems.get(product.id) || 0;
+    if (current < product.stock) {
+      this.orderItems.set(product.id, current + 1);
+
+    }
   }
 
-  goToEdit(product: Product): void {
-    this.router.navigate(['/add', product.id]);
+  removeFromOrder(product: Product): void {
+    const current = this.orderItems.get(product.id) || 0;
+    if (current > 1) {
+      this.orderItems.set(product.id, current - 1);
+    } else {
+      this.orderItems.delete(product.id);
+    }
   }
 
-  hasImage(): boolean {
-    return this.products.some(p => p.image);
-  }
-
-  deleteProduct(id: number): void {
-    this.productService.delete(id).subscribe({
-      next: () => {
-        alert('Product Deleted!');
-        this.loadProductsNotEdit();
-      },
-      error: err => alert(err.error?.message || 'Error deleting product')
-    });
-  }
-
-  getClearanceLevel(): number {
-    return this.clearanceLevel = this.authService.clearanceLevel;
-  }
-
-  loadProductsEdit() {
-    this.route.queryParams.subscribe(params => {
-      const name = params['name'];
-      this.loading = true;
-      if (name) {
-        this.productService.getByName(name).subscribe({
-          next: (products) => {
-            this.products = products;
-            this.initializeForm();
-            this.loading = false;
-          },
-          error: (error) => {
-            console.error('Error fetching products:', error);
-            this.loading = false;
-          }
-        });
-      } else {
-        this.productService.getAll().subscribe({
-          next: (products) => {
-            this.products = products;
-            this.initializeForm();
-            this.loading = false;
-          },
-          error: (error) => {
-            console.error('Error fetching products:', error);
-            this.loading = false;
-          }
-        });
-      }
-    });
-  }
-
-  loadProductsNotEdit() {
-    this.route.queryParams.subscribe(params => {
-      const name = params['name'];
-      this.loading = true;
-
-      if (name) {
-        this.productService.getByName(name).subscribe(products => {
-          this.products = products.map(p => {
-            const pending = this.scannedAdditions.get(p.id) || 0;
-            return {
-              ...p,
-              stockDisplay: pending > 0 ? `${p.stock} + ${pending}` : `${p.stock}`
-            };
-          });
-          this.loading = false;
-        });
-      } else {
-        this.initializeProducts();
-        this.loading = false;
-      }
-    });
-  }
-
-  async saveChanges(): Promise<void> {
-    if (!this.productForm.valid) {
-      alert('Please fix the form errors before saving');
+  submitOrder(): void {
+    const items = Array.from(this.orderItems.entries()).map(([productId, quantity]) => ({productId, quantity}));
+    if (items.length === 0) {
+      alert('Please add items to order');
       return;
     }
-
-    try {
-      const updatedProducts = this.productsFormArray.value as Product[];
-      const updatePromises = updatedProducts.map((updatedProduct, index) => {
-        const originalProduct = this.products[index];
-        const changes = this.getChangedProperties(originalProduct, updatedProduct);
-        if (Object.keys(changes).length > 1 && changes.id) {
-          return firstValueFrom(this.productService.update(changes.id, changes));
-        }
-        return Promise.resolve();
-      }).filter(p => p !== undefined);
-
-      if (updatePromises.length > 0) {
-        await Promise.all(updatePromises);
-        alert('All changes saved successfully');
-      }
-
-      this.isEditMode = false;
-      this.products = await firstValueFrom(this.productService.getAll());
-    } catch (error) {
-      alert('Error saving changes: ' + (error as Error).message);
-    }
-  }
-
-  getChangedProperties(original: Product, updated: Product): Partial<Product> {
-    const changes: Partial<Product> = {id: original.id};
-
-    for (const key of Object.keys(original) as (keyof Product)[]) {
-      if (key !== 'id' && original[key] !== updated[key]) {
-        (changes as Record<keyof Product, Product[keyof Product]>)[key] = updated[key];
-      }
-    }
-
-    return changes;
-  }
-
-  private initializeForm(): void {
-    const products = this.products.map(product => this.createProductFormGroup(product));
-    this.productForm = this.fb.group({
-      products: this.fb.array(products)
-    });
+    this.productService.createOrder({items}).subscribe({
+      next: () => {
+        alert('Order Submitted!');
+        this.orderItems.clear();
+        this.isOrderMode = false;
+        this.loadProductsNotEdit();
+      },
+      error: (err: { error: { message: any; }; }) => alert(err.error?.message || 'Error submitting order')
+    })
   }
 
   private initializeProducts(): void {
@@ -284,6 +322,13 @@ export class ProductListComponent implements OnInit {
           stockDisplay: pending > 0 ? `${p.stock} + ${pending}` : `${p.stock}`
         };
       });
+    });
+  }
+
+  private initializeForm(): void {
+    const products = this.products.map(product => this.createProductFormGroup(product));
+    this.productForm = this.fb.group({
+      products: this.fb.array(products)
     });
   }
 

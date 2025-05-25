@@ -44,6 +44,10 @@ export class ProductService {
     return this.http.delete<void>(`${environment.apiUrl}/products/${id}`);
   }
 
+  createOrder(order: { items: { productId: number; quantity: number }[] }): Observable<Product> {
+    return this.http.post<Product>(`${environment.apiUrl}/orders`, order);
+  }
+
   addBarcodeToProduct(id: number, barcodeId: string): Observable<Product> {
     return this.http.put<Product>(`${environment.apiUrl}/products/${id}/barcode`, {barcodeId});
   }
