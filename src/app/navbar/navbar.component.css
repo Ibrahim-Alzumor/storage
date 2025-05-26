@@ -18,10 +18,16 @@
 
 .navbar-brand {
   position: absolute;
-  left: 20px;
-  color: white !important;
-  font-size: 1.5rem;
+  left: 25px;
+  color: #ffffff !important;
+  font-size: 1.6rem;
   font-weight: bold;
+  text-shadow: 1px 1px 3px rgba(0, 0, 0, 0.3);
+  transition: transform 0.2s ease;
+}
+
+.navbar-brand:hover {
+  transform: scale(1.05);
 }
 
 .navbar-toggler {
@@ -44,23 +50,40 @@
 }
 
 .btn {
-  border-radius: 5px;
+  border-radius: 8px;
   padding: 8px 16px;
-  font-size: 1rem;
+  font-size: 1.4rem;
+  border: none;
+  background-image: none;
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  appearance: none;
+  text-decoration: none;
+  text-align: center;
+  vertical-align: middle;
+  position: relative;
+  transition: all 0.2s ease;
+  line-height: 1.5;
+  white-space: nowrap;
+  overflow: hidden;
 }
 
 .btn-light {
   background-color: #f30909;
   color: #343a40;
+  border: none;
+  font-size: 1.25rem !important;
 }
 
 .btn-light:hover {
   background-color: #e2e6ea;
+  color: #1a1a1a !important;
 }
 
 .btn-danger {
   background-color: #dc3545;
   color: white;
+  border: none;
 }
 
 .btn-danger:hover {
@@ -68,6 +91,7 @@
 }
 
 .btn-outline-danger {
+  background-color: transparent;
   border: 1px solid #dc3545;
   color: #dc3545;
 }
@@ -75,6 +99,38 @@
 .btn-outline-danger:hover {
   background-color: #dc3545;
   color: white;
+}
+
+.btn:focus,
+.btn.focus,
+.btn:active,
+.btn.active,
+.btn-light:focus,
+.btn-light.focus,
+.btn-light:active,
+.btn-light.active,
+.btn-danger:focus,
+.btn-danger.focus,
+.btn-danger:active,
+.btn-danger.active,
+.btn-outline-danger:focus,
+.btn-outline-danger.focus,
+.btn-outline-danger:active,
+.btn-outline-danger.active {
+  outline: 0 !important;
+  box-shadow: none !important;
+  -webkit-box-shadow: none !important;
+  border-color: transparent !important;
+  background-image: none !important;
+}
+
+.d-flex .btn {
+  height: auto;
+  line-height: normal;
+  margin: 0 5px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .search-input {
@@ -100,6 +156,29 @@ button.ml-2 {
   margin-left: 10px;
 }
 
+.mx-1 {
+  margin-left: 0.25rem !important;
+  margin-right: 0.25rem !important;
+}
+
+.mx-2 {
+  margin-left: 0.5rem !important;
+  margin-right: 0.5rem !important;
+}
+
+.ml-2 {
+  margin-left: 0.5rem !important;
+}
+
+.navbar button,
+.navbar .btn,
+.navbar a.btn {
+  box-sizing: border-box;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
 @media (max-width: 991px) {
   .navbar-nav {
     flex-direction: column;
@@ -108,6 +187,12 @@ button.ml-2 {
 
   .navbar-nav .nav-item {
     margin-bottom: 10px;
+    width: 100%;
+  }
+
+  .nav-item a.btn {
+    display: block;
+    width: 100%;
   }
 
   .search-input {
@@ -119,6 +204,12 @@ button.ml-2 {
     flex-direction: column;
     width: 100%;
     margin-top: 10px;
+  }
+
+  button.ml-2 {
+    margin-left: 0;
+    margin-top: 10px;
+    width: 100%;
   }
 }
 

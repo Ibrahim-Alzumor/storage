@@ -1,12 +1,15 @@
 import {Injectable} from '@angular/core';
 import {ActivatedRouteSnapshot, CanActivate, Router} from '@angular/router';
 import {AuthService} from './auth.service';
+import {MatSnackBar} from '@angular/material/snack-bar';
+
 
 @Injectable({
   providedIn: 'root',
 })
 export class AuthGuard implements CanActivate {
-  constructor(private router: Router, private authService: AuthService) {
+  constructor(private router: Router, private authService: AuthService, private snackBar: MatSnackBar
+  ) {
   }
 
   canActivate(route: ActivatedRouteSnapshot): boolean {
@@ -18,13 +21,21 @@ export class AuthGuard implements CanActivate {
     const currentLevel = this.authService.clearanceLevel;
 
     if (minimumRequiredLevel > currentLevel) {
+      let message = '';
       if (minimumRequiredLevel === 0) {
-        alert('Only Employees are allowed!!');
+        message = 'Only Employees are allowed!';
       } else if (minimumRequiredLevel === 1) {
-        alert('Only Associates and higher are allowed!!');
+        message = 'Only Associates and higher are allowed!';
       } else if (minimumRequiredLevel === 2) {
-        alert('Only Managers and higher are allowed!!');
+        message = 'Only Managers and higher are allowed!';
       }
+      this.snackBar.open(message, 'Close', {
+        duration: 4000,
+        horizontalPosition: 'right',
+        verticalPosition: 'top',
+        panelClass: ['access-denied-snackbar']
+      });
+
       this.authService.logout();
       return false;
     }

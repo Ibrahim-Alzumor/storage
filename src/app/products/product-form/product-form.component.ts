@@ -7,6 +7,7 @@ import {MatFormFieldModule} from '@angular/material/form-field';
 import {MatInputModule} from '@angular/material/input';
 import {MatButtonModule} from '@angular/material/button';
 import {AuthService} from '../../auth/auth.service';
+import {MatSnackBar} from '@angular/material/snack-bar';
 
 @Component({
   selector: 'app-product-form',
@@ -24,7 +25,14 @@ export class ProductFormComponent implements OnInit {
   editMode = false;
   productId: number | null = null;
 
-  constructor(private authService: AuthService, private fb: FormBuilder, private productService: ProductService, private router: Router, private route: ActivatedRoute) {
+  constructor(
+    private authService: AuthService,
+    private fb: FormBuilder,
+    private productService: ProductService,
+    private router: Router,
+    private route: ActivatedRoute,
+    private snackBar: MatSnackBar
+  ) {
     this.productForm = this.fb.group({
       name: ['', [Validators.required, Validators.maxLength(50)]],
       stock: [0, [Validators.required, Validators.min(0)]],
@@ -49,26 +57,39 @@ export class ProductFormComponent implements OnInit {
 
   onSubmit(): void {
     if (!this.productForm.valid) {
-      alert('Not valid product form')
+      this.showNotification('Not valid product form', 'error');
+      return;
     }
+
     const product: Product = {id: this.productId || 0, ...this.productForm.value};
+
     if (this.editMode && this.productId) {
       this.productService.update(this.productId, this.productForm.value).subscribe({
         next: () => {
-          alert('Product Updated!');
+          this.showNotification('Product Updated!', 'success');
           this.router.navigate(['/']);
         },
-        error: err => alert(err.error?.message || 'Error updating product'),
+        error: err => this.showNotification(err.error?.message || 'Error updating product', 'error'),
       })
     } else {
       this.productService.create(product).subscribe({
         next: () => {
-          alert('Product Added!');
+          this.showNotification('Product Added!', 'success');
           this.router.navigate(['/']);
         },
-        error: err => alert(err.error?.message || 'Error adding product'),
+        error: err => this.showNotification(err.error?.message || 'Error adding product', 'error'),
       })
     }
   }
-}
 
+  private showNotification(message: string, type: 'success' | 'error' | 'warning' | 'info' | 'access-denied'): void {
+    const panelClass = [`${type}-snackbar`];
+
+    this.snackBar.open(message, 'Close', {
+      duration: 4000,
+      horizontalPosition: 'right',
+      verticalPosition: 'top',
+      panelClass
+    });
+  }
+}

@@ -14,7 +14,21 @@ export class AuthService {
   }
 
   get token() {
-    return localStorage.getItem(this.tokenkey);
+    const token = localStorage.getItem(this.tokenkey);
+    if (token) {
+      try {
+        const decodedToken: any = jwtDecode(token);
+        if (decodedToken.exp && decodedToken.exp * 1000 < Date.now()) {
+          this.logout();
+          return null;
+        }
+        return token;
+      } catch (error) {
+        this.logout();
+        return null;
+      }
+    }
+    return null;
   }
 
   get clearanceLevel(): number {

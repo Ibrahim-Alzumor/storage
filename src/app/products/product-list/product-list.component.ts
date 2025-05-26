@@ -16,6 +16,7 @@ import {MatFormField, MatInput} from '@angular/material/input';
 import {MatProgressSpinner} from '@angular/material/progress-spinner';
 import {NgOptimizedImage} from '@angular/common';
 import {firstValueFrom} from 'rxjs';
+import {MatSnackBar} from '@angular/material/snack-bar';
 
 import {Product} from '../product.interface';
 import {ProductService} from '../product.service';
@@ -54,7 +55,8 @@ export class ProductListComponent implements OnInit {
     protected route: ActivatedRoute,
     private fb: FormBuilder,
     private authService: AuthService,
-    private barcodeService: BarcodeService
+    private barcodeService: BarcodeService,
+    private snackBar: MatSnackBar
   ) {
     this.productForm = this.fb.group({
       products: this.fb.array([])
@@ -102,10 +104,10 @@ export class ProductListComponent implements OnInit {
   deleteProduct(id: number): void {
     this.productService.delete(id).subscribe({
       next: () => {
-        alert('Product Deleted!');
+        this.showNotification('Product Deleted!', 'success');
         this.loadProductsNotEdit();
       },
-      error: err => alert(err.error?.message || 'Error deleting product')
+      error: err => this.showNotification(err.error?.message || 'Error deleting product', 'error')
     });
   }
 
@@ -164,7 +166,7 @@ export class ProductListComponent implements OnInit {
 
   async saveChanges(): Promise<void> {
     if (!this.productForm.valid) {
-      alert('Please fix the form errors before saving');
+      this.showNotification('Please fix the form errors before saving', 'warning');
       return;
     }
 
@@ -181,13 +183,13 @@ export class ProductListComponent implements OnInit {
 
       if (updatePromises.length > 0) {
         await Promise.all(updatePromises);
-        alert('All changes saved successfully');
+        this.showNotification('All changes saved successfully', 'success');
       }
 
       this.isEditMode = false;
       this.products = await firstValueFrom(this.productService.getAll());
     } catch (error) {
-      alert('Error saving changes: ' + (error as Error).message);
+      this.showNotification('Error saving changes: ' + (error as Error).message, 'error');
     }
   }
 
@@ -247,14 +249,14 @@ export class ProductListComponent implements OnInit {
       }
     }
     Promise.all(updateRequests).then(() => {
-      alert('All additions confirmed');
+      this.showNotification('All additions confirmed', 'success');
       this.scannedAdditions.clear();
       this.hasStartedScanning = false;
       this.loadProductsNotEdit();
       this.showPendingChanges = false;
     })
       .catch(error => {
-        alert('Error confirming additions: ' + (error as Error).message);
+        this.showNotification('Error confirming additions: ' + (error as Error).message, 'error');
       })
   }
 
@@ -283,7 +285,6 @@ export class ProductListComponent implements OnInit {
     const current = this.orderItems.get(product.id) || 0;
     if (current < product.stock) {
       this.orderItems.set(product.id, current + 1);
-
     }
   }
 
@@ -299,18 +300,31 @@ export class ProductListComponent implements OnInit {
   submitOrder(): void {
     const items = Array.from(this.orderItems.entries()).map(([productId, quantity]) => ({productId, quantity}));
     if (items.length === 0) {
-      alert('Please add items to order');
+      this.showNotification('Please add items to order', 'warning');
       return;
     }
     this.productService.createOrder({items}).subscribe({
       next: () => {
-        alert('Order Submitted!');
+        this.showNotification('Order Submitted!', 'success');
         this.orderItems.clear();
         this.isOrderMode = false;
         this.loadProductsNotEdit();
       },
-      error: (err: { error: { message: any; }; }) => alert(err.error?.message || 'Error submitting order')
+      error: (err: {
+        error: { message: any; };
+      }) => this.showNotification(err.error?.message || 'Error submitting order', 'error')
     })
+  }
+
+  private showNotification(message: string, type: 'success' | 'error' | 'warning' | 'info'): void {
+    const panelClass = [`${type}-snackbar`];
+
+    this.snackBar.open(message, 'Close', {
+      duration: 4000,
+      horizontalPosition: 'right',
+      verticalPosition: 'top',
+      panelClass
+    });
   }
 
   private initializeProducts(): void {

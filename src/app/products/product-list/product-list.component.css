@@ -219,6 +219,7 @@ input:focus, textarea:focus, select:focus {
   margin: 5px;
   background-color: red !important;
   color: white !important;
+  font-size: 1.25rem;
 }
 
 .edit-button:hover {

@@ -6,6 +6,7 @@ import {MatFormFieldModule} from '@angular/material/form-field';
 import {MatInputModule} from '@angular/material/input';
 import {MatButtonModule} from '@angular/material/button';
 import {MatIconModule} from '@angular/material/icon';
+import {MatSnackBar} from '@angular/material/snack-bar';
 
 @Component({
   selector: 'app-login',
@@ -25,7 +26,8 @@ export class LoginComponent {
 
   constructor(
     private authService: AuthService,
-    private router: Router
+    private router: Router,
+    private snackBar: MatSnackBar
   ) {
     this.loginForm = new FormGroup({
       email: new FormControl('',
@@ -67,15 +69,31 @@ export class LoginComponent {
 
   onLogin() {
     if (this.loginForm.invalid) {
-      return
+      this.showNotification('Please fix the form errors before submitting', 'error');
+      return;
     }
+
     const {email, password} = this.loginForm.getRawValue();
     if (email && password) {
       this.authService.login(email, password).subscribe({
-        next: () => this.router.navigate(['/']),
-        error: err => alert(err.error?.message || 'Invalid credentials')
+        next: () => {
+          this.showNotification('Login successful', 'success');
+          this.router.navigate(['/']);
+        },
+        error: err => this.showNotification(err.error?.message || 'Invalid credentials', 'access-denied')
       });
     }
+  }
+
+  private showNotification(message: string, type: 'success' | 'error' | 'warning' | 'info' | 'access-denied'): void {
+    const panelClass = [`${type}-snackbar`];
+
+    this.snackBar.open(message, 'Close', {
+      duration: 4000,
+      horizontalPosition: 'right',
+      verticalPosition: 'top',
+      panelClass
+    });
   }
 }
 

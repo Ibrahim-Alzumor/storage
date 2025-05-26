@@ -3,6 +3,7 @@ import {FormBuilder, FormGroup, ReactiveFormsModule, Validators} from '@angular/
 import {AuthService} from '../../auth/auth.service';
 import {UserService} from '../user.service';
 import {NgClass, NgIf} from '@angular/common';
+import {MatSnackBar} from '@angular/material/snack-bar';
 
 @Component({
   selector: 'app-user-register',
@@ -24,6 +25,7 @@ export class UserRegisterComponent implements OnInit {
     private fb: FormBuilder,
     public authService: AuthService,
     private userService: UserService,
+    private snackBar: MatSnackBar
   ) {
     this.registerForm = this.fb.group({
       firstName: ['', [Validators.required, Validators.maxLength(30), Validators.pattern(/^[a-zA-Z\s]+$/),]],
@@ -142,16 +144,27 @@ export class UserRegisterComponent implements OnInit {
   onRegister() {
     if (this.registerForm.invalid) return;
     if (this.authService.clearanceLevel < 2) {
-      alert('You do not have clearance to register users.');
+      this.showNotification('You do not have clearance to register users.', 'error');
       return;
     }
     this.userService.register(this.registerForm.value).subscribe({
-      next: () => alert('User registered!'),
-      error: err => alert(err.error?.message || 'Error registering user')
+      next: () => this.showNotification('User registered!', 'success'),
+      error: err => this.showNotification(err.error?.message || 'Error registering user', 'error')
     });
   }
 
   getClearanceLevel(): number {
     return this.clearanceLevel = this.authService.clearanceLevel;
+  }
+
+  private showNotification(message: string, type: 'success' | 'error' | 'warning' | 'info'): void {
+    const panelClass = [`${type}-snackbar`];
+
+    this.snackBar.open(message, 'Close', {
+      duration: 4000,
+      horizontalPosition: 'right',
+      verticalPosition: 'top',
+      panelClass
+    });
   }
 }

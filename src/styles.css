@@ -1,0 +1,96 @@
+.mat-mdc-snack-bar-container {
+  --mdc-snackbar-container-color: #2a2a2a;
+  --mdc-snackbar-supporting-text-color: white;
+}
+
+.mat-mdc-snack-bar-container .mdc-snackbar__surface {
+  border-radius: 8px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+  min-width: 300px;
+}
+
+.mat-mdc-snack-bar-container .mat-mdc-button {
+  color: white !important;
+  font-weight: 500;
+}
+
+.success-snackbar {
+  --mdc-snackbar-container-color: #4caf50;
+  border-left: 4px solid #2e7d32;
+}
+
+.success-snackbar .mdc-snackbar__surface {
+  background-color: #4caf50;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.error-snackbar {
+  --mdc-snackbar-container-color: #f44336;
+  border-left: 4px solid #c62828;
+}
+
+.error-snackbar .mdc-snackbar__surface {
+  background-color: #f44336;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.access-denied-snackbar {
+  --mdc-snackbar-container-color: #f44336;
+  border-left: 4px solid #c62828;
+}
+
+.access-denied-snackbar .mdc-snackbar__surface {
+  background-color: #f44336;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.warning-snackbar {
+  --mdc-snackbar-container-color: #ff9800;
+  border-left: 4px solid #ef6c00;
+}
+
+.warning-snackbar .mdc-snackbar__surface {
+  background-color: #ff9800;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.info-snackbar {
+  --mdc-snackbar-container-color: #2196f3;
+  border-left: 4px solid #0d47a1;
+}
+
+.info-snackbar .mdc-snackbar__surface {
+  background-color: #2196f3;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.mat-mdc-snack-bar-container .mdc-snackbar__label {
+  color: white;
+  font-size: 14px;
+  font-weight: 500;
+  font-family: 'Roboto', sans-serif;
+}
+
+.mat-mdc-snack-bar-container {
+  transition: transform 0.3s ease, opacity 0.3s ease;
+}
+
+html, body {
+  margin: 0;
+  padding: 0;
+  width: 100vw;
+  height: 100vh;
+  background-color: #1a1a1a;
+  overflow-x: hidden;
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+app-root {
+  display: block;
+  min-height: 100vh;
+  background-color: #1a1a1a;
+}
