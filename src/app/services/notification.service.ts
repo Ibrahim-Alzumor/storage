@@ -21,4 +21,19 @@ export class NotificationService {
       panelClass
     });
   }
+
+  showAccessDeniedNotification(level: number): void {
+    let message = '';
+    if (level === 0) {
+      message = 'Only Employees are allowed!';
+    } else if (level === 1) {
+      message = 'Only Associates and higher are allowed!';
+    } else if (level === 2) {
+      message = 'Only Managers and higher are allowed!';
+    } else if (level === 3) {
+      message = 'Only Owners are allowed!';
+    }
+
+    this.showNotification(message, 'access-denied');
+  }
 }

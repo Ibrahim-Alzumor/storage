@@ -16,7 +16,7 @@ const routes: Routes = [
   {path: 'add/:id', component: ProductAddComponent, canActivate: [AuthGuard], data: {minimumRequiredLevel: 2}},
   {path: 'login', component: LoginComponent},
   {path: 'register', component: UserRegisterComponent, canActivate: [AuthGuard], data: {minimumRequiredLevel: 2}},
-  {path: 'barcode', component: BarcodeScannerComponent, canActivate: [AuthGuard], data: {minimumRequiredLevel: 1}},
+  {path: 'barcode', component: BarcodeScannerComponent, canActivate: [AuthGuard], data: {minimumRequiredLevel: 2}},
   {path: 'charts', component: ChartsComponent, canActivate: [AuthGuard], data: {minimumRequiredLevel: 2}},
 ];
 
