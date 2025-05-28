@@ -7,7 +7,6 @@ import {MatFormFieldModule} from '@angular/material/form-field';
 import {MatInputModule} from '@angular/material/input';
 import {MatButtonModule} from '@angular/material/button';
 import {AuthService} from '../../../auth/auth.service';
-import {MatSnackBar} from '@angular/material/snack-bar';
 import {NotificationService} from '../../../services/notification.service';
 
 @Component({

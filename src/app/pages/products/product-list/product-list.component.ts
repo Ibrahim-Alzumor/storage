@@ -1,6 +1,6 @@
 import {
   Component,
-  HostListener, NgZone,
+  HostListener,
   OnInit
 } from '@angular/core';
 import {

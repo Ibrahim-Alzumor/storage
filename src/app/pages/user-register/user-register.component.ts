@@ -3,7 +3,6 @@ import {FormBuilder, FormGroup, ReactiveFormsModule, Validators} from '@angular/
 import {AuthService} from '../../auth/auth.service';
 import {UserService} from '../../services/user.service';
 import {NgClass, NgIf} from '@angular/common';
-import {MatSnackBar} from '@angular/material/snack-bar';
 import {NotificationService} from '../../services/notification.service';
 
 @Component({
