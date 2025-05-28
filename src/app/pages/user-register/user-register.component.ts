@@ -1,9 +1,10 @@
 import {Component, OnInit} from '@angular/core';
 import {FormBuilder, FormGroup, ReactiveFormsModule, Validators} from '@angular/forms';
 import {AuthService} from '../../auth/auth.service';
-import {UserService} from '../user.service';
+import {UserService} from '../../services/user.service';
 import {NgClass, NgIf} from '@angular/common';
 import {MatSnackBar} from '@angular/material/snack-bar';
+import {NotificationService} from '../../services/notification.service';
 
 @Component({
   selector: 'app-user-register',
@@ -25,7 +26,7 @@ export class UserRegisterComponent implements OnInit {
     private fb: FormBuilder,
     public authService: AuthService,
     private userService: UserService,
-    private snackBar: MatSnackBar
+    private notificationService: NotificationService
   ) {
     this.registerForm = this.fb.group({
       firstName: ['', [Validators.required, Validators.maxLength(30), Validators.pattern(/^[a-zA-Z\s]+$/),]],
@@ -144,27 +145,16 @@ export class UserRegisterComponent implements OnInit {
   onRegister() {
     if (this.registerForm.invalid) return;
     if (this.authService.clearanceLevel < 2) {
-      this.showNotification('You do not have clearance to register users.', 'error');
+      this.notificationService.showNotification('You do not have clearance to register users.', 'error');
       return;
     }
     this.userService.register(this.registerForm.value).subscribe({
-      next: () => this.showNotification('User registered!', 'success'),
-      error: err => this.showNotification(err.error?.message || 'Error registering user', 'error')
+      next: () => this.notificationService.showNotification('User registered!', 'success'),
+      error: err => this.notificationService.showNotification(err.error?.message || 'Error registering user', 'error')
     });
   }
 
   getClearanceLevel(): number {
     return this.clearanceLevel = this.authService.clearanceLevel;
-  }
-
-  private showNotification(message: string, type: 'success' | 'error' | 'warning' | 'info'): void {
-    const panelClass = [`${type}-snackbar`];
-
-    this.snackBar.open(message, 'Close', {
-      duration: 4000,
-      horizontalPosition: 'right',
-      verticalPosition: 'top',
-      panelClass
-    });
   }
 }

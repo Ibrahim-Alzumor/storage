@@ -1,6 +1,6 @@
 import {
   Component,
-  HostListener,
+  HostListener, NgZone,
   OnInit
 } from '@angular/core';
 import {
@@ -14,14 +14,16 @@ import {ActivatedRoute, Router} from '@angular/router';
 import {MatButton} from '@angular/material/button';
 import {MatFormField, MatInput} from '@angular/material/input';
 import {MatProgressSpinner} from '@angular/material/progress-spinner';
-import {NgOptimizedImage} from '@angular/common';
+import {MatIcon, MatIconRegistry} from '@angular/material/icon';
 import {firstValueFrom} from 'rxjs';
-import {MatSnackBar} from '@angular/material/snack-bar';
 
-import {Product} from '../product.interface';
-import {ProductService} from '../product.service';
-import {AuthService} from '../../auth/auth.service';
-import {BarcodeService} from '../barcode.service';
+import {Product} from '../../../interfaces/product.interface';
+import {ProductService} from '../../../services/product.service';
+import {AuthService} from '../../../auth/auth.service';
+import {BarcodeService} from '../../../services/barcode.service';
+import {NotificationService} from '../../../services/notification.service';
+import {ResizableColumnDirective} from '../../../directives/resizable-column.directive';
+import {DraggableColumnDirective} from '../../../directives/draggable-column.directive';
 
 @Component({
   selector: 'app-product-list',
@@ -32,7 +34,9 @@ import {BarcodeService} from '../barcode.service';
     MatFormField,
     MatInput,
     MatProgressSpinner,
-    NgOptimizedImage
+    MatIcon,
+    ResizableColumnDirective,
+    DraggableColumnDirective,
   ],
   templateUrl: './product-list.component.html',
   styleUrl: './product-list.component.css'
@@ -48,6 +52,10 @@ export class ProductListComponent implements OnInit {
   showPendingChanges = false;
   isOrderMode = false;
   orderItems: Map<number, number> = new Map();
+  showExpandedImage = false;
+  expandedImageSrc = '';
+  sortColumn: string = '';
+  sortDirection: 'asc' | 'desc' = 'asc';
 
   constructor(
     private productService: ProductService,
@@ -56,11 +64,14 @@ export class ProductListComponent implements OnInit {
     private fb: FormBuilder,
     private authService: AuthService,
     private barcodeService: BarcodeService,
-    private snackBar: MatSnackBar
+    private notificationService: NotificationService,
+    private matIconRegistry: MatIconRegistry,
   ) {
     this.productForm = this.fb.group({
       products: this.fb.array([])
     });
+    this.matIconRegistry.setDefaultFontSetClass('material-symbols-outlined');
+
   }
 
   get productsFormArray(): FormArray {
@@ -68,10 +79,49 @@ export class ProductListComponent implements OnInit {
   }
 
   ngOnInit() {
-    this.authService.isLoggedIn();
     this.loadProductsNotEdit()
     this.initializeBarcodeScanner();
     this.barcodeService.startListening();
+  }
+
+  expandImage(event: MouseEvent): void {
+    const imgElement = event.target as HTMLImageElement;
+    this.expandedImageSrc = imgElement.src;
+    this.showExpandedImage = true;
+  }
+
+  closeExpandedImage(): void {
+    this.showExpandedImage = false;
+  }
+
+  sortProducts(column: string): void {
+    if (this.sortColumn === column) {
+      this.sortDirection = this.sortDirection === 'asc' ? 'desc' : 'asc';
+    } else {
+      this.sortColumn = column;
+      this.sortDirection = 'asc';
+    }
+
+    this.products = [...this.products].sort((a, b) => {
+      let comparison = 0;
+
+      switch (column) {
+        case 'name':
+          comparison = (a.name || '').localeCompare(b.name || '');
+          break;
+        case 'stock':
+          comparison = a.stock - b.stock;
+          break;
+        case 'category':
+          comparison = (a.category || '').localeCompare(b.category || '');
+          break;
+        case 'description':
+          comparison = (a.description || '').localeCompare(b.description || '');
+          break;
+      }
+
+      return this.sortDirection === 'asc' ? comparison : -comparison;
+    });
   }
 
   getClearanceLevel(): number {
@@ -104,15 +154,11 @@ export class ProductListComponent implements OnInit {
   deleteProduct(id: number): void {
     this.productService.delete(id).subscribe({
       next: () => {
-        this.showNotification('Product Deleted!', 'success');
+        this.notificationService.showNotification('Product Deleted!', 'success');
         this.loadProductsNotEdit();
       },
-      error: err => this.showNotification(err.error?.message || 'Error deleting product', 'error')
+      error: err => this.notificationService.showNotification(err.error?.message || 'Error deleting product', 'error')
     });
-  }
-
-  hasImage(): boolean {
-    return this.products.some(p => p.image);
   }
 
   clearSearch(): void {
@@ -126,10 +172,6 @@ export class ProductListComponent implements OnInit {
     } else {
       this.loadProductsNotEdit();
     }
-  }
-
-  goToEdit(product: Product): void {
-    this.router.navigate(['/add', product.id]);
   }
 
   loadProductsEdit() {
@@ -166,7 +208,7 @@ export class ProductListComponent implements OnInit {
 
   async saveChanges(): Promise<void> {
     if (!this.productForm.valid) {
-      this.showNotification('Please fix the form errors before saving', 'warning');
+      this.notificationService.showNotification('Please fix the form errors before saving', 'warning');
       return;
     }
 
@@ -183,13 +225,13 @@ export class ProductListComponent implements OnInit {
 
       if (updatePromises.length > 0) {
         await Promise.all(updatePromises);
-        this.showNotification('All changes saved successfully', 'success');
+        this.notificationService.showNotification('All changes saved successfully', 'success');
       }
 
       this.isEditMode = false;
       this.products = await firstValueFrom(this.productService.getAll());
     } catch (error) {
-      this.showNotification('Error saving changes: ' + (error as Error).message, 'error');
+      this.notificationService.showNotification('Error saving changes: ' + (error as Error).message, 'error');
     }
   }
 
@@ -249,14 +291,14 @@ export class ProductListComponent implements OnInit {
       }
     }
     Promise.all(updateRequests).then(() => {
-      this.showNotification('All additions confirmed', 'success');
+      this.notificationService.showNotification('All additions confirmed', 'success');
       this.scannedAdditions.clear();
       this.hasStartedScanning = false;
       this.loadProductsNotEdit();
       this.showPendingChanges = false;
     })
       .catch(error => {
-        this.showNotification('Error confirming additions: ' + (error as Error).message, 'error');
+        this.notificationService.showNotification('Error confirming additions: ' + (error as Error).message, 'error');
       })
   }
 
@@ -300,31 +342,20 @@ export class ProductListComponent implements OnInit {
   submitOrder(): void {
     const items = Array.from(this.orderItems.entries()).map(([productId, quantity]) => ({productId, quantity}));
     if (items.length === 0) {
-      this.showNotification('Please add items to order', 'warning');
+      this.notificationService.showNotification('Please add items to order', 'warning');
       return;
     }
     this.productService.createOrder({items}).subscribe({
       next: () => {
-        this.showNotification('Order Submitted!', 'success');
+        this.notificationService.showNotification('Order Submitted!', 'success');
         this.orderItems.clear();
         this.isOrderMode = false;
         this.loadProductsNotEdit();
       },
       error: (err: {
         error: { message: any; };
-      }) => this.showNotification(err.error?.message || 'Error submitting order', 'error')
+      }) => this.notificationService.showNotification(err.error?.message || 'Error submitting order', 'error')
     })
-  }
-
-  private showNotification(message: string, type: 'success' | 'error' | 'warning' | 'info'): void {
-    const panelClass = [`${type}-snackbar`];
-
-    this.snackBar.open(message, 'Close', {
-      duration: 4000,
-      horizontalPosition: 'right',
-      verticalPosition: 'top',
-      panelClass
-    });
   }
 
   private initializeProducts(): void {

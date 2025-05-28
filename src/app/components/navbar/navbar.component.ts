@@ -1,9 +1,9 @@
 import {Component} from '@angular/core';
-import {AuthService} from '../auth/auth.service';
+import {AuthService} from '../../auth/auth.service';
 import {ActivatedRoute, Router, RouterLink} from '@angular/router';
 import {FormsModule} from '@angular/forms';
-import {Product} from '../products/product.interface';
-import {ProductService} from '../products/product.service';
+import {Product} from '../../interfaces/product.interface';
+import {ProductService} from '../../services/product.service';
 
 @Component({
   selector: 'app-navbar',
@@ -48,12 +48,6 @@ export class NavbarComponent {
         relativeTo: this.route
       });
     });
-  }
-
-  goToEdit(productId: number): void {
-    this.router.navigate(['/edit', productId]);
-    this.searchResults = [];
-    this.searchTerm = '';
   }
 
   getClearanceLevel(): number {

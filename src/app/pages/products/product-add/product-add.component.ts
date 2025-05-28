@@ -1,26 +1,27 @@
 import {Component, OnInit} from '@angular/core';
 import {FormBuilder, FormGroup, ReactiveFormsModule, Validators} from '@angular/forms';
-import {ProductService} from '../product.service';
+import {ProductService} from '../../../services/product.service';
 import {ActivatedRoute, Router} from '@angular/router';
-import {Product} from '../product.interface';
+import {Product} from '../../../interfaces/product.interface';
 import {MatFormFieldModule} from '@angular/material/form-field';
 import {MatInputModule} from '@angular/material/input';
 import {MatButtonModule} from '@angular/material/button';
-import {AuthService} from '../../auth/auth.service';
+import {AuthService} from '../../../auth/auth.service';
 import {MatSnackBar} from '@angular/material/snack-bar';
+import {NotificationService} from '../../../services/notification.service';
 
 @Component({
-  selector: 'app-product-form',
+  selector: 'app-product-add',
   imports: [
     ReactiveFormsModule,
     MatFormFieldModule,
     MatInputModule,
     MatButtonModule
   ],
-  templateUrl: './product-form.component.html',
-  styleUrl: './product-form.component.css'
+  templateUrl: './product-add.component.html',
+  styleUrl: './product-add.component.css'
 })
-export class ProductFormComponent implements OnInit {
+export class ProductAddComponent implements OnInit {
   productForm: FormGroup;
   editMode = false;
   productId: number | null = null;
@@ -31,7 +32,7 @@ export class ProductFormComponent implements OnInit {
     private productService: ProductService,
     private router: Router,
     private route: ActivatedRoute,
-    private snackBar: MatSnackBar
+    private notificationService: NotificationService
   ) {
     this.productForm = this.fb.group({
       name: ['', [Validators.required, Validators.maxLength(50)]],
@@ -57,7 +58,7 @@ export class ProductFormComponent implements OnInit {
 
   onSubmit(): void {
     if (!this.productForm.valid) {
-      this.showNotification('Not valid product form', 'error');
+      this.notificationService.showNotification('Not valid product form', 'error');
       return;
     }
 
@@ -66,30 +67,19 @@ export class ProductFormComponent implements OnInit {
     if (this.editMode && this.productId) {
       this.productService.update(this.productId, this.productForm.value).subscribe({
         next: () => {
-          this.showNotification('Product Updated!', 'success');
+          this.notificationService.showNotification('Product Updated!', 'success');
           this.router.navigate(['/']);
         },
-        error: err => this.showNotification(err.error?.message || 'Error updating product', 'error'),
+        error: err => this.notificationService.showNotification(err.error?.message || 'Error updating product', 'error'),
       })
     } else {
       this.productService.create(product).subscribe({
         next: () => {
-          this.showNotification('Product Added!', 'success');
+          this.notificationService.showNotification('Product Added!', 'success');
           this.router.navigate(['/']);
         },
-        error: err => this.showNotification(err.error?.message || 'Error adding product', 'error'),
+        error: err => this.notificationService.showNotification(err.error?.message || 'Error adding product', 'error'),
       })
     }
-  }
-
-  private showNotification(message: string, type: 'success' | 'error' | 'warning' | 'info' | 'access-denied'): void {
-    const panelClass = [`${type}-snackbar`];
-
-    this.snackBar.open(message, 'Close', {
-      duration: 4000,
-      horizontalPosition: 'right',
-      verticalPosition: 'top',
-      panelClass
-    });
   }
 }

@@ -24,16 +24,16 @@
              type="search">
       <button class="btn btn-danger ml-2" type="submit">Search</button>
     </form>
-    @if (searchResults.length > 0) {
-      <ul class="list-group mt-2">
-        @for (product of searchResults; track $index) {
-          <li (click)="goToEdit(product.id)"
-              class="list-group-item list-group-item-action">
-            {{ product.name }}
-          </li>
-        }
-      </ul>
-    }
+    <!--    @if (searchResults.length > 0) {-->
+    <!--      <ul class="list-group mt-2">-->
+    <!--        @for (product of searchResults; track $index) {-->
+    <!--          <li (click)="goToEdit(product.id)"-->
+    <!--              class="list-group-item list-group-item-action">-->
+    <!--            {{ product.name }}-->
+    <!--          </li>-->
+    <!--        }-->
+    <!--      </ul>-->
+    <!--    }-->
     @if (this.isLoggedIn()) {
       <button (click)="logout()" class="btn btn-outline-danger ml-2">Logout</button>
     }

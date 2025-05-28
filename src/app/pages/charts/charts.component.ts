@@ -16,7 +16,8 @@ import {
   Tooltip,
   Legend,
 } from 'chart.js';
-import {ProductService} from '../products/product.service';
+import {ProductService} from '../../services/product.service';
+import {environment} from '../../enviroments/enviroment';
 
 ChartJS.register(
   CategoryScale,
@@ -114,7 +115,7 @@ export class ChartsComponent implements OnInit {
 
     this.loading = true;
 
-    this.http.get<any[]>('http://localhost:3000/logs/stats', {params}).subscribe(async data => {
+    this.http.get<any[]>(`${environment.apiUrl}/logs/stats`, {params}).subscribe(async data => {
       const groupedByProduct: { [key: string]: { [date: string]: number } } = {};
       const groupedByDate: { [date: string]: number } = {};
 

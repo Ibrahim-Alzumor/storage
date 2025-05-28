@@ -7,6 +7,8 @@ import {MatInputModule} from '@angular/material/input';
 import {MatButtonModule} from '@angular/material/button';
 import {MatIconModule} from '@angular/material/icon';
 import {MatSnackBar} from '@angular/material/snack-bar';
+import {NotificationService} from '../../services/notification.service';
+import {Login} from '../../interfaces/login.interface';
 
 @Component({
   selector: 'app-login',
@@ -26,8 +28,7 @@ export class LoginComponent {
 
   constructor(
     private authService: AuthService,
-    private router: Router,
-    private snackBar: MatSnackBar
+    private notificationService: NotificationService,
   ) {
     this.loginForm = new FormGroup({
       email: new FormControl('',
@@ -69,32 +70,24 @@ export class LoginComponent {
 
   onLogin() {
     if (this.loginForm.invalid) {
-      this.showNotification('Please fix the form errors before submitting', 'error');
+      this.notificationService.showNotification('Please fix the form errors before submitting', 'error');
       return;
     }
 
-    const {email, password} = this.loginForm.getRawValue();
-    if (email && password) {
-      this.authService.login(email, password).subscribe({
-        next: () => {
-          this.showNotification('Login successful', 'success');
-          this.router.navigate(['/']);
-        },
-        error: err => this.showNotification(err.error?.message || 'Invalid credentials', 'access-denied')
-      });
+    const {email, password} = this.loginForm.value;
+    const formValues = {email, password};
+
+
+    const loginData: Login = {
+      email: formValues.email || '',
+      password: formValues.password || ''
+    };
+
+    if (loginData.email && loginData.password) {
+      this.authService.login(loginData).subscribe();
     }
   }
 
-  private showNotification(message: string, type: 'success' | 'error' | 'warning' | 'info' | 'access-denied'): void {
-    const panelClass = [`${type}-snackbar`];
-
-    this.snackBar.open(message, 'Close', {
-      duration: 4000,
-      horizontalPosition: 'right',
-      verticalPosition: 'top',
-      panelClass
-    });
-  }
 }
 
 interface loginForm {

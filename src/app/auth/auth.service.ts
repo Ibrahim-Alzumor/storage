@@ -1,8 +1,12 @@
 import {Injectable} from '@angular/core';
 import {HttpClient} from '@angular/common/http';
 import {environment} from '../enviroments/enviroment';
-import {tap} from 'rxjs/operators';
+import {catchError, tap} from 'rxjs/operators';
 import {jwtDecode} from "jwt-decode";
+import {Login} from '../interfaces/login.interface';
+import {Router} from '@angular/router';
+import {NotificationService} from '../services/notification.service';
+import {throwError} from 'rxjs';
 
 @Injectable({
   providedIn: 'root'
@@ -10,7 +14,7 @@ import {jwtDecode} from "jwt-decode";
 export class AuthService {
   private tokenkey = 'jwt_token';
 
-  constructor(private http: HttpClient) {
+  constructor(private http: HttpClient, private router: Router, private notificationService: NotificationService) {
   }
 
   get token() {
@@ -22,7 +26,7 @@ export class AuthService {
           this.logout();
           return null;
         }
-        return token;
+        return decodedToken;
       } catch (error) {
         this.logout();
         return null;
@@ -32,10 +36,9 @@ export class AuthService {
   }
 
   get clearanceLevel(): number {
-    const token = this.token;
-    if (token) {
+    const decodedToken = this.token;
+    if (decodedToken) {
       try {
-        const decodedToken: any = jwtDecode(token);
         return decodedToken.clearanceLevel || 0;
       } catch (error) {
         return 0;
@@ -44,13 +47,23 @@ export class AuthService {
     return 0;
   }
 
-  login(email: string, password: string) {
-    return this.http.post<any>(`${environment.apiUrl}/auth/login`, {email, password}).pipe(
+  login(login: Login) {
+    console.log(login);
+    return this.http.post<any>(`${environment.apiUrl}/auth/login`, login).pipe(
       tap(res => {
         localStorage.setItem(this.tokenkey, res.accessToken);
+        this.router.navigate(['/']);
+      }),
+      catchError(err => {
+        this.notificationService.showNotification(
+          err.error?.message || 'Invalid credentials',
+          'access-denied'
+        );
+        return throwError(() => err);
       })
     )
   }
+
 
   logout() {
     localStorage.removeItem(this.tokenkey);
