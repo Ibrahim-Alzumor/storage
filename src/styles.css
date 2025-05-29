@@ -34,16 +34,6 @@
   border: 1px solid rgba(255, 255, 255, 0.1);
 }
 
-.access-denied-snackbar {
-  --mdc-snackbar-container-color: #f44336;
-  border-left: 4px solid #c62828;
-}
-
-.access-denied-snackbar .mdc-snackbar__surface {
-  background-color: #f44336;
-  border: 1px solid rgba(255, 255, 255, 0.1);
-}
-
 .warning-snackbar {
   --mdc-snackbar-container-color: #ff9800;
   border-left: 4px solid #ef6c00;
@@ -93,56 +83,4 @@ app-root {
   display: block;
   min-height: 100vh;
   background-color: #1a1a1a;
-}
-
-[resizableColumn] {
-  position: relative !important;
-  overflow: visible !important;
-}
-
-.resizer {
-  position: absolute;
-  right: 0;
-  top: 0;
-  height: 100%;
-  width: 8px;
-  cursor: col-resize;
-  user-select: none;
-  touch-action: none;
-  z-index: 10;
-  transition: background-color 0.15s ease;
-}
-
-.resizer:hover {
-  background-color: rgba(0, 0, 0, 0.2);
-}
-
-.resizer:active,
-.resizer.resizing {
-  background-color: rgba(0, 0, 0, 0.4);
-}
-
-.resizer::after {
-  content: "";
-  position: absolute;
-  top: 0;
-  right: 3px;
-  height: 100%;
-  width: 2px;
-  background-color: #000;
-}
-
-.dragging {
-  cursor: grabbing !important;
-}
-
-.resizing {
-  cursor: col-resize !important;
-}
-
-.material-symbols-outlined {
-  font-variation-settings: 'FILL' 0,
-  'wght' 400,
-  'GRAD' 0,
-  'opsz' 24
 }

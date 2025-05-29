@@ -17,6 +17,12 @@ export class ProductService {
     );
   }
 
+  findAllValidBarcodes(): Observable<Product[]> {
+    return this.http.get<Product[]>(`${environment.apiUrl}/products/find-barcodes`).pipe(
+      map(products => products.map(this.cleanUpProduct))
+    );
+  }
+
   getByName(searchTerm: string): Observable<Product[]> {
     const params = new HttpParams().set('name', searchTerm.trim());
     return this.http.get<Product[]>(`${environment.apiUrl}/products/search`, {params}).pipe(

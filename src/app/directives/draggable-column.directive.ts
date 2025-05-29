@@ -1,12 +1,4 @@
-import {
-  Directive,
-  ElementRef,
-  HostListener,
-  Input,
-  NgZone,
-  OnInit,
-  Renderer2
-} from '@angular/core';
+import {Directive, ElementRef, HostListener, Input, NgZone, OnInit, Renderer2} from '@angular/core';
 
 @Directive({
   selector: '[draggableColumn]',
@@ -39,6 +31,7 @@ export class DraggableColumnDirective implements OnInit {
     const parentSection = parentRow?.parentElement;
 
     if (!this.table || parentSection?.tagName !== 'THEAD') {
+      console.error('Directive must be applied to a table header cell. (th) element');
       return;
     }
   }
@@ -146,14 +139,10 @@ export class DraggableColumnDirective implements OnInit {
 
     this.placeholder = this.renderer.createElement('div');
     this.renderer.addClass(this.placeholder, 'column-placeholder');
-    this.renderer.setStyle(this.placeholder, 'opacity', '0.6');
+
     this.renderer.setStyle(this.placeholder, 'position', 'absolute');
-    this.renderer.setStyle(this.placeholder, 'background', '#ff7373');
     this.renderer.setStyle(this.placeholder, 'pointer-events', 'none');
     this.renderer.setStyle(this.placeholder, 'z-index', '1000');
-    this.renderer.setStyle(this.placeholder, 'border', '2px dashed #ff3b3b');
-    this.renderer.setStyle(this.placeholder, 'transition', 'box-shadow 0.2s ease');
-    this.renderer.setStyle(this.placeholder, 'box-shadow', '0 0 10px rgba(255, 0, 0, 0.3)');
 
     const rect = this.draggedColumn!.getBoundingClientRect();
     this.renderer.setStyle(this.placeholder, 'width', `${rect.width}px`);
@@ -184,6 +173,8 @@ export class DraggableColumnDirective implements OnInit {
 
   private swapColumns(fromIndex: number, toIndex: number) {
     if (!this.table) return;
+    if (fromIndex === toIndex) return;
+    if (fromIndex < 0 || toIndex < 0) return;
 
     const rows = Array.from(this.table.rows);
 

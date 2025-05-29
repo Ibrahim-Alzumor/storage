@@ -1,20 +1,11 @@
-import {
-  Component,
-  HostListener,
-  OnInit
-} from '@angular/core';
-import {
-  FormArray,
-  FormBuilder,
-  FormGroup,
-  ReactiveFormsModule,
-  Validators
-} from '@angular/forms';
+import {Component, HostListener, OnInit,} from '@angular/core';
+import {FormArray, FormBuilder, FormGroup, ReactiveFormsModule, Validators} from '@angular/forms';
 import {ActivatedRoute, Router} from '@angular/router';
 import {MatButton} from '@angular/material/button';
 import {MatFormField, MatInput} from '@angular/material/input';
 import {MatProgressSpinner} from '@angular/material/progress-spinner';
 import {MatIcon, MatIconRegistry} from '@angular/material/icon';
+import {MatMenuModule} from '@angular/material/menu';
 import {firstValueFrom} from 'rxjs';
 
 import {Product} from '../../../interfaces/product.interface';
@@ -35,11 +26,14 @@ import {DraggableColumnDirective} from '../../../directives/draggable-column.dir
     MatInput,
     MatProgressSpinner,
     MatIcon,
+    MatMenuModule,
     ResizableColumnDirective,
     DraggableColumnDirective,
   ],
   templateUrl: './product-list.component.html',
-  styleUrl: './product-list.component.css'
+  styleUrls: ['./product-list.component.css',
+    '../../../styles/directive-styles.css',
+  ]
 })
 export class ProductListComponent implements OnInit {
   products: Product[] = [];
@@ -57,6 +51,11 @@ export class ProductListComponent implements OnInit {
   sortColumn: string = '';
   sortDirection: 'asc' | 'desc' = 'asc';
 
+  categories: string[] = [];
+  selectedCategory: string | null = null;
+  allProducts: Product[] = [];
+  showCategoryDropdown = false;
+
   constructor(
     private productService: ProductService,
     private router: Router,
@@ -71,7 +70,6 @@ export class ProductListComponent implements OnInit {
       products: this.fb.array([])
     });
     this.matIconRegistry.setDefaultFontSetClass('material-symbols-outlined');
-
   }
 
   get productsFormArray(): FormArray {
@@ -79,7 +77,7 @@ export class ProductListComponent implements OnInit {
   }
 
   ngOnInit() {
-    this.loadProductsNotEdit()
+    this.loadProductsNotEdit();
     this.initializeBarcodeScanner();
     this.barcodeService.startListening();
   }
@@ -135,13 +133,9 @@ export class ProductListComponent implements OnInit {
 
       if (name) {
         this.productService.getByName(name).subscribe(products => {
-          this.products = products.map(p => {
-            const pending = this.scannedAdditions.get(p.id) || 0;
-            return {
-              ...p,
-              stockDisplay: pending > 0 ? `${p.stock} + ${pending}` : `${p.stock}`
-            };
-          });
+          this.allProducts = products;
+          this.applyFilters();
+          this.extractCategories();
           this.loading = false;
         });
       } else {
@@ -181,7 +175,9 @@ export class ProductListComponent implements OnInit {
       if (name) {
         this.productService.getByName(name).subscribe({
           next: (products) => {
-            this.products = products;
+            this.allProducts = products;
+            this.applyFilters();
+            this.extractCategories();
             this.initializeForm();
             this.loading = false;
           },
@@ -193,7 +189,9 @@ export class ProductListComponent implements OnInit {
       } else {
         this.productService.getAll().subscribe({
           next: (products) => {
-            this.products = products;
+            this.allProducts = products;
+            this.applyFilters();
+            this.extractCategories();
             this.initializeForm();
             this.loading = false;
           },
@@ -229,7 +227,9 @@ export class ProductListComponent implements OnInit {
       }
 
       this.isEditMode = false;
-      this.products = await firstValueFrom(this.productService.getAll());
+      this.allProducts = await firstValueFrom(this.productService.getAll());
+      this.applyFilters();
+      this.extractCategories();
     } catch (error) {
       this.notificationService.showNotification('Error saving changes: ' + (error as Error).message, 'error');
     }
@@ -299,7 +299,7 @@ export class ProductListComponent implements OnInit {
     })
       .catch(error => {
         this.notificationService.showNotification('Error confirming additions: ' + (error as Error).message, 'error');
-      })
+      });
   }
 
   getInProgressAdditions(): Product[] {
@@ -309,9 +309,51 @@ export class ProductListComponent implements OnInit {
       }));
   }
 
+  filterByCategory(category: string | null): void {
+    this.selectedCategory = category;
+    this.applyFilters();
+    this.showCategoryDropdown = false;
+
+    if (this.isEditMode) {
+      this.initializeForm();
+    }
+  }
+
+  applyFilters(): void {
+    if (!this.selectedCategory) {
+      this.products = [...this.allProducts].map(p => {
+        const pending = this.scannedAdditions.get(p.id) || 0;
+        return {
+          ...p,
+          stockDisplay: pending > 0 ? `${p.stock} + ${pending}` : `${p.stock}`
+        };
+      });
+    } else {
+      this.products = this.allProducts
+        .filter(product => product.category === this.selectedCategory)
+        .map(p => {
+          const pending = this.scannedAdditions.get(p.id) || 0;
+          return {
+            ...p,
+            stockDisplay: pending > 0 ? `${p.stock} + ${pending}` : `${p.stock}`
+          };
+        });
+    }
+  }
+
+  toggleCategoryDropdown(event: Event): void {
+    event.stopPropagation();
+    this.showCategoryDropdown = !this.showCategoryDropdown;
+  }
+
   @HostListener('window:keydown', ['$event'])
   onKeyDown(event: KeyboardEvent) {
     this.barcodeService.handleKey(event);
+  }
+
+  @HostListener('document:click')
+  closeDropdown(): void {
+    this.showCategoryDropdown = false;
   }
 
   toggleOrderMode(): void {
@@ -352,21 +394,25 @@ export class ProductListComponent implements OnInit {
         this.isOrderMode = false;
         this.loadProductsNotEdit();
       },
-      error: (err: {
-        error: { message: any; };
-      }) => this.notificationService.showNotification(err.error?.message || 'Error submitting order', 'error')
-    })
+      error: (err) => this.notificationService.showNotification(err.error?.message || 'Error submitting order', 'error')
+    });
+  }
+
+  private extractCategories(): void {
+    const uniqueCategories = new Set<string>();
+    this.allProducts.forEach(product => {
+      if (product.category) {
+        uniqueCategories.add(product.category);
+      }
+    });
+    this.categories = Array.from(uniqueCategories).sort();
   }
 
   private initializeProducts(): void {
     this.productService.getAll().subscribe(products => {
-      this.products = products.map(p => {
-        const pending = this.scannedAdditions.get(p.id) || 0;
-        return {
-          ...p,
-          stockDisplay: pending > 0 ? `${p.stock} + ${pending}` : `${p.stock}`
-        };
-      });
+      this.allProducts = products;
+      this.applyFilters();
+      this.extractCategories();
     });
   }
 

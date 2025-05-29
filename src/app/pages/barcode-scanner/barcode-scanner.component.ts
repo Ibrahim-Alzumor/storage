@@ -77,7 +77,7 @@ export class BarcodeScannerComponent implements OnInit {
   }
 
   private initializeProducts(): void {
-    this.productService.getAll().subscribe(products => {
+    this.productService.findAllValidBarcodes().subscribe(products => {
       this.products = products;
       this.loading = false;
     });

@@ -6,6 +6,12 @@
         <button mat-button (click)="clearSearch()">Clear Search</button>
       </div>
     }
+    @if (selectedCategory) {
+      <div class="search-status">
+        Filtered by category: "{{ selectedCategory }}"
+        <button mat-button (click)="filterByCategory(null)">Clear Filter</button>
+      </div>
+    }
     @if (this.getClearanceLevel() >= 2 && !isOrderMode) {
       <button (click)="toggleEditMode()" class="edit-button" color="primary" mat-raised-button>
         {{ isEditMode ? 'Cancel Editing' : 'Edit Products' }}
@@ -39,9 +45,13 @@
   }
   @if (!loading && products.length === 0) {
     <div class="no-results">
-      No products found. @if (route.snapshot.queryParams['name']) {
-      Try a different search term.
-    }
+      No products found.
+      @if (route.snapshot.queryParams['name']) {
+        Try a different search term.
+      } @else if (selectedCategory) {
+        No products in category "{{ selectedCategory }}".
+        <button mat-button (click)="filterByCategory(null)">Show All Products</button>
+      }
     </div>
   }
   <form [formGroup]="productForm">
@@ -60,10 +70,25 @@
             <mat-icon>{{ sortDirection === 'asc' ? 'arrow_upward' : 'arrow_downward' }}</mat-icon>
           }
         </th>
-        <th (click)="sortProducts('category')" draggableColumn resizableColumn>
-          Category
-          @if (sortColumn === 'category') {
-            <mat-icon>{{ sortDirection === 'asc' ? 'arrow_upward' : 'arrow_downward' }}</mat-icon>
+        <th class="category-header" draggableColumn resizableColumn>
+          <div (click)="toggleCategoryDropdown($event)" class="category-header-content">
+            Category
+            <mat-icon>filter_list</mat-icon>
+            @if (sortColumn === 'category') {
+              <mat-icon>{{ sortDirection === 'asc' ? 'arrow_upward' : 'arrow_downward' }}</mat-icon>
+            }
+          </div>
+          @if (showCategoryDropdown) {
+            <div class="category-dropdown">
+              <div class="category-item" (click)="filterByCategory(null)">
+                All Categories
+              </div>
+              @for (category of categories; track category) {
+                <div class="category-item" (click)="filterByCategory(category)">
+                  {{ category }}
+                </div>
+              }
+            </div>
           }
         </th>
         <th (click)="sortProducts('description')" draggableColumn resizableColumn>

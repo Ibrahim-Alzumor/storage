@@ -1,7 +1,7 @@
 import {Injectable} from '@angular/core';
 import {MatSnackBar} from '@angular/material/snack-bar';
 
-export type NotificationType = 'success' | 'error' | 'warning' | 'info' | 'access-denied';
+export type NotificationType = 'success' | 'error' | 'warning' | 'info';
 
 @Injectable({
   providedIn: 'root'
@@ -24,16 +24,20 @@ export class NotificationService {
 
   showAccessDeniedNotification(level: number): void {
     let message = '';
-    if (level === 0) {
-      message = 'Only Employees are allowed!';
-    } else if (level === 1) {
-      message = 'Only Associates and higher are allowed!';
-    } else if (level === 2) {
-      message = 'Only Managers and higher are allowed!';
-    } else if (level === 3) {
-      message = 'Only Owners are allowed!';
+    switch (level) {
+      case 0:
+        message = 'Only Employees are allowed!';
+        break;
+      case 1:
+        message = 'Only Associates and higher are allowed!';
+        break;
+      case 2:
+        message = 'Only Managers and higher are allowed!';
+        break;
+      case 3:
+        message = 'Only Owners are allowed!';
+        break;
     }
-
-    this.showNotification(message, 'access-denied');
+    this.showNotification(message, 'error');
   }
 }

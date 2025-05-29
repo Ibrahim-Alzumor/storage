@@ -1,3 +1,4 @@
+
 html, body {
   margin: 0;
   padding: 0;
@@ -423,4 +424,75 @@ th {
   color: white;
   font-size: 30px;
   cursor: pointer;
+}
+
+.category-header {
+  position: relative;
+}
+
+.category-header-content {
+  display: flex;
+  align-items: center;
+  cursor: pointer;
+}
+
+.category-header-content mat-icon {
+  margin-left: 5px;
+  font-size: 18px;
+}
+
+.category-dropdown {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  z-index: 100;
+  background-color: #1c1c1c;
+  border: 1px solid #ff3b3b;
+  border-radius: 4px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+  min-width: 150px;
+  max-height: 300px;
+  overflow-y: auto;
+}
+
+.category-item {
+  padding: 10px 15px;
+  color: white;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+}
+
+.category-item:hover {
+  background-color: #ff3b3b;
+}
+
+.search-status {
+  display: flex;
+  align-items: center;
+  color: white;
+  font-size: 14px;
+  margin-right: 20px;
+  background-color: rgba(255, 59, 59, 0.1);
+  padding: 8px 16px;
+  border-radius: 4px;
+}
+
+.search-status button {
+  background-color: transparent;
+  border: 1px solid #ff3b3b;
+  color: #ff3b3b;
+  padding: 4px 12px;
+  font-size: 12px;
+  margin-left: 12px;
+  transition: all 0.2s ease;
+}
+
+.search-status button:hover {
+  background-color: #ff3b3b;
+  color: white;
+}
+
+.category-item.selected {
+  background-color: rgba(255, 59, 59, 0.3);
+  font-weight: bold;
 }

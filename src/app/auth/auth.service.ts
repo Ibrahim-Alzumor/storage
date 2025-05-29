@@ -57,7 +57,7 @@ export class AuthService {
       catchError(err => {
         this.notificationService.showNotification(
           err.error?.message || 'Invalid credentials',
-          'access-denied'
+          'error'
         );
         return throwError(() => err);
       })
