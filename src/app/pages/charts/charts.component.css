@@ -1,0 +1,113 @@
+html, body {
+  margin: 0;
+  padding: 0;
+  min-height: 100vh;
+  width: 100%;
+  background-color: #1a1a1a !important;
+  overflow-x: hidden;
+  font-family: 'Roboto', sans-serif;
+  color: white;
+}
+
+:host {
+  display: block;
+  width: 100vw;
+  min-height: 100vh;
+  background-color: #1a1a1a;
+  padding: 20px;
+  box-sizing: border-box;
+}
+
+.filter-form {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 20px;
+  background-color: #2a2a2a;
+  padding: 30px;
+  border-radius: 8px;
+  box-shadow: 0 4px 12px rgba(227, 24, 55, 0.2);
+  border: 1px solid rgba(227, 24, 55, 0.1);
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.filter-form label {
+  flex: 1 1 250px;
+  font-weight: 600;
+  font-size: 16px;
+  color: rgba(255, 255, 255, 0.9);
+  display: flex;
+  flex-direction: column;
+}
+
+.filter-form input {
+  margin-top: 6px;
+  padding: 10px 12px;
+  border: 1px solid #e31837;
+  border-radius: 8px;
+  background-color: #2a2a2a;
+  color: white;
+  font-size: 20px;
+  caret-color: #e31837;
+  transition: border-color 0.3s ease;
+
+}
+
+.filter-form input::placeholder {
+  color: rgba(255, 255, 255, 0.5);
+}
+
+.filter-form input:focus {
+  border-color: #ff4444;
+  outline: none;
+}
+
+.filter-form button {
+  padding: 12px 15px;
+  background-color: #e31837;
+  border: none;
+  color: white;
+  font-weight: 600;
+  cursor: pointer;
+  border-radius: 8px;
+  font-size: 20px;
+  transition: background-color 0.3s ease;
+  min-width: 150px;
+}
+
+.filter-form button:hover:not(:disabled) {
+  background-color: #b71c1c;
+}
+
+.filter-form button:disabled {
+  background-color: #4a4a4a;
+  color: rgba(255, 255, 255, 0.5);
+  cursor: not-allowed;
+}
+
+.loading-text {
+  font-size: 16px;
+  font-weight: 600;
+  color: rgba(255, 255, 255, 0.7);
+  text-align: center;
+  margin-top: 20px;
+}
+
+h3 {
+  margin-top: 40px;
+  margin-bottom: 12px;
+  font-size: 20px;
+  color: white;
+  text-align: center;
+}
+
+canvas {
+  width: 100% !important;
+  height: 400px !important;
+  max-height: 400px;
+  background: #2a2a2a;
+  border-radius: 8px;
+  box-shadow: 0 4px 12px rgba(227, 24, 55, 0.2);
+  border: 1px solid rgba(227, 24, 55, 0.1);
+  box-sizing: border-box;
+}

@@ -1,12 +1,15 @@
 import {Injectable} from '@angular/core';
 import {ActivatedRouteSnapshot, CanActivate, Router} from '@angular/router';
 import {AuthService} from './auth.service';
+import {NotificationService} from '../services/notification.service';
+
 
 @Injectable({
   providedIn: 'root',
 })
 export class AuthGuard implements CanActivate {
-  constructor(private router: Router, private authService: AuthService) {
+  constructor(private router: Router, private authService: AuthService, private notificationService: NotificationService
+  ) {
   }
 
   canActivate(route: ActivatedRouteSnapshot): boolean {
@@ -18,17 +21,13 @@ export class AuthGuard implements CanActivate {
     const currentLevel = this.authService.clearanceLevel;
 
     if (minimumRequiredLevel > currentLevel) {
-      if (minimumRequiredLevel === 0) {
-        alert('Only Employees are allowed!!');
-      } else if (minimumRequiredLevel === 1) {
-        alert('Only Associates and higher are allowed!!');
-      } else if (minimumRequiredLevel === 2) {
-        alert('Only Managers and higher are allowed!!');
-      }
-      this.authService.logout();
+      this.notificationService.showAccessDeniedNotification(minimumRequiredLevel);
+      this.router.navigate(['']);
       return false;
     }
+
     return true;
   }
+
 }
 

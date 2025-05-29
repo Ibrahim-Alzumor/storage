@@ -1,8 +1,9 @@
 import {Component, OnInit} from '@angular/core';
 import {FormBuilder, FormGroup, ReactiveFormsModule, Validators} from '@angular/forms';
-import {AuthService} from '../../services/auth.service';
+import {AuthService} from '../../auth/auth.service';
 import {UserService} from '../../services/user.service';
 import {NgClass, NgIf} from '@angular/common';
+import {NotificationService} from '../../services/notification.service';
 
 @Component({
   selector: 'app-user-register',
@@ -24,6 +25,7 @@ export class UserRegisterComponent implements OnInit {
     private fb: FormBuilder,
     public authService: AuthService,
     private userService: UserService,
+    private notificationService: NotificationService
   ) {
     this.registerForm = this.fb.group({
       firstName: ['', [Validators.required, Validators.maxLength(30), Validators.pattern(/^[a-zA-Z\s]+$/),]],
@@ -116,6 +118,7 @@ export class UserRegisterComponent implements OnInit {
   }
 
   ngOnInit() {
+    this.authService.isLoggedIn();
   }
 
   setPossibleClearanceLevels() {
@@ -141,12 +144,12 @@ export class UserRegisterComponent implements OnInit {
   onRegister() {
     if (this.registerForm.invalid) return;
     if (this.authService.clearanceLevel < 2) {
-      alert('You do not have clearance to register users.');
+      this.notificationService.showNotification('You do not have clearance to register users.', 'error');
       return;
     }
     this.userService.register(this.registerForm.value).subscribe({
-      next: () => alert('User registered!'),
-      error: err => alert(err.error?.message || 'Error registering user')
+      next: () => this.notificationService.showNotification('User registered!', 'success'),
+      error: err => this.notificationService.showNotification(err.error?.message || 'Error registering user', 'error')
     });
   }
 

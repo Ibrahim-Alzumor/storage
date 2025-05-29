@@ -1,11 +1,12 @@
 import {Component} from '@angular/core';
-import {Router} from '@angular/router';
 import {FormControl, FormGroup, ReactiveFormsModule, Validators} from '@angular/forms';
-import {AuthService} from '../../services/auth.service';
+import {AuthService} from '../../auth/auth.service';
 import {MatFormFieldModule} from '@angular/material/form-field';
 import {MatInputModule} from '@angular/material/input';
 import {MatButtonModule} from '@angular/material/button';
 import {MatIconModule} from '@angular/material/icon';
+import {NotificationService} from '../../services/notification.service';
+import {Login} from '../../interfaces/login.interface';
 
 @Component({
   selector: 'app-login',
@@ -25,7 +26,7 @@ export class LoginComponent {
 
   constructor(
     private authService: AuthService,
-    private router: Router
+    private notificationService: NotificationService,
   ) {
     this.loginForm = new FormGroup({
       email: new FormControl('',
@@ -41,7 +42,6 @@ export class LoginComponent {
         ])
     })
   }
-
 
   get emailErrorMessage(): string | null {
     const emailControl = this.loginForm.controls.email;
@@ -68,18 +68,25 @@ export class LoginComponent {
 
   onLogin() {
     if (this.loginForm.invalid) {
-      return
+      this.notificationService.showNotification('Please fix the form errors before submitting', 'error');
+      return;
     }
-    const {email, password} = this.loginForm.getRawValue();
-    if (email && password) {
-      this.authService.login(email, password).subscribe({
-        next: () => this.router.navigate(['/']),
-        error: err => alert(err.error?.message || 'Invalid credentials')
-      });
+
+    const {email, password} = this.loginForm.value;
+    const formValues = {email, password};
+
+
+    const loginData: Login = {
+      email: formValues.email || '',
+      password: formValues.password || ''
+    };
+
+    if (loginData.email && loginData.password) {
+      this.authService.login(loginData).subscribe();
     }
   }
-}
 
+}
 
 interface loginForm {
   email: FormControl<string | null>;
