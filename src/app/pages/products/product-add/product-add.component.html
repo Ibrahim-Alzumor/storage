@@ -27,17 +27,83 @@
         }
       </mat-form-field>
 
-      <mat-form-field appearance="outline">
-        <mat-label>Category</mat-label>
-        <input formControlName="category"
-               matInput
-               placeholder="Enter category">
-        @if (productForm.controls['category'].invalid && productForm.controls['category'].touched) {
-          <mat-error>
-            Category is required.
-          </mat-error>
-        }
-      </mat-form-field>
+      <div class="input-with-button">
+        <mat-form-field appearance="outline" class="flex-grow">
+          <mat-label>Unit</mat-label>
+          <mat-select formControlName="unit">
+            @for (unit of availableUnits; track unit) {
+              <mat-option [value]="unit">{{ unit }}</mat-option>
+            }
+          </mat-select>
+          @if (productForm.controls['unit'].invalid && productForm.controls['unit'].touched) {
+            <mat-error>
+              Unit is required.
+            </mat-error>
+          }
+        </mat-form-field>
+        <button (click)="unitDialogOpen = true" aria-label="Add new unit" class="add-button" color="primary"
+                mat-mini-fab
+                type="button">
+          <mat-icon>add</mat-icon>
+        </button>
+      </div>
+
+      @if (unitDialogOpen) {
+        <div class="dialog-overlay">
+          <div class="dialog-container mat-elevation-z8">
+            <h2>Add New Unit</h2>
+            <mat-form-field appearance="outline" style="width: 100%">
+              <mat-label>Enter new unit</mat-label>
+              <input matInput [(ngModel)]="newUnit" [ngModelOptions]="{standalone: true}">
+            </mat-form-field>
+            <div class="dialog-actions">
+              <button mat-button (click)="unitDialogOpen = false">Cancel</button>
+              <button mat-raised-button color="primary" [disabled]="!newUnit || newUnit.trim() === ''"
+                      (click)="addNewUnit(); unitDialogOpen = false">Confirm
+              </button>
+            </div>
+          </div>
+        </div>
+      }
+
+      <div class="input-with-button">
+        <mat-form-field appearance="outline" class="flex-grow">
+          <mat-label>Category</mat-label>
+          <mat-select formControlName="category">
+            @for (category of availableCategories; track category) {
+              <mat-option [value]="category">{{ category }}</mat-option>
+            }
+          </mat-select>
+          @if (productForm.controls['category'].invalid && productForm.controls['category'].touched) {
+            <mat-error>
+              Category is required.
+            </mat-error>
+          }
+        </mat-form-field>
+        <button (click)="categoryDialogOpen = true" aria-label="Add new category" class="add-button" color="primary"
+                mat-mini-fab
+                type="button">
+          <mat-icon>add</mat-icon>
+        </button>
+      </div>
+
+      @if (categoryDialogOpen) {
+        <div class="dialog-overlay">
+          <div class="dialog-container mat-elevation-z8">
+            <h2>Add New Category</h2>
+            <mat-form-field appearance="outline" style="width: 100%">
+              <mat-label>Enter new category</mat-label>
+              <input matInput [(ngModel)]="newCategory" [ngModelOptions]="{standalone: true}">
+            </mat-form-field>
+            <div class="dialog-actions">
+              <button mat-button (click)="categoryDialogOpen = false">Cancel</button>
+              <button mat-raised-button color="primary" [disabled]="!newCategory || newCategory.trim() === ''"
+                      (click)="addNewCategory(); categoryDialogOpen = false">Confirm
+              </button>
+            </div>
+          </div>
+        </div>
+      }
 
       <mat-form-field appearance="outline">
         <mat-label>Image URL</mat-label>

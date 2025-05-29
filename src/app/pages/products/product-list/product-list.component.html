@@ -70,6 +70,12 @@
             <mat-icon>{{ sortDirection === 'asc' ? 'arrow_upward' : 'arrow_downward' }}</mat-icon>
           }
         </th>
+        <th (click)="sortProducts('unit')" draggableColumn resizableColumn>
+          unit
+          @if (sortColumn === 'unit') {
+            <mat-icon>{{ sortDirection === 'asc' ? 'arrow_upward' : 'arrow_downward' }}</mat-icon>
+          }
+        </th>
         <th class="category-header" draggableColumn resizableColumn>
           <div (click)="toggleCategoryDropdown($event)" class="category-header-content">
             Category
@@ -118,12 +124,25 @@
                 <mat-form-field>
                   <input matInput type="number" [formControlName]="'stock'" class="custom-input">
                 </mat-form-field>
-              </td>
               <td resizableColumn>
-                <mat-form-field>
-                  <input matInput [formControlName]="'category'" class="custom-input">
+                <mat-form-field appearance="fill">
+                  <mat-select [formControlName]="'unit'">
+                    @for (unit of availableUnits; track unit) {
+                      <mat-option [value]="unit">{{ unit }}</mat-option>
+                    }
+                  </mat-select>
                 </mat-form-field>
               </td>
+              <td resizableColumn>
+                <mat-form-field appearance="fill">
+                  <mat-select [formControlName]="'category'">
+                    @for (category of availableCategories; track category) {
+                      <mat-option [value]="category">{{ category }}</mat-option>
+                    }
+                  </mat-select>
+                </mat-form-field>
+              </td>
+
               <td resizableColumn>
                 <mat-form-field>
                   <input matInput [formControlName]="'description'" class="custom-input">
@@ -141,6 +160,7 @@
             <tr>
               <td resizableColumn>{{ product.name }}</td>
               <td resizableColumn>{{ product.stockDisplay }}</td>
+              <td resizableColumn>{{ product.unit }}</td>
               <td resizableColumn>{{ product.category }}</td>
               <td resizableColumn>{{ product.description }}</td>
             </tr>
@@ -150,6 +170,7 @@
             <tr>
               <td resizableColumn>{{ product.name }}</td>
               <td resizableColumn>{{ product.stock }}</td>
+              <td resizableColumn>{{ product.unit }}</td>
               <td resizableColumn>{{ product.category }}</td>
               <td resizableColumn>{{ product.description }}</td>
               <td resizableColumn>
@@ -176,6 +197,7 @@
             <tr>
               <td resizableColumn>{{ product.name }}</td>
               <td resizableColumn>{{ product.stock }}</td>
+              <td resizableColumn>{{ product.unit }}</td>
               <td resizableColumn>{{ product.category }}</td>
               <td resizableColumn>{{ product.description }}</td>
               <td resizableColumn>

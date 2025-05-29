@@ -1,3 +1,4 @@
+
 html, body {
   margin: 0;
   padding: 0;
@@ -45,6 +46,28 @@ h2 {
 :host ::ng-deep .mat-mdc-form-field {
   width: 100%;
   margin-bottom: 20px;
+}
+
+.input-with-button {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  margin-bottom: 20px;
+}
+
+.flex-grow {
+  flex-grow: 1;
+  margin-bottom: 0 !important;
+}
+
+.add-button {
+  background-color: #e31837;
+  color: white;
+  margin-top: -10px;
+}
+
+.add-button:hover {
+  background-color: #b71c1c;
 }
 
 :host ::ng-deep .mat-mdc-form-field-outline {
@@ -117,6 +140,22 @@ h2 {
 :host ::ng-deep .mat-mdc-form-field.mat-focused .mdc-notched-outline__leading,
 :host ::ng-deep .mat-mdc-form-field.mat-focused .mdc-notched-outline__trailing {
   border-color: #e31837 !important;
+}
+
+:host ::ng-deep .mat-mdc-select-value {
+  color: white;
+}
+
+:host ::ng-deep .mat-mdc-select-arrow {
+  color: #e31837;
+}
+
+:host ::ng-deep .mat-mdc-option {
+  color: white !important;
+}
+
+:host ::ng-deep .mat-mdc-option:hover {
+  background-color: #3a3a3a;
 }
 
 .mat-mdc-raised-button {
@@ -202,4 +241,139 @@ h2 {
 
 :host ::ng-deep .mat-drawer-content {
   background-color: #1a1a1a;
+}
+
+.dialog-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.7);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+}
+
+.dialog-container {
+  background-color: #1a1a1a;
+  padding: 25px;
+  border-radius: 8px;
+  width: 300px;
+  max-width: 90%;
+  box-shadow: 0 4px 15px rgba(227, 24, 55, 0.3);
+  border: 1px solid rgba(227, 24, 55, 0.2);
+}
+
+.dialog-container h2 {
+  color: white;
+  margin-top: 0;
+  margin-bottom: 20px;
+  text-align: center;
+}
+
+.dialog-container .mat-mdc-form-field {
+  width: 100%;
+}
+
+.dialog-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  margin-top: 25px;
+}
+
+.dialog-container ::ng-deep .mdc-floating-label {
+  background-color: #1a1a1a;
+}
+
+.dialog-container ::ng-deep .mat-mdc-form-field-outline {
+  background-color: #1a1a1a;
+}
+
+.dialog-container ::ng-deep .mat-mdc-text-field-wrapper {
+  background-color: #1a1a1a;
+}
+
+.dialog-container ::ng-deep .mat-mdc-input-element {
+  color: white !important;
+}
+
+.category-dropdown {
+  position: absolute;
+  background-color: #000000;
+  border: 1px solid #444;
+  border-radius: 4px;
+  z-index: 1000;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.3);
+  min-width: 150px;
+  margin-top: 5px;
+}
+
+.category-item {
+  padding: 8px 16px;
+  cursor: pointer;
+  color: white;
+  font-size: 14px;
+}
+
+.category-item:hover {
+  background-color: #333333;
+}
+
+::ng-deep .mat-mdc-select-panel {
+  background-color: #000000 !important;
+}
+
+::ng-deep .mat-mdc-option {
+  color: white !important;
+}
+
+::ng-deep .mat-mdc-option:hover {
+  background-color: #333333 !important;
+}
+
+::ng-deep .mat-mdc-option.mat-selected:not(.mat-option-disabled) {
+  color: #e31837 !important;
+}
+
+::ng-deep .mat-mdc-option .mdc-list-item__primary-text {
+  color: white !important;
+}
+
+::ng-deep .mdc-menu-surface {
+  background-color: #000000 !important;
+}
+
+::ng-deep .mdc-menu-surface--open {
+  background-color: #000000 !important;
+}
+
+::ng-deep .cdk-overlay-pane {
+  background-color: transparent !important;
+}
+
+::ng-deep .mat-mdc-select-panel .mat-mdc-option {
+  background-color: #000000 !important;
+}
+
+::ng-deep .mat-mdc-select-panel {
+  background-color: #000000 !important;
+}
+
+::ng-deep .mdc-list {
+  background-color: #000000 !important;
+}
+
+::ng-deep .mdc-list-item {
+  background-color: #000000 !important;
+}
+
+:root {
+  --mdc-menu-item-label-text-color: white !important;
+  --mdc-menu-container-color: #000000 !important;
+  --mat-select-panel-background-color: #000000 !important;
+  --mat-option-label-text-color: white !important;
+  --mat-option-hover-state-layer-color: #333333 !important;
 }

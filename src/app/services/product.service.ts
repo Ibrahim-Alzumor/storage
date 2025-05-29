@@ -1,8 +1,9 @@
 import {Injectable} from '@angular/core';
 import {HttpClient, HttpParams} from '@angular/common/http';
 import {Product} from '../interfaces/product.interface';
-import {map, Observable} from 'rxjs';
+import {map, Observable, of} from 'rxjs';
 import {environment} from '../enviroments/enviroment';
+import {catchError} from 'rxjs/operators';
 
 @Injectable({
   providedIn: 'root'
@@ -46,6 +47,39 @@ export class ProductService {
     );
   }
 
+  getUnits(): Observable<string[]> {
+    return this.http.get<string[]>(`${environment.apiUrl}/units`);
+  }
+
+  addUnit(unit: string): Observable<string> {
+    return this.http.post<string>(`${environment.apiUrl}/units`, {name: unit})
+      .pipe(
+        catchError(error => {
+          if (error.status === 201) {
+            return of(unit);
+          }
+          throw error;
+        })
+      );
+  }
+
+  getCategories(): Observable<string[]> {
+    return this.http.get<string[]>(`${environment.apiUrl}/categories`);
+  }
+
+  addCategory(category: string): Observable<string> {
+    return this.http.post<string>(`${environment.apiUrl}/categories`, {name: category})
+      .pipe(
+        catchError(error => {
+          if (error.status === 201) {
+            return of(category);
+          }
+          throw error;
+        })
+      );
+  }
+
+
   delete(id: number): Observable<void> {
     return this.http.delete<void>(`${environment.apiUrl}/products/${id}`);
   }
@@ -63,7 +97,7 @@ export class ProductService {
   }
 
   private cleanUpProduct(product: any): Product {
-    const {id, name, stock, category, image, description, barcode} = product;
-    return {id, name, stock, category, image, description, barcode};
+    const {id, name, stock, unit, category, image, description, barcode} = product;
+    return {id, name, stock, unit, category, image, description, barcode};
   }
 }

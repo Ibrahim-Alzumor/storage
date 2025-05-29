@@ -15,6 +15,7 @@ import {BarcodeService} from '../../../services/barcode.service';
 import {NotificationService} from '../../../services/notification.service';
 import {ResizableColumnDirective} from '../../../directives/resizable-column.directive';
 import {DraggableColumnDirective} from '../../../directives/draggable-column.directive';
+import {MatSelectModule} from '@angular/material/select';
 
 @Component({
   selector: 'app-product-list',
@@ -29,6 +30,7 @@ import {DraggableColumnDirective} from '../../../directives/draggable-column.dir
     MatMenuModule,
     ResizableColumnDirective,
     DraggableColumnDirective,
+    MatSelectModule,
   ],
   templateUrl: './product-list.component.html',
   styleUrls: ['./product-list.component.css',
@@ -50,7 +52,8 @@ export class ProductListComponent implements OnInit {
   expandedImageSrc = '';
   sortColumn: string = '';
   sortDirection: 'asc' | 'desc' = 'asc';
-
+  availableUnits: string[] = [];
+  availableCategories: string[] = [];
   categories: string[] = [];
   selectedCategory: string | null = null;
   allProducts: Product[] = [];
@@ -92,6 +95,27 @@ export class ProductListComponent implements OnInit {
     this.showExpandedImage = false;
   }
 
+  loadAvailableOptions() {
+    this.productService.getUnits().subscribe({
+      next: (units) => {
+        this.availableUnits = units;
+      },
+      error: () => {
+        console.log('Failed to load units');
+      }
+    });
+
+    this.productService.getCategories().subscribe({
+      next: (categories) => {
+        this.availableCategories = categories;
+      },
+      error: () => {
+        console.log('Failed to load categories');
+      }
+    });
+  }
+
+
   sortProducts(column: string): void {
     if (this.sortColumn === column) {
       this.sortDirection = this.sortDirection === 'asc' ? 'desc' : 'asc';
@@ -109,6 +133,9 @@ export class ProductListComponent implements OnInit {
           break;
         case 'stock':
           comparison = a.stock - b.stock;
+          break;
+        case 'unit':
+          comparison = (a.unit || '').localeCompare(b.unit || '');
           break;
         case 'category':
           comparison = (a.category || '').localeCompare(b.category || '');
@@ -163,6 +190,7 @@ export class ProductListComponent implements OnInit {
     this.isEditMode = !this.isEditMode;
     if (this.isEditMode) {
       this.loadProductsEdit();
+      this.loadAvailableOptions();
     } else {
       this.loadProductsNotEdit();
     }
@@ -428,6 +456,7 @@ export class ProductListComponent implements OnInit {
       id: [product.id],
       name: [product.name, [Validators.required, Validators.maxLength(50)]],
       stock: [product.stock, [Validators.required, Validators.min(0)]],
+      unit: [product.unit, Validators.required],
       category: [product.category, Validators.required],
       image: [product.image],
       description: [product.description, Validators.required]

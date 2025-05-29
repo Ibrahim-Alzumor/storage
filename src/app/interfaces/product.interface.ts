@@ -8,4 +8,5 @@ export interface Product {
   barcode: string;
   isEmpty?: boolean;
   stockDisplay?: string;
+  unit: string;
 }
