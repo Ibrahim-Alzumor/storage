@@ -1,5 +1,5 @@
 import {Injectable} from '@angular/core';
-import {HttpClient} from '@angular/common/http';
+import {HttpClient, HttpParams} from '@angular/common/http';
 import {environment} from '../enviroments/enviroment';
 import {User} from '../interfaces/user.interface';
 
@@ -13,5 +13,10 @@ export class UserService {
 
   register(user: User) {
     return this.http.post(`${environment.apiUrl}/auth/register`, user);
+  }
+
+  getByEmail(email: string) {
+    const params = new HttpParams().set('email', email);
+    return this.http.get<User>(`${environment.apiUrl}/users/by-email`, {params});
   }
 }

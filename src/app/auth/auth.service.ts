@@ -47,6 +47,18 @@ export class AuthService {
     return 0;
   }
 
+  get getUserEmail(): string {
+    const decodedToken = this.token;
+    if (decodedToken) {
+      try {
+        return decodedToken.email || '';
+      } catch (error) {
+        return '';
+      }
+    }
+    return '';
+  }
+
   login(login: Login) {
     console.log(login);
     return this.http.post<any>(`${environment.apiUrl}/auth/login`, login).pipe(

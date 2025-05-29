@@ -1,9 +1,10 @@
-import {Component} from '@angular/core';
+import {Component, OnInit} from '@angular/core';
 import {AuthService} from '../../auth/auth.service';
 import {ActivatedRoute, Router, RouterLink} from '@angular/router';
 import {FormsModule} from '@angular/forms';
 import {Product} from '../../interfaces/product.interface';
 import {ProductService} from '../../services/product.service';
+import {UserService} from '../../services/user.service';
 
 @Component({
   selector: 'app-navbar',
@@ -14,12 +15,18 @@ import {ProductService} from '../../services/product.service';
   templateUrl: './navbar.component.html',
   styleUrl: './navbar.component.css'
 })
-export class NavbarComponent {
+export class NavbarComponent implements OnInit {
   searchTerm: string = '';
   searchResults: Product[] = [];
   clearanceLevel: number | undefined;
+  userFirstName: string = '';
 
-  constructor(private authService: AuthService, private router: Router, private productService: ProductService, private route: ActivatedRoute) {
+
+  constructor(private authService: AuthService, private router: Router, private userService: UserService, private productService: ProductService, private route: ActivatedRoute) {
+  }
+
+  ngOnInit(): void {
+    this.loadUserInfo();
   }
 
   logout(): void {
@@ -49,6 +56,23 @@ export class NavbarComponent {
       });
     });
   }
+
+  loadUserInfo(): void {
+    const userEmail = this.authService.getUserEmail;
+    if (userEmail) {
+      this.userService.getByEmail(userEmail).subscribe(
+        (user) => {
+          if (user && user.firstName) {
+            this.userFirstName = user.firstName;
+          }
+        },
+        (error) => {
+          console.error('Error fetching user details:', error);
+        }
+      );
+    }
+  }
+
 
   getClearanceLevel(): number {
     return this.clearanceLevel = this.authService.clearanceLevel;
