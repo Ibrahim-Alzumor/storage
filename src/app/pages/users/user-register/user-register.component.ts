@@ -2,7 +2,6 @@ import {Component, OnInit} from '@angular/core';
 import {FormBuilder, FormGroup, FormsModule, ReactiveFormsModule, Validators} from '@angular/forms';
 import {AuthService} from '../../../auth/auth.service';
 import {UserService} from '../../../services/user.service';
-import {NgClass, NgIf} from '@angular/common';
 import {NotificationService} from '../../../services/notification.service';
 import {User} from '../../../interfaces/user.interface';
 import {ActivatedRoute, Router} from '@angular/router';
