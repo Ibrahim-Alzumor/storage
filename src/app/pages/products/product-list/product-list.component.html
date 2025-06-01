@@ -1,15 +1,21 @@
 <div class="table-container">
   <div class="table-actions">
     @if (route.snapshot.queryParams['name']) {
-      <div class="search-status">
+      <div class="status">
         Showing results for: "{{ route.snapshot.queryParams['name'] }}"
         <button mat-button (click)="clearSearch()">Clear Search</button>
       </div>
     }
     @if (selectedCategoryName) {
-      <div class="search-status">
+      <div class="status">
         Filtered by category: "{{ selectedCategoryName }}"
         <button mat-button (click)="filterByCategory(null)">Clear Filter</button>
+      </div>
+    }
+    @if (selectedUnitName) {
+      <div class="status">
+        Filtered by Unit: "{{ selectedUnitName }}"
+        <button mat-button (click)="filterByUnit(null)">Clear Filter</button>
       </div>
     }
     @if (this.getClearanceLevel() >= 2 && !isOrderMode) {
@@ -70,14 +76,29 @@
             <mat-icon>{{ sortDirection === 'asc' ? 'arrow_upward' : 'arrow_downward' }}</mat-icon>
           }
         </th>
-        <th (click)="sortProducts('unit')" draggableColumn resizableColumn>
-          Unit
-          @if (sortColumn === 'unit') {
-            <mat-icon>{{ sortDirection === 'asc' ? 'arrow_upward' : 'arrow_downward' }}</mat-icon>
+        <th class="header" draggableColumn resizableColumn>
+          <div (click)="toggleUnitDropdown($event)" class="header-content">
+            Unit
+            <mat-icon>filter_list</mat-icon>
+            @if (sortColumn === 'unit') {
+              <mat-icon>{{ sortDirection === 'asc' ? 'arrow_upward' : 'arrow_downward' }}</mat-icon>
+            }
+          </div>
+          @if (showUnitDropdown) {
+            <div class="dropdown">
+              <div class="item" (click)="filterByUnit(null)">
+                All Units
+              </div>
+              @for (unitName of unitNames; track unitName) {
+                <div class="item" (click)="filterByUnit(unitName)">
+                  {{ unitName }}
+                </div>
+              }
+            </div>
           }
         </th>
-        <th class="category-header" draggableColumn resizableColumn>
-          <div (click)="toggleCategoryDropdown($event)" class="category-header-content">
+        <th class="header" draggableColumn resizableColumn>
+          <div (click)="toggleCategoryDropdown($event)" class="header-content">
             Category
             <mat-icon>filter_list</mat-icon>
             @if (sortColumn === 'category') {
@@ -85,12 +106,12 @@
             }
           </div>
           @if (showCategoryDropdown) {
-            <div class="category-dropdown">
-              <div class="category-item" (click)="filterByCategory(null)">
+            <div class="dropdown">
+              <div class="item" (click)="filterByCategory(null)">
                 All Categories
               </div>
               @for (categoryName of categoryNames; track categoryName) {
-                <div class="category-item" (click)="filterByCategory(categoryName)">
+                <div class="item" (click)="filterByCategory(categoryName)">
                   {{ categoryName }}
                 </div>
               }

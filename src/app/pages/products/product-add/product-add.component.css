@@ -1,21 +1,5 @@
-
-html, body {
-  margin: 0;
-  padding: 0;
-  min-height: 100vh;
-  width: 100%;
-  background-color: #1a1a1a !important;
-  overflow-x: hidden;
-}
-
-:host {
-  display: block;
-  min-height: 100vh;
-  background-color: #1a1a1a;
-}
-
 .container {
-  max-width: 450px;
+  max-width: 650px;
   margin: 0 auto;
   padding: 20px;
   font-family: 'Roboto', sans-serif;
@@ -144,6 +128,7 @@ h2 {
 
 :host ::ng-deep .mat-mdc-select-value {
   color: white;
+  padding-left: 20px !important;
 }
 
 :host ::ng-deep .mat-mdc-select-arrow {
@@ -182,6 +167,7 @@ h2 {
   color: white !important;
   font-size: 16px;
   caret-color: #e31837;
+  padding-left: 20px !important;
 }
 
 :host ::ng-deep .mat-mdc-input-element::placeholder {
@@ -191,6 +177,7 @@ h2 {
 :host ::ng-deep textarea.mat-mdc-input-element {
   min-height: 100px;
   resize: vertical;
+  padding-left: 20px !important;
 }
 
 :host ::ng-deep .mat-mdc-form-field.mat-form-field-invalid .mat-mdc-form-field-outline {
@@ -217,7 +204,7 @@ h2 {
   color: white;
 }
 
-@media (max-width: 480px) {
+@media (max-width: 650px) {
   .container {
     padding: 15px;
   }
@@ -322,6 +309,47 @@ h2 {
   background-color: #333333;
 }
 
+.option-with-actions {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  width: 100%;
+  padding-right: 5px;
+}
+
+.option-with-actions span {
+  flex-grow: 1;
+}
+
+.option-actions {
+  display: flex;
+  gap: 5px;
+  margin-left: auto;
+}
+
+.edit-button, .delete-button {
+  min-width: 30px !important;
+  width: 30px !important;
+  height: 30px !important;
+  line-height: 30px !important;
+  padding: 0 !important;
+}
+
+.edit-button mat-icon, .delete-button mat-icon {
+  font-size: 18px;
+  line-height: 18px;
+  height: 18px;
+  width: 18px;
+}
+
+.edit-button {
+  color: #3f51b5 !important;
+}
+
+.delete-button {
+  color: #e31837 !important;
+}
+
 ::ng-deep .mat-mdc-select-panel {
   background-color: #000000 !important;
 }
@@ -340,6 +368,9 @@ h2 {
 
 ::ng-deep .mat-mdc-option .mdc-list-item__primary-text {
   color: white !important;
+  display: flex;
+  justify-content: space-between;
+  width: 100%;
 }
 
 ::ng-deep .mdc-menu-surface {
@@ -368,6 +399,10 @@ h2 {
 
 ::ng-deep .mdc-list-item {
   background-color: #000000 !important;
+}
+
+::ng-deep .mdc-button__label {
+  color: white !important;
 }
 
 :root {

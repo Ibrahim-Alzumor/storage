@@ -56,11 +56,13 @@ export class ProductListComponent implements OnInit {
   sortDirection: 'asc' | 'desc' = 'asc';
   availableUnits: Unit[] = [];
   availableCategories: Category[] = [];
-  categories: string[] = [];
   selectedCategoryId: string | null = null;
   selectedCategoryName: string | null = null;
+  selectedUnitId: string | null = null;
+  selectedUnitName: string | null = null;
   allProducts: Product[] = [];
   showCategoryDropdown = false;
+  showUnitDropdown = false;
   categoryMap: Map<string, string> = new Map();
   unitMap: Map<string, string> = new Map();
 
@@ -86,6 +88,10 @@ export class ProductListComponent implements OnInit {
 
   get categoryNames(): string[] {
     return Array.from(this.categoryMap.values());
+  }
+
+  get unitNames(): string[] {
+    return Array.from(this.unitMap.values());
   }
 
   ngOnInit() {
@@ -389,8 +395,22 @@ export class ProductListComponent implements OnInit {
     this.applyFilters();
   }
 
+  filterByUnit(unitName: string | null): void {
+    if (unitName === null) {
+      this.selectedUnitId = null;
+      this.selectedUnitName = null;
+    } else {
+      const entry = Array.from(this.unitMap.entries()).find(([_, name]) => name === unitName);
+      if (entry) {
+        this.selectedUnitId = entry[0];
+        this.selectedUnitName = unitName;
+      }
+    }
+    this.applyFilters();
+  }
+
   applyFilters(): void {
-    if (!this.selectedCategoryId) {
+    if (!this.selectedCategoryId && !this.selectedUnitId) {
       this.products = [...this.allProducts].map(p => {
         const pending = this.scannedAdditions.get(p.id) || 0;
         return {
@@ -398,9 +418,19 @@ export class ProductListComponent implements OnInit {
           stockDisplay: pending > 0 ? `${p.stock} + ${pending}` : `${p.stock}`
         };
       });
-    } else {
+    } else if (this.selectedCategoryId && !this.selectedUnitId) {
       this.products = this.allProducts
         .filter(product => product.categoryId === this.selectedCategoryId)
+        .map(p => {
+          const pending = this.scannedAdditions.get(p.id) || 0;
+          return {
+            ...p,
+            stockDisplay: pending > 0 ? `${p.stock} + ${pending}` : `${p.stock}`
+          };
+        });
+    } else if (!this.selectedCategoryId && this.selectedUnitId) {
+      this.products = this.allProducts
+        .filter(product => product.unitId === this.selectedUnitId)
         .map(p => {
           const pending = this.scannedAdditions.get(p.id) || 0;
           return {
@@ -416,6 +446,11 @@ export class ProductListComponent implements OnInit {
     this.showCategoryDropdown = !this.showCategoryDropdown;
   }
 
+  toggleUnitDropdown(event: Event): void {
+    event.stopPropagation();
+    this.showUnitDropdown = !this.showUnitDropdown;
+  }
+
   @HostListener('window:keydown', ['$event'])
   onKeyDown(event: KeyboardEvent) {
     this.barcodeService.handleKey(event);
@@ -424,6 +459,7 @@ export class ProductListComponent implements OnInit {
   @HostListener('document:click')
   closeDropdown(): void {
     this.showCategoryDropdown = false;
+    this.showUnitDropdown = false;
   }
 
   toggleOrderMode(): void {

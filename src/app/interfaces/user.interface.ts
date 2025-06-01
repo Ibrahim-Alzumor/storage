@@ -6,4 +6,5 @@ export interface User {
   jobTitle?: string;
   phone?: string;
   clearanceLevel: number;
+  active?: boolean;
 }

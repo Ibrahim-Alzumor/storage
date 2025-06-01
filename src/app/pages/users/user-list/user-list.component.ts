@@ -1,0 +1,147 @@
+import {Component, OnInit} from '@angular/core';
+import {ActivatedRoute, Router} from '@angular/router';
+import {NgIf, NgFor, NgClass} from '@angular/common';
+import {MatButtonModule} from '@angular/material/button';
+import {MatIconModule, MatIconRegistry} from '@angular/material/icon';
+import {MatProgressSpinnerModule} from '@angular/material/progress-spinner';
+import {User} from '../../../interfaces/user.interface';
+import {UserService} from '../../../services/user.service';
+import {AuthService} from '../../../auth/auth.service';
+import {NotificationService} from '../../../services/notification.service';
+import {DraggableColumnDirective} from '../../../directives/draggable-column.directive';
+import {ResizableColumnDirective} from '../../../directives/resizable-column.directive';
+
+@Component({
+  selector: 'app-user-list',
+  templateUrl: './user-list.component.html',
+  styleUrls: ['./user-list.component.css',
+    '../../../styles/directive-styles.css',
+  ],
+  standalone: true,
+  imports: [
+    NgClass,
+    MatButtonModule,
+    MatIconModule,
+    MatProgressSpinnerModule,
+    DraggableColumnDirective,
+    ResizableColumnDirective
+  ]
+})
+export class UserListComponent implements OnInit {
+  users: User[] = [];
+  allUsers: User[] = [];
+  loading = false;
+  clearanceLevel: number | undefined;
+  sortColumn: string = '';
+  sortDirection: 'asc' | 'desc' = 'asc';
+
+  constructor(
+    private userService: UserService,
+    protected route: ActivatedRoute,
+    private router: Router,
+    private authService: AuthService,
+    private notificationService: NotificationService,
+    private matIconRegistry: MatIconRegistry,
+  ) {
+    this.matIconRegistry.setDefaultFontSetClass('material-symbols-outlined');
+  }
+
+  ngOnInit() {
+    this.loadUsers();
+  }
+
+  loadUsers() {
+    this.route.queryParams.subscribe(params => {
+      const name = params['name'];
+      this.loading = true;
+
+      if (name) {
+        this.userService.searchUsers(name).subscribe({
+          next: (users) => {
+            this.allUsers = users;
+            this.users = users;
+            this.loading = false;
+          },
+          error: (error) => {
+            console.error('Error fetching users:', error);
+            this.loading = false;
+            this.notificationService.showNotification('Error loading users', 'error');
+          }
+        });
+      } else {
+        this.userService.getAllUsers().subscribe({
+          next: (users) => {
+            this.allUsers = users;
+            this.users = users;
+            this.loading = false;
+          },
+          error: (error) => {
+            console.error('Error fetching users:', error);
+            this.loading = false;
+            this.notificationService.showNotification('Error loading users', 'error');
+          }
+        });
+      }
+    });
+  }
+
+  clearSearch(): void {
+    this.router.navigate(['/users'], {queryParams: {}});
+  }
+
+  getClearanceLevel(): number {
+    return this.clearanceLevel = this.authService.clearanceLevel;
+  }
+
+  getClearanceLabel(level: number): string {
+    switch (level) {
+      case 0:
+        return 'Worker';
+      case 1:
+        return 'Associate';
+      case 2:
+        return 'Manager';
+      case 3:
+        return 'Owner';
+      default:
+        return 'Unknown';
+    }
+  }
+
+  editUser(email: string): void {
+    this.router.navigate(['/register'], {queryParams: {email: email}});
+  }
+
+  sortUsers(column: string): void {
+    if (this.sortColumn === column) {
+      this.sortDirection = this.sortDirection === 'asc' ? 'desc' : 'asc';
+    } else {
+      this.sortColumn = column;
+      this.sortDirection = 'asc';
+    }
+
+    this.users = [...this.users].sort((a, b) => {
+      let comparison = 0;
+
+      switch (column) {
+        case 'firstName':
+          comparison = (a.firstName || '').localeCompare(b.firstName || '');
+          break;
+        case 'lastName':
+          comparison = (a.lastName || '').localeCompare(b.lastName || '');
+          break;
+        case 'email':
+          comparison = a.email.localeCompare(b.email);
+          break;
+        case 'jobTitle':
+          comparison = (a.jobTitle || '').localeCompare(b.jobTitle || '');
+          break;
+        case 'clearanceLevel':
+          comparison = a.clearanceLevel - b.clearanceLevel;
+          break;
+      }
+
+      return this.sortDirection === 'asc' ? comparison : -comparison;
+    });
+  }
+}

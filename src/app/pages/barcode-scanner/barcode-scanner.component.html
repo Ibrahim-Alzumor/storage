@@ -23,21 +23,21 @@
   <table>
     <thead>
     <tr>
-      <th>Name</th>
-      <th>Stock</th>
-      <th>Category</th>
-      <th>Description</th>
-      <th>Actions</th>
+      <th draggableColumn resizableColumn>Name</th>
+      <th draggableColumn resizableColumn>Stock</th>
+      <th draggableColumn resizableColumn>Category</th>
+      <th draggableColumn resizableColumn>Description</th>
+      <th draggableColumn resizableColumn>Actions</th>
     </tr>
     </thead>
     <tbody>
       @for (product of products; track $index) {
         <tr>
-          <td>{{ product.name }}</td>
-          <td>{{ product.stock }}</td>
-          <td>{{ getCategoryName(product.categoryId) }}</td>
-          <td>{{ product.description }}</td>
-          <button mat-button (click)="assignBarcodeToProduct(product)">Assign Barcode</button>
+          <td resizableColumn>{{ product.name }}</td>
+          <td resizableColumn>{{ product.stock }}</td>
+          <td resizableColumn>{{ getCategoryName(product.categoryId) }}</td>
+          <td resizableColumn>{{ product.description }}</td>
+          <button mat-button (click)="assignBarcodeToProduct(product)" resizableColumn>Assign Barcode</button>
         </tr>
       }
     </tbody>

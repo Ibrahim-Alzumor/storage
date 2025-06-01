@@ -65,6 +65,14 @@ export class ProductService {
       );
   }
 
+  updateUnit(id: string, dto: { name: string }): Observable<Unit> {
+    return this.http.patch<Unit>(`${environment.apiUrl}/units/${id}`, dto);
+  }
+
+  deleteUnit(id: string): Observable<void> {
+    return this.http.delete<void>(`${environment.apiUrl}/units/${id}`);
+  }
+
   getCategories(): Observable<Category[]> {
     return this.http.get<Category[]>(`${environment.apiUrl}/categories`);
   }
@@ -79,6 +87,14 @@ export class ProductService {
           throw error;
         })
       );
+  }
+
+  updateCategory(id: string, dto: { name: string }): Observable<Category> {
+    return this.http.patch<Category>(`${environment.apiUrl}/categories/${id}`, dto);
+  }
+
+  deleteCategory(id: string): Observable<void> {
+    return this.http.delete<void>(`${environment.apiUrl}/categories/${id}`);
   }
 
   delete(id: number): Observable<void> {

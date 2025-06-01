@@ -1,7 +1,7 @@
 import {Component, OnInit} from '@angular/core';
 import {FormBuilder, FormGroup, FormsModule, ReactiveFormsModule, Validators} from '@angular/forms';
 import {ProductService} from '../../../services/product.service';
-import {ActivatedRoute, Router} from '@angular/router';
+import {Router} from '@angular/router';
 import {Product} from '../../../interfaces/product.interface';
 import {MatFormFieldModule} from '@angular/material/form-field';
 import {MatInputModule} from '@angular/material/input';
@@ -31,7 +31,6 @@ import {Category} from '../../../interfaces/category.interface';
 })
 export class ProductAddComponent implements OnInit {
   productForm: FormGroup;
-  editMode = false;
   productId: number | null = null;
   availableUnits: Unit[] = [];
   availableCategories: Category[] = [];
@@ -39,13 +38,18 @@ export class ProductAddComponent implements OnInit {
   newCategory: string = '';
   unitDialogOpen = false;
   categoryDialogOpen = false;
+  editUnitDialogOpen = false;
+  editCategoryDialogOpen = false;
+  selectedUnitForEdit: Unit | null = null;
+  selectedCategoryForEdit: Category | null = null;
+  updatedUnitName: string = '';
+  updatedCategoryName: string = '';
 
   constructor(
     private authService: AuthService,
     private fb: FormBuilder,
     private productService: ProductService,
     private router: Router,
-    private route: ActivatedRoute,
     private notificationService: NotificationService
   ) {
     this.productForm = this.fb.group({
@@ -59,16 +63,12 @@ export class ProductAddComponent implements OnInit {
   }
 
   ngOnInit() {
-    this.route.params.subscribe(params => {
-      if (params['id']) {
-        this.editMode = true;
-        this.productId = +params['id'];
-        this.productService.getOne(this.productId).subscribe(product => {
-          this.productForm.patchValue(product);
-        });
-      }
-    });
+    this.loadUnits();
+    this.loadCategories();
+    this.authService.isLoggedIn();
+  }
 
+  loadUnits() {
     this.productService.getUnits().subscribe({
       next: (units) => {
         this.availableUnits = units;
@@ -77,7 +77,9 @@ export class ProductAddComponent implements OnInit {
         console.log('failed to load units');
       }
     });
+  }
 
+  loadCategories() {
     this.productService.getCategories().subscribe({
       next: (categories) => {
         this.availableCategories = categories;
@@ -86,8 +88,6 @@ export class ProductAddComponent implements OnInit {
         console.log('Failed to load categories');
       }
     });
-
-    this.authService.isLoggedIn();
   }
 
   onSubmit(): void {
@@ -97,24 +97,13 @@ export class ProductAddComponent implements OnInit {
     }
 
     const product: Product = {id: this.productId || 0, ...this.productForm.value};
-
-    if (this.editMode && this.productId) {
-      this.productService.update(this.productId, this.productForm.value).subscribe({
-        next: () => {
-          this.notificationService.showNotification('Product Updated!', 'success');
-          this.router.navigate(['/']);
-        },
-        error: err => this.notificationService.showNotification(err.error?.message || 'Error updating product', 'error'),
-      })
-    } else {
-      this.productService.create(product).subscribe({
-        next: () => {
-          this.notificationService.showNotification('Product Added!', 'success');
-          this.router.navigate(['/']);
-        },
-        error: err => this.notificationService.showNotification(err.error?.message || 'Error adding product', 'error'),
-      })
-    }
+    this.productService.create(product).subscribe({
+      next: () => {
+        this.notificationService.showNotification('Product Added!', 'success');
+        this.router.navigate(['/']);
+      },
+      error: err => this.notificationService.showNotification(err.error?.message || 'Error adding product', 'error'),
+    })
   }
 
   addNewUnit(): void {
@@ -165,5 +154,117 @@ export class ProductAddComponent implements OnInit {
         this.notificationService.showNotification(`Failed to add new category: ${error.message || 'Unknown error'}`, 'error');
       }
     });
+  }
+
+  openEditUnitDialog(unit: Unit, event: Event): void {
+    event.stopPropagation();
+    this.selectedUnitForEdit = unit;
+    this.updatedUnitName = unit.name;
+    this.editUnitDialogOpen = true;
+  }
+
+  openEditCategoryDialog(category: Category, event: Event): void {
+    event.stopPropagation();
+    this.selectedCategoryForEdit = category;
+    this.updatedCategoryName = category.name;
+    this.editCategoryDialogOpen = true;
+  }
+
+  updateUnit(): void {
+    if (!this.selectedUnitForEdit) return;
+    if (!this.updatedUnitName || this.updatedUnitName.trim() === '') {
+      this.notificationService.showNotification('Unit name cannot be empty', 'error');
+      return;
+    }
+
+    if (this.availableUnits.some(unit => unit.name === this.updatedUnitName && unit.id !== this.selectedUnitForEdit?.id)) {
+      this.notificationService.showNotification('Unit with this name already exists', 'warning');
+      return;
+    }
+
+    this.productService.updateUnit(this.selectedUnitForEdit.id, {name: this.updatedUnitName}).subscribe({
+      next: (updatedUnit) => {
+        const index = this.availableUnits.findIndex(u => u.id === updatedUnit.id);
+        if (index !== -1) {
+          this.availableUnits[index] = updatedUnit;
+        }
+        this.editUnitDialogOpen = false;
+        this.selectedUnitForEdit = null;
+        this.notificationService.showNotification('Unit updated successfully', 'success');
+      },
+      error: (error) => {
+        console.error('Error updating unit:', error);
+        this.notificationService.showNotification(`Failed to update unit: ${error.message || 'Unknown error'}`, 'error');
+      }
+    });
+  }
+
+  updateCategory(): void {
+    if (!this.selectedCategoryForEdit) return;
+    if (!this.updatedCategoryName || this.updatedCategoryName.trim() === '') {
+      this.notificationService.showNotification('Category name cannot be empty', 'error');
+      return;
+    }
+
+    if (this.availableCategories.some(category =>
+      category.name === this.updatedCategoryName &&
+      category.id !== this.selectedCategoryForEdit?.id)) {
+      this.notificationService.showNotification('Category with this name already exists', 'warning');
+      return;
+    }
+
+    this.productService.updateCategory(this.selectedCategoryForEdit.id, {name: this.updatedCategoryName}).subscribe({
+      next: (updatedCategory) => {
+        const index = this.availableCategories.findIndex(c => c.id === updatedCategory.id);
+        if (index !== -1) {
+          this.availableCategories[index] = updatedCategory;
+        }
+        this.editCategoryDialogOpen = false;
+        this.selectedCategoryForEdit = null;
+        this.notificationService.showNotification('Category updated successfully', 'success');
+      },
+      error: (error) => {
+        console.error('Error updating category:', error);
+        this.notificationService.showNotification(`Failed to update category: ${error.message || 'Unknown error'}`, 'error');
+      }
+    });
+  }
+
+  deleteUnit(unitId: string, event: Event): void {
+    event.stopPropagation();
+    if (confirm('Are you sure you want to delete this unit? This action cannot be undone.')) {
+      this.productService.deleteUnit(unitId).subscribe({
+        next: () => {
+          this.availableUnits = this.availableUnits.filter(unit => unit.id !== unitId);
+          if (this.productForm.get('unitId')?.value === unitId) {
+            this.productForm.get('unitId')?.setValue('');
+          }
+          this.notificationService.showNotification('Unit deleted successfully', 'success');
+        },
+        error: (error) => {
+          console.error('Error deleting unit:', error);
+          this.notificationService.showNotification(`Failed to delete unit: ${error.message || 'Unknown error'}`, 'error');
+        }
+      });
+    }
+  }
+
+  deleteCategory(categoryId: string, event: Event): void {
+    event.stopPropagation();
+    if (confirm('Are you sure you want to delete this category? This action cannot be undone.')) {
+      this.productService.deleteCategory(categoryId).subscribe({
+        next: () => {
+          this.availableCategories = this.availableCategories.filter(category => category.id !== categoryId);
+          if (this.productForm.get('categoryId')?.value === categoryId) {
+            this.productForm.get('categoryId')?.setValue('');
+          }
+          this.notificationService.showNotification('Category deleted successfully', 'success');
+        },
+        error: (error) => {
+          console.error('Error deleting category:', error);
+          this.notificationService.showNotification(`Failed to delete category: ${error.message || 'Unknown error'}`, 'error');
+        }
+      });
+    }
   }
 }

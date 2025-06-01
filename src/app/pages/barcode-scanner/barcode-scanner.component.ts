@@ -6,6 +6,8 @@ import {ActivatedRoute, Router} from '@angular/router';
 import {MatButton} from '@angular/material/button';
 import {MatProgressSpinner} from '@angular/material/progress-spinner';
 import {NotificationService} from '../../services/notification.service';
+import {DraggableColumnDirective} from '../../directives/draggable-column.directive';
+import {ResizableColumnDirective} from '../../directives/resizable-column.directive';
 
 @Component({
   selector: 'app-barcode-scanner',
@@ -13,7 +15,9 @@ import {NotificationService} from '../../services/notification.service';
   imports: [
     ReactiveFormsModule,
     MatButton,
-    MatProgressSpinner
+    MatProgressSpinner,
+    DraggableColumnDirective,
+    ResizableColumnDirective
   ],
   templateUrl: './barcode-scanner.component.html',
   styleUrl: './barcode-scanner.component.css'
