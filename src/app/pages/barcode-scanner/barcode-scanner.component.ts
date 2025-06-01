@@ -22,6 +22,7 @@ export class BarcodeScannerComponent implements OnInit {
   products: Product[] = [];
   loading = false;
   pendingBarcode: string | null = null;
+  categoryMap: Map<string, string> = new Map();
 
   constructor(
     private productService: ProductService,
@@ -38,6 +39,7 @@ export class BarcodeScannerComponent implements OnInit {
       return;
     }
     this.pendingBarcode = barcode;
+    this.loadCategories();
     this.loadProducts();
   }
 
@@ -54,6 +56,23 @@ export class BarcodeScannerComponent implements OnInit {
         this.initializeProducts();
       }
     });
+  }
+
+  loadCategories(): void {
+    this.categoryMap.clear();
+    this.productService.getCategories().subscribe({
+      next: (categories) => {
+        categories.forEach(cat => this.categoryMap.set(cat.id, cat.name));
+      },
+      error: () => {
+        console.log('Failed to load categories');
+      }
+    });
+  }
+
+  getCategoryName(categoryId: string | undefined): string {
+    if (!categoryId) return 'Not categorized';
+    return this.categoryMap.get(categoryId) || 'Unknown category';
   }
 
   assignBarcodeToProduct(product: Product): void {

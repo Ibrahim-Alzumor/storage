@@ -2,11 +2,11 @@ export interface Product {
   id: number;
   name: string;
   stock: number;
-  category: string;
+  categoryId: string;
   image: string;
   description: string;
   barcode: string;
   isEmpty?: boolean;
   stockDisplay?: string;
-  unit: string;
+  unitId: string;
 }

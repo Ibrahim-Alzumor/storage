@@ -35,7 +35,7 @@
         <tr>
           <td>{{ product.name }}</td>
           <td>{{ product.stock }}</td>
-          <td>{{ product.category }}</td>
+          <td>{{ getCategoryName(product.categoryId) }}</td>
           <td>{{ product.description }}</td>
           <button mat-button (click)="assignBarcodeToProduct(product)">Assign Barcode</button>
         </tr>
@@ -43,4 +43,3 @@
     </tbody>
   </table>
 </div>
-

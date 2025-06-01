@@ -4,6 +4,8 @@ import {Product} from '../interfaces/product.interface';
 import {map, Observable, of} from 'rxjs';
 import {environment} from '../enviroments/enviroment';
 import {catchError} from 'rxjs/operators';
+import {Category} from '../interfaces/category.interface';
+import {Unit} from '../interfaces/unit.interface';
 
 @Injectable({
   providedIn: 'root'
@@ -47,38 +49,37 @@ export class ProductService {
     );
   }
 
-  getUnits(): Observable<string[]> {
-    return this.http.get<string[]>(`${environment.apiUrl}/units`);
+  getUnits(): Observable<Unit[]> {
+    return this.http.get<Unit[]>(`${environment.apiUrl}/units`);
   }
 
-  addUnit(unit: string): Observable<string> {
-    return this.http.post<string>(`${environment.apiUrl}/units`, {name: unit})
+  addUnit(unitName: string): Observable<Unit> {
+    return this.http.post<Unit>(`${environment.apiUrl}/units`, {name: unitName})
       .pipe(
         catchError(error => {
           if (error.status === 201) {
-            return of(unit);
+            return of({id: '', name: unitName} as Unit);
           }
           throw error;
         })
       );
   }
 
-  getCategories(): Observable<string[]> {
-    return this.http.get<string[]>(`${environment.apiUrl}/categories`);
+  getCategories(): Observable<Category[]> {
+    return this.http.get<Category[]>(`${environment.apiUrl}/categories`);
   }
 
-  addCategory(category: string): Observable<string> {
-    return this.http.post<string>(`${environment.apiUrl}/categories`, {name: category})
+  addCategory(categoryName: string): Observable<Category> {
+    return this.http.post<Category>(`${environment.apiUrl}/categories`, {name: categoryName})
       .pipe(
         catchError(error => {
           if (error.status === 201) {
-            return of(category);
+            return of({id: '', name: categoryName} as Category);
           }
           throw error;
         })
       );
   }
-
 
   delete(id: number): Observable<void> {
     return this.http.delete<void>(`${environment.apiUrl}/products/${id}`);
@@ -97,7 +98,7 @@ export class ProductService {
   }
 
   private cleanUpProduct(product: any): Product {
-    const {id, name, stock, unit, category, image, description, barcode} = product;
-    return {id, name, stock, unit, category, image, description, barcode};
+    const {id, name, stock, unitId, categoryId, image, description, barcode} = product;
+    return {id, name, stock, unitId, categoryId, image, description, barcode};
   }
 }

@@ -16,6 +16,8 @@ import {NotificationService} from '../../../services/notification.service';
 import {ResizableColumnDirective} from '../../../directives/resizable-column.directive';
 import {DraggableColumnDirective} from '../../../directives/draggable-column.directive';
 import {MatSelectModule} from '@angular/material/select';
+import {Unit} from '../../../interfaces/unit.interface';
+import {Category} from '../../../interfaces/category.interface';
 
 @Component({
   selector: 'app-product-list',
@@ -52,12 +54,15 @@ export class ProductListComponent implements OnInit {
   expandedImageSrc = '';
   sortColumn: string = '';
   sortDirection: 'asc' | 'desc' = 'asc';
-  availableUnits: string[] = [];
-  availableCategories: string[] = [];
+  availableUnits: Unit[] = [];
+  availableCategories: Category[] = [];
   categories: string[] = [];
-  selectedCategory: string | null = null;
+  selectedCategoryId: string | null = null;
+  selectedCategoryName: string | null = null;
   allProducts: Product[] = [];
   showCategoryDropdown = false;
+  categoryMap: Map<string, string> = new Map();
+  unitMap: Map<string, string> = new Map();
 
   constructor(
     private productService: ProductService,
@@ -77,6 +82,10 @@ export class ProductListComponent implements OnInit {
 
   get productsFormArray(): FormArray {
     return this.productForm.get('products') as FormArray;
+  }
+
+  get categoryNames(): string[] {
+    return Array.from(this.categoryMap.values());
   }
 
   ngOnInit() {
@@ -115,6 +124,15 @@ export class ProductListComponent implements OnInit {
     });
   }
 
+  getCategoryName(categoryId: string | undefined): string {
+    if (!categoryId) return 'Not categorized';
+    return this.categoryMap.get(categoryId) || 'Unknown category';
+  }
+
+  getUnitName(unitId: string | undefined): string {
+    if (!unitId) return '';
+    return this.unitMap.get(unitId) || 'Unknown unit';
+  }
 
   sortProducts(column: string): void {
     if (this.sortColumn === column) {
@@ -135,10 +153,14 @@ export class ProductListComponent implements OnInit {
           comparison = a.stock - b.stock;
           break;
         case 'unit':
-          comparison = (a.unit || '').localeCompare(b.unit || '');
+          const unitNameA = this.getUnitName(a.unitId);
+          const unitNameB = this.getUnitName(b.unitId);
+          comparison = unitNameA.localeCompare(unitNameB);
           break;
         case 'category':
-          comparison = (a.category || '').localeCompare(b.category || '');
+          const categoryNameA = this.getCategoryName(a.categoryId);
+          const categoryNameB = this.getCategoryName(b.categoryId);
+          comparison = categoryNameA.localeCompare(categoryNameB);
           break;
         case 'description':
           comparison = (a.description || '').localeCompare(b.description || '');
@@ -163,6 +185,7 @@ export class ProductListComponent implements OnInit {
           this.allProducts = products;
           this.applyFilters();
           this.extractCategories();
+          this.loadUnits();
           this.loading = false;
         });
       } else {
@@ -206,6 +229,7 @@ export class ProductListComponent implements OnInit {
             this.allProducts = products;
             this.applyFilters();
             this.extractCategories();
+            this.loadUnits();
             this.initializeForm();
             this.loading = false;
           },
@@ -220,6 +244,7 @@ export class ProductListComponent implements OnInit {
             this.allProducts = products;
             this.applyFilters();
             this.extractCategories();
+            this.loadUnits();
             this.initializeForm();
             this.loading = false;
           },
@@ -228,6 +253,18 @@ export class ProductListComponent implements OnInit {
             this.loading = false;
           }
         });
+      }
+    });
+  }
+
+  loadUnits(): void {
+    this.unitMap.clear();
+    this.productService.getUnits().subscribe({
+      next: (units) => {
+        units.forEach(unit => this.unitMap.set(unit.id, unit.name));
+      },
+      error: () => {
+        console.log('Failed to load units');
       }
     });
   }
@@ -258,6 +295,7 @@ export class ProductListComponent implements OnInit {
       this.allProducts = await firstValueFrom(this.productService.getAll());
       this.applyFilters();
       this.extractCategories();
+      this.loadUnits();
     } catch (error) {
       this.notificationService.showNotification('Error saving changes: ' + (error as Error).message, 'error');
     }
@@ -337,18 +375,22 @@ export class ProductListComponent implements OnInit {
       }));
   }
 
-  filterByCategory(category: string | null): void {
-    this.selectedCategory = category;
-    this.applyFilters();
-    this.showCategoryDropdown = false;
-
-    if (this.isEditMode) {
-      this.initializeForm();
+  filterByCategory(categoryName: string | null): void {
+    if (categoryName === null) {
+      this.selectedCategoryId = null;
+      this.selectedCategoryName = null;
+    } else {
+      const entry = Array.from(this.categoryMap.entries()).find(([_, name]) => name === categoryName);
+      if (entry) {
+        this.selectedCategoryId = entry[0];
+        this.selectedCategoryName = categoryName;
+      }
     }
+    this.applyFilters();
   }
 
   applyFilters(): void {
-    if (!this.selectedCategory) {
+    if (!this.selectedCategoryId) {
       this.products = [...this.allProducts].map(p => {
         const pending = this.scannedAdditions.get(p.id) || 0;
         return {
@@ -358,7 +400,7 @@ export class ProductListComponent implements OnInit {
       });
     } else {
       this.products = this.allProducts
-        .filter(product => product.category === this.selectedCategory)
+        .filter(product => product.categoryId === this.selectedCategoryId)
         .map(p => {
           const pending = this.scannedAdditions.get(p.id) || 0;
           return {
@@ -426,22 +468,29 @@ export class ProductListComponent implements OnInit {
     });
   }
 
-  private extractCategories(): void {
-    const uniqueCategories = new Set<string>();
-    this.allProducts.forEach(product => {
-      if (product.category) {
-        uniqueCategories.add(product.category);
+  extractCategories(): void {
+    this.categoryMap.clear();
+    this.productService.getCategories().subscribe({
+      next: (categories) => {
+        categories.forEach(cat => this.categoryMap.set(cat.id, cat.name));
+      },
+      error: () => {
+        console.log('Failed to load categories');
       }
     });
-    this.categories = Array.from(uniqueCategories).sort();
   }
 
-  private initializeProducts(): void {
+  initializeProducts(): void {
     this.productService.getAll().subscribe(products => {
       this.allProducts = products;
       this.applyFilters();
       this.extractCategories();
+      this.loadUnits();
     });
+  }
+
+  getProductById(id: number): Product | undefined {
+    return this.products.find(p => p.id === id);
   }
 
   private initializeForm(): void {
@@ -456,8 +505,8 @@ export class ProductListComponent implements OnInit {
       id: [product.id],
       name: [product.name, [Validators.required, Validators.maxLength(50)]],
       stock: [product.stock, [Validators.required, Validators.min(0)]],
-      unit: [product.unit, Validators.required],
-      category: [product.category, Validators.required],
+      unitId: [product.unitId, Validators.required],
+      categoryId: [product.categoryId, Validators.required],
       image: [product.image],
       description: [product.description, Validators.required]
     });

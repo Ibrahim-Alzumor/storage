@@ -11,6 +11,8 @@ import {NotificationService} from '../../../services/notification.service';
 import {MatIcon} from '@angular/material/icon';
 import {MatSelect} from '@angular/material/select';
 import {MatOption} from '@angular/material/core';
+import {Unit} from '../../../interfaces/unit.interface';
+import {Category} from '../../../interfaces/category.interface';
 
 @Component({
   selector: 'app-product-add',
@@ -31,8 +33,8 @@ export class ProductAddComponent implements OnInit {
   productForm: FormGroup;
   editMode = false;
   productId: number | null = null;
-  availableUnits: string[] = [];
-  availableCategories: string[] = [];
+  availableUnits: Unit[] = [];
+  availableCategories: Category[] = [];
   newUnit: string = '';
   newCategory: string = '';
   unitDialogOpen = false;
@@ -49,8 +51,8 @@ export class ProductAddComponent implements OnInit {
     this.productForm = this.fb.group({
       name: ['', [Validators.required, Validators.maxLength(50)]],
       stock: [0, [Validators.required, Validators.min(0)]],
-      unit: ['', Validators.required],
-      category: ['', Validators.required],
+      unitId: ['', Validators.required],
+      categoryId: ['', Validators.required],
       image: [''],
       description: ['', Validators.required],
     })
@@ -62,15 +64,14 @@ export class ProductAddComponent implements OnInit {
         this.editMode = true;
         this.productId = +params['id'];
         this.productService.getOne(this.productId).subscribe(product => {
-          this.productForm.patchValue(product)
-        })
+          this.productForm.patchValue(product);
+        });
       }
     });
+
     this.productService.getUnits().subscribe({
       next: (units) => {
-        if (units && units.length) {
-          this.availableUnits = units;
-        }
+        this.availableUnits = units;
       },
       error: () => {
         console.log('failed to load units');
@@ -79,9 +80,7 @@ export class ProductAddComponent implements OnInit {
 
     this.productService.getCategories().subscribe({
       next: (categories) => {
-        if (categories && categories.length) {
-          this.availableCategories = categories;
-        }
+        this.availableCategories = categories;
       },
       error: () => {
         console.log('Failed to load categories');
@@ -124,25 +123,21 @@ export class ProductAddComponent implements OnInit {
       return;
     }
 
-    if (this.availableUnits.includes(this.newUnit)) {
+    if (this.availableUnits.some(unit => unit.name === this.newUnit)) {
       this.notificationService.showNotification('Unit already exists', 'warning');
       return;
     }
 
     this.productService.addUnit(this.newUnit).subscribe({
       next: (response) => {
-        console.log('Unit added successfully:', response);
-        this.availableUnits.push(this.newUnit);
-        this.productForm.get('unit')?.setValue(this.newUnit);
+        this.availableUnits.push(response);
+        this.productForm.get('unitId')?.setValue(response.id);
         this.newUnit = '';
         this.notificationService.showNotification('New unit added', 'success');
       },
       error: (error) => {
         console.error('Error adding unit:', error);
         this.notificationService.showNotification(`Failed to add new unit: ${error.message || 'Unknown error'}`, 'error');
-      },
-      complete: () => {
-        console.log('Unit addition operation completed');
       }
     });
   }
@@ -153,25 +148,21 @@ export class ProductAddComponent implements OnInit {
       return;
     }
 
-    if (this.availableCategories.includes(this.newCategory)) {
+    if (this.availableCategories.some(category => category.name === this.newCategory)) {
       this.notificationService.showNotification('Category already exists', 'warning');
       return;
     }
 
     this.productService.addCategory(this.newCategory).subscribe({
       next: (response) => {
-        console.log('Category added successfully:', response);
-        this.availableCategories.push(this.newCategory);
-        this.productForm.get('category')?.setValue(this.newCategory);
+        this.availableCategories.push(response);
+        this.productForm.get('categoryId')?.setValue(response.id);
         this.newCategory = '';
         this.notificationService.showNotification('New category added', 'success');
       },
       error: (error) => {
         console.error('Error adding category:', error);
         this.notificationService.showNotification(`Failed to add new category: ${error.message || 'Unknown error'}`, 'error');
-      },
-      complete: () => {
-        console.log('Category addition operation completed');
       }
     });
   }

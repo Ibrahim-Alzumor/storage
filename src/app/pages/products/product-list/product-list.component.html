@@ -6,9 +6,9 @@
         <button mat-button (click)="clearSearch()">Clear Search</button>
       </div>
     }
-    @if (selectedCategory) {
+    @if (selectedCategoryName) {
       <div class="search-status">
-        Filtered by category: "{{ selectedCategory }}"
+        Filtered by category: "{{ selectedCategoryName }}"
         <button mat-button (click)="filterByCategory(null)">Clear Filter</button>
       </div>
     }
@@ -48,8 +48,8 @@
       No products found.
       @if (route.snapshot.queryParams['name']) {
         Try a different search term.
-      } @else if (selectedCategory) {
-        No products in category "{{ selectedCategory }}".
+      } @else if (selectedCategoryName) {
+        No products in category "{{ selectedCategoryName }}".
         <button mat-button (click)="filterByCategory(null)">Show All Products</button>
       }
     </div>
@@ -71,7 +71,7 @@
           }
         </th>
         <th (click)="sortProducts('unit')" draggableColumn resizableColumn>
-          unit
+          Unit
           @if (sortColumn === 'unit') {
             <mat-icon>{{ sortDirection === 'asc' ? 'arrow_upward' : 'arrow_downward' }}</mat-icon>
           }
@@ -89,9 +89,9 @@
               <div class="category-item" (click)="filterByCategory(null)">
                 All Categories
               </div>
-              @for (category of categories; track category) {
-                <div class="category-item" (click)="filterByCategory(category)">
-                  {{ category }}
+              @for (categoryName of categoryNames; track categoryName) {
+                <div class="category-item" (click)="filterByCategory(categoryName)">
+                  {{ categoryName }}
                 </div>
               }
             </div>
@@ -126,18 +126,18 @@
                 </mat-form-field>
               <td resizableColumn>
                 <mat-form-field appearance="fill">
-                  <mat-select [formControlName]="'unit'">
-                    @for (unit of availableUnits; track unit) {
-                      <mat-option [value]="unit">{{ unit }}</mat-option>
+                  <mat-select [formControlName]="'unitId'">
+                    @for (unit of availableUnits; track unit.id) {
+                      <mat-option [value]="unit.id">{{ unit.name }}</mat-option>
                     }
                   </mat-select>
                 </mat-form-field>
               </td>
               <td resizableColumn>
                 <mat-form-field appearance="fill">
-                  <mat-select [formControlName]="'category'">
-                    @for (category of availableCategories; track category) {
-                      <mat-option [value]="category">{{ category }}</mat-option>
+                  <mat-select [formControlName]="'categoryId'">
+                    @for (category of availableCategories; track category.id) {
+                      <mat-option [value]="category.id">{{ category.name }}</mat-option>
                     }
                   </mat-select>
                 </mat-form-field>
@@ -160,8 +160,8 @@
             <tr>
               <td resizableColumn>{{ product.name }}</td>
               <td resizableColumn>{{ product.stockDisplay }}</td>
-              <td resizableColumn>{{ product.unit }}</td>
-              <td resizableColumn>{{ product.category }}</td>
+              <td resizableColumn>{{ getUnitName(product.unitId) }}</td>
+              <td resizableColumn>{{ getCategoryName(product.categoryId) }}</td>
               <td resizableColumn>{{ product.description }}</td>
             </tr>
           }
@@ -170,8 +170,8 @@
             <tr>
               <td resizableColumn>{{ product.name }}</td>
               <td resizableColumn>{{ product.stock }}</td>
-              <td resizableColumn>{{ product.unit }}</td>
-              <td resizableColumn>{{ product.category }}</td>
+              <td resizableColumn>{{ getUnitName(product.unitId) }}</td>
+              <td resizableColumn>{{ getCategoryName(product.categoryId) }}</td>
               <td resizableColumn>{{ product.description }}</td>
               <td resizableColumn>
                 <img [src]="product.image || 'https://thumb.ac-illust.com/b1/b170870007dfa419295d949814474ab2_t.jpeg'"
@@ -197,8 +197,8 @@
             <tr>
               <td resizableColumn>{{ product.name }}</td>
               <td resizableColumn>{{ product.stock }}</td>
-              <td resizableColumn>{{ product.unit }}</td>
-              <td resizableColumn>{{ product.category }}</td>
+              <td resizableColumn>{{ getUnitName(product.unitId) }}</td>
+              <td resizableColumn>{{ getCategoryName(product.categoryId) }}</td>
               <td resizableColumn>{{ product.description }}</td>
               <td resizableColumn>
                 <img [src]="product.image || 'https://thumb.ac-illust.com/b1/b170870007dfa419295d949814474ab2_t.jpeg'"

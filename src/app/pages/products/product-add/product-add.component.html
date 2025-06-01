@@ -30,12 +30,12 @@
       <div class="input-with-button">
         <mat-form-field appearance="outline" class="flex-grow">
           <mat-label>Unit</mat-label>
-          <mat-select formControlName="unit">
-            @for (unit of availableUnits; track unit) {
-              <mat-option [value]="unit">{{ unit }}</mat-option>
+          <mat-select formControlName="unitId">
+            @for (unit of availableUnits; track unit.id) {
+              <mat-option [value]="unit.id">{{ unit.name }}</mat-option>
             }
           </mat-select>
-          @if (productForm.controls['unit'].invalid && productForm.controls['unit'].touched) {
+          @if (productForm.controls['unitId'].invalid && productForm.controls['unitId'].touched) {
             <mat-error>
               Unit is required.
             </mat-error>
@@ -69,12 +69,12 @@
       <div class="input-with-button">
         <mat-form-field appearance="outline" class="flex-grow">
           <mat-label>Category</mat-label>
-          <mat-select formControlName="category">
-            @for (category of availableCategories; track category) {
-              <mat-option [value]="category">{{ category }}</mat-option>
+          <mat-select formControlName="categoryId">
+            @for (category of availableCategories; track category.id) {
+              <mat-option [value]="category.id">{{ category.name }}</mat-option>
             }
           </mat-select>
-          @if (productForm.controls['category'].invalid && productForm.controls['category'].touched) {
+          @if (productForm.controls['categoryId'].invalid && productForm.controls['categoryId'].touched) {
             <mat-error>
               Category is required.
             </mat-error>

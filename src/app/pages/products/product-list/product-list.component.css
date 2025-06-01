@@ -524,7 +524,7 @@ th {
 }
 
 :host ::ng-deep td .mat-mdc-select-value {
-  color: white;
+  color: black !important;
 }
 
 :host ::ng-deep td .mat-mdc-select-arrow {
