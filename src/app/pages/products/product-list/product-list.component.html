@@ -1,0 +1,285 @@
+<div class="table-container">
+  <div class="table-actions">
+    @if (route.snapshot.queryParams['name']) {
+      <div class="status">
+        Showing results for: "{{ route.snapshot.queryParams['name'] }}"
+        <button mat-button (click)="clearSearch()">Clear Search</button>
+      </div>
+    }
+    @if (selectedCategoryName) {
+      <div class="status">
+        Filtered by category: "{{ selectedCategoryName }}"
+        <button mat-button (click)="filterByCategory(null)">Clear Filter</button>
+      </div>
+    }
+    @if (selectedUnitName) {
+      <div class="status">
+        Filtered by Unit: "{{ selectedUnitName }}"
+        <button mat-button (click)="filterByUnit(null)">Clear Filter</button>
+      </div>
+    }
+    @if (this.getClearanceLevel() >= 2 && !isOrderMode) {
+      <button (click)="toggleEditMode()" class="edit-button" color="primary" mat-raised-button>
+        {{ isEditMode ? 'Cancel Editing' : 'Edit Products' }}
+      </button>
+    }
+    @if (this.getClearanceLevel() >= 1 && !isEditMode) {
+      <button (click)="toggleOrderMode()" class="edit-button" color="primary" mat-raised-button>
+        {{ isOrderMode ? 'Cancel Order' : 'Order Products' }}
+      </button>
+    }
+    @if (isEditMode) {
+      <button class="edit-button" mat-raised-button color="primary" (click)="saveChanges()">
+        Save Changes
+      </button>
+    }
+    @if (isOrderMode && orderItems.size > 0) {
+      <button class="edit-button" mat-raised-button color="primary" (click)="submitOrder()">
+        Submit Order
+      </button>
+    }
+    @if (hasStartedScanning && scannedAdditions.size > 0) {
+      <button class="edit-button" mat-raised-button color="primary" (click)="confirmScannedAdditions()">
+        Confirm Scanned Additions
+      </button>
+    }
+  </div>
+  @if (loading) {
+    <div class="loading-spinner">
+      <mat-spinner diameter="40"></mat-spinner>
+    </div>
+  }
+  @if (!loading && products.length === 0) {
+    <div class="no-results">
+      No products found.
+      @if (route.snapshot.queryParams['name']) {
+        Try a different search term.
+      } @else if (selectedCategoryName) {
+        No products in category "{{ selectedCategoryName }}".
+        <button mat-button (click)="filterByCategory(null)">Show All Products</button>
+      }
+    </div>
+  }
+  <form [formGroup]="productForm">
+    <table>
+      <thead>
+      <tr>
+        <th (click)="sortProducts('name')" draggableColumn resizableColumn>
+          Name
+          @if (sortColumn === 'name') {
+            <mat-icon>{{ sortDirection === 'asc' ? 'arrow_upward' : 'arrow_downward' }}</mat-icon>
+          }
+        </th>
+        <th (click)="sortProducts('stock')" draggableColumn resizableColumn>
+          Stock
+          @if (sortColumn === 'stock') {
+            <mat-icon>{{ sortDirection === 'asc' ? 'arrow_upward' : 'arrow_downward' }}</mat-icon>
+          }
+        </th>
+        <th class="header" draggableColumn resizableColumn>
+          <div (click)="toggleUnitDropdown($event)" class="header-content">
+            Unit
+            <mat-icon>filter_list</mat-icon>
+            @if (sortColumn === 'unit') {
+              <mat-icon>{{ sortDirection === 'asc' ? 'arrow_upward' : 'arrow_downward' }}</mat-icon>
+            }
+          </div>
+          @if (showUnitDropdown) {
+            <div class="dropdown">
+              <div class="item" (click)="filterByUnit(null)">
+                All Units
+              </div>
+              @for (unitName of unitNames; track unitName) {
+                <div class="item" (click)="filterByUnit(unitName)">
+                  {{ unitName }}
+                </div>
+              }
+            </div>
+          }
+        </th>
+        <th class="header" draggableColumn resizableColumn>
+          <div (click)="toggleCategoryDropdown($event)" class="header-content">
+            Category
+            <mat-icon>filter_list</mat-icon>
+            @if (sortColumn === 'category') {
+              <mat-icon>{{ sortDirection === 'asc' ? 'arrow_upward' : 'arrow_downward' }}</mat-icon>
+            }
+          </div>
+          @if (showCategoryDropdown) {
+            <div class="dropdown">
+              <div class="item" (click)="filterByCategory(null)">
+                All Categories
+              </div>
+              @for (categoryName of categoryNames; track categoryName) {
+                <div class="item" (click)="filterByCategory(categoryName)">
+                  {{ categoryName }}
+                </div>
+              }
+            </div>
+          }
+        </th>
+        <th (click)="sortProducts('description')" draggableColumn resizableColumn>
+          Description
+          @if (sortColumn === 'description') {
+            <mat-icon>{{ sortDirection === 'asc' ? 'arrow_upward' : 'arrow_downward' }}</mat-icon>
+          }
+        </th>
+        <th draggableColumn resizableColumn>Images</th>
+        @if (this.getClearanceLevel() >= 2) {
+          @if (!isEditMode) {
+            <th draggableColumn resizableColumn>Actions</th>
+          }
+        }
+      </tr>
+      </thead>
+      <tbody formArrayName="products">
+        @if (isEditMode) {
+          @for (productGroup of productsFormArray.controls; track $index) {
+            <tr [formGroupName]="$index">
+              <td resizableColumn>
+                <mat-form-field appearance="fill">
+                  <input matInput [formControlName]="'name'" class="custom-input">
+                </mat-form-field>
+              </td>
+              <td resizableColumn>
+                <mat-form-field>
+                  <input matInput type="number" [formControlName]="'stock'" class="custom-input">
+                </mat-form-field>
+              <td resizableColumn>
+                <mat-form-field appearance="fill">
+                  <mat-select [formControlName]="'unitId'">
+                    @for (unit of availableUnits; track unit.id) {
+                      <mat-option [value]="unit.id">{{ unit.name }}</mat-option>
+                    }
+                  </mat-select>
+                </mat-form-field>
+              </td>
+              <td resizableColumn>
+                <mat-form-field appearance="fill">
+                  <mat-select [formControlName]="'categoryId'">
+                    @for (category of availableCategories; track category.id) {
+                      <mat-option [value]="category.id">{{ category.name }}</mat-option>
+                    }
+                  </mat-select>
+                </mat-form-field>
+              </td>
+
+              <td resizableColumn>
+                <mat-form-field>
+                  <input matInput [formControlName]="'description'" class="custom-input">
+                </mat-form-field>
+              </td>
+              <td resizableColumn>
+                <mat-form-field>
+                  <input matInput [formControlName]="'images'" class="custom-input"
+                         placeholder="Use commas to seperate images">
+                </mat-form-field>
+              </td>
+            </tr>
+          }
+        } @else if (showPendingChanges && getInProgressAdditions().length > 0) {
+          @for (product of getInProgressAdditions(); track $index) {
+            <tr>
+              <td resizableColumn>{{ product.name }}</td>
+              <td resizableColumn>{{ product.stockDisplay }}</td>
+              <td resizableColumn>{{ getUnitName(product.unitId) }}</td>
+              <td resizableColumn>{{ getCategoryName(product.categoryId) }}</td>
+              <td resizableColumn>{{ product.description }}</td>
+            </tr>
+          }
+        } @else if (isOrderMode) {
+          @for (product of products; track $index) {
+            <tr>
+              <td resizableColumn>{{ product.name }}</td>
+              <td resizableColumn>{{ product.stock }}</td>
+              <td resizableColumn>{{ getUnitName(product.unitId) }}</td>
+              <td resizableColumn>{{ getCategoryName(product.categoryId) }}</td>
+              <td resizableColumn>{{ product.description }}</td>
+              <td resizableColumn>
+                <div class="product-image-container">
+                  <img
+                    [src]="getImage(product)"
+                    alt="{{ product.name }}"
+                    class="product-thumbnail"
+                    (click)="expandImages(product.images, product.name)"
+                  >
+                </div>
+              </td>
+              <td resizableColumn>
+                <button class="edit-button" color="primary" mat-raised-button (click)="addToOrder(product)">
+                  +
+                </button>
+                <span>{{ orderItems.get(product.id) || 0 }}</span>
+                <button class="edit-button" color="warn" mat-raised-button (click)="removeFromOrder(product)">
+                  -
+                </button>
+              </td>
+            </tr>
+          }
+        } @else {
+          @for (product of products; track $index) {
+            <tr>
+              <td resizableColumn>{{ product.name }}</td>
+              <td resizableColumn>{{ product.stock }}</td>
+              <td resizableColumn>{{ getUnitName(product.unitId) }}</td>
+              <td resizableColumn>{{ getCategoryName(product.categoryId) }}</td>
+              <td resizableColumn>{{ product.description }}</td>
+              <td resizableColumn>
+                <div class="product-image-container">
+                  <img
+                    [src]="getImage(product)"
+                    alt="{{ product.name }}"
+                    class="product-thumbnail"
+                    (click)="expandImages(product.images, product.name)"
+                  >
+                </div>
+              </td>
+              @if (this.getClearanceLevel() >= 2) {
+                <td resizableColumn>
+                  <button class="edit-button" color="warn" mat-raised-button (click)="deleteProduct(product.id)">
+                    Delete
+                  </button>
+                </td>
+              }
+            </tr>
+          }
+        }
+      </tbody>
+    </table>
+  </form>
+</div>
+@if (showExpandedImages) {
+  <div class="modal" (click)="closeExpandedImages()">
+    <div class="modal-content image-modal">
+      <span class="close" (click)="closeExpandedImages()">&times;</span>
+      <h2>{{ expandedProductName }}</h2>
+
+      <div class="image-carousel">
+        @if (expandedImages.length > 1) {
+          <button
+            class="carousel-side-button prev"
+            (click)="previousImage(); $event.stopPropagation()"
+            [disabled]="currentImageIndex === 0"
+          >
+            <mat-icon>arrow_back</mat-icon>
+          </button>
+        }
+
+        <div class="carousel-image-container">
+          <img [src]="expandedImages[currentImageIndex]" alt="{{ expandedProductName }}" class="expanded-image">
+          <div class="image-counter">{{ currentImageIndex + 1 }} / {{ expandedImages.length }}</div>
+        </div>
+
+        @if (expandedImages.length > 1) {
+          <button
+            class="carousel-side-button next"
+            (click)="nextImage(); $event.stopPropagation()"
+            [disabled]="currentImageIndex === expandedImages.length - 1"
+          >
+            <mat-icon>arrow_forward</mat-icon>
+          </button>
+        }
+      </div>
+    </div>
+  </div>
+}

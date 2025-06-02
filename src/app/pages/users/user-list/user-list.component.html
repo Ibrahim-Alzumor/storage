@@ -1,0 +1,100 @@
+<div class="table-container">
+  <div class="table-actions">
+    @if (route.snapshot.queryParams['name']) {
+      <div class="status">
+        Showing results for: "{{ route.snapshot.queryParams['name'] }}"
+        <button mat-button (click)="clearSearch()">Clear Search</button>
+      </div>
+    }
+  </div>
+
+  @if (loading) {
+    <div class="loading-spinner">
+      <mat-spinner diameter="40"></mat-spinner>
+    </div>
+  }
+
+  @if (!loading && users.length === 0) {
+    <div class="no-results">
+      No users found.
+      @if (route.snapshot.queryParams['name']) {
+        Try a different search term.
+        <button mat-button (click)="clearSearch()">Show All Users</button>
+      }
+    </div>
+  }
+
+  <table>
+    <thead>
+    <tr>
+      <th (click)="sortUsers('firstName')" draggableColumn resizableColumn>
+        First Name
+        @if (sortColumn === 'firstName') {
+          <span class="material-symbols-outlined sort-icon">
+      {{ sortDirection === 'asc' ? 'arrow_upward' : 'arrow_downward' }}
+    </span>
+        }
+      </th>
+      <th (click)="sortUsers('lastName')" draggableColumn resizableColumn>
+        Last Name
+        @if (sortColumn === 'lastName') {
+          <span class="material-symbols-outlined sort-icon">
+      {{ sortDirection === 'asc' ? 'arrow_upward' : 'arrow_downward' }}
+    </span>
+        }
+      </th>
+      <th (click)="sortUsers('email')" draggableColumn resizableColumn>
+        Email
+        @if (sortColumn === 'email') {
+          <span class="material-symbols-outlined sort-icon">
+      {{ sortDirection === 'asc' ? 'arrow_upward' : 'arrow_downward' }}
+    </span>
+        }
+      </th>
+      <th (click)="sortUsers('jobTitle')" draggableColumn resizableColumn>
+        Job Title
+        @if (sortColumn === 'jobTitle') {
+          <span class="material-symbols-outlined sort-icon">
+      {{ sortDirection === 'asc' ? 'arrow_upward' : 'arrow_downward' }}
+    </span>
+        }
+      </th>
+      <th (click)="sortUsers('clearanceLevel')" draggableColumn resizableColumn>
+        Clearance Level
+        @if (sortColumn === 'clearanceLevel') {
+          <span class="material-symbols-outlined sort-icon">
+      {{ sortDirection === 'asc' ? 'arrow_upward' : 'arrow_downward' }}
+    </span>
+        }
+      </th>
+      <th draggableColumn resizableColumn>Status</th>
+      @if (this.getClearanceLevel() >= 2) {
+        <th draggableColumn resizableColumn>Actions</th>
+      }
+    </tr>
+    </thead>
+    <tbody>
+      @for (user of users; track user.email) {
+        <tr [ngClass]="{'inactive-user': user.active === false}">
+          <td resizableColumn>{{ user.firstName }}</td>
+          <td resizableColumn>{{ user.lastName }}</td>
+          <td resizableColumn>{{ user.email }}</td>
+          <td resizableColumn>{{ user.jobTitle || 'N/A' }}</td>
+          <td resizableColumn>{{ getClearanceLabel(user.clearanceLevel) }}</td>
+          <td resizableColumn>
+            <span [ngClass]="user.active !== false ? 'badge badge-success' : 'badge badge-danger'">
+              {{ user.active !== false ? 'Active' : 'Inactive' }}
+            </span>
+          </td>
+          @if (this.getClearanceLevel() >= 2) {
+            <td resizableColumn>
+              <button class="edit-button" mat-raised-button color="primary" (click)="editUser(user.email)">
+                Edit
+              </button>
+            </td>
+          }
+        </tr>
+      }
+    </tbody>
+  </table>
+</div>

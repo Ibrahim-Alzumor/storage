@@ -1,0 +1,31 @@
+<form (ngSubmit)="loadData()" [formGroup]="form" class="filter-form">
+  <label>Start Date:
+    <input formControlName="start" type="date">
+  </label>
+  <label>End Date:
+    <input formControlName="end" type="date">
+  </label>
+  <label>Email:
+    <input formControlName="email" placeholder="(optional)" type="text">
+  </label>
+  <button type="submit">Load Charts</button>
+</form>
+@if (loading) {
+  <div>
+    <p>Loading data...</p>
+  </div>
+} @else if (!loading) {
+  <div>
+    <h3>Products Sold Per Day (Bar)</h3>
+    <canvas baseChart
+            [data]="chartDataBar"
+            [type]="'bar'">
+    </canvas>
+
+    <h3>Total Orders Per Day (Line)</h3>
+    <canvas baseChart
+            [data]="chartDataLine"
+            [type]="'line'">
+    </canvas>
+  </div>
+}

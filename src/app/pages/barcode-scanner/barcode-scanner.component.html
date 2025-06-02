@@ -1,0 +1,45 @@
+<div class="table-container">
+  <div class="table-actions">
+    @if (route.snapshot.queryParams['name']) {
+      <div class="search-status">
+        Showing results for: "{{ route.snapshot.queryParams['name'] }}"
+        <button mat-button (click)="clearSearch()">Clear Search</button>
+      </div>
+    }
+  </div>
+  @if (loading) {
+    <div class="loading-spinner">
+      <mat-spinner diameter="40"></mat-spinner>
+    </div>
+  }
+
+  @if (!loading && products.length === 0) {
+    <div class="no-results">
+      No products found. @if (route.snapshot.queryParams['name']) {
+      Try a different search term.
+    }
+    </div>
+  }
+  <table>
+    <thead>
+    <tr>
+      <th draggableColumn resizableColumn>Name</th>
+      <th draggableColumn resizableColumn>Stock</th>
+      <th draggableColumn resizableColumn>Category</th>
+      <th draggableColumn resizableColumn>Description</th>
+      <th draggableColumn resizableColumn>Actions</th>
+    </tr>
+    </thead>
+    <tbody>
+      @for (product of products; track $index) {
+        <tr>
+          <td resizableColumn>{{ product.name }}</td>
+          <td resizableColumn>{{ product.stock }}</td>
+          <td resizableColumn>{{ getCategoryName(product.categoryId) }}</td>
+          <td resizableColumn>{{ product.description }}</td>
+          <button mat-button (click)="assignBarcodeToProduct(product)" resizableColumn>Assign Barcode</button>
+        </tr>
+      }
+    </tbody>
+  </table>
+</div>

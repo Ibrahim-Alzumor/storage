@@ -1,0 +1,217 @@
+<div class="container">
+  <div class="product-card">
+    <h2>{{ 'Add Product' }}</h2>
+    <form (ngSubmit)="onSubmit()" [formGroup]="productForm">
+      <mat-form-field appearance="outline">
+        <mat-label>Name</mat-label>
+        <input formControlName="name"
+               matInput
+               placeholder="Enter product name">
+        @if (productForm.controls['name'].invalid && productForm.controls['name'].touched) {
+          <mat-error>
+            Name is required, max 50 chars.
+          </mat-error>
+        }
+      </mat-form-field>
+
+      <mat-form-field appearance="outline">
+        <mat-label>Stock</mat-label>
+        <input formControlName="stock"
+               matInput
+               placeholder="Enter stock quantity"
+               type="number">
+        @if (productForm.controls['stock'].invalid && productForm.controls['stock'].touched) {
+          <mat-error>
+            Stock must be 0 or greater.
+          </mat-error>
+        }
+      </mat-form-field>
+
+      <div class="input-with-button">
+        <mat-form-field appearance="outline" class="flex-grow">
+          <mat-label>Unit</mat-label>
+          <mat-select #unitSelect formControlName="unitId">
+            @for (unit of availableUnits; track unit.id) {
+              <mat-option [value]="unit.id">
+                <div class="option-with-actions">
+                  <span>{{ unit.name }}</span>
+                  <div class="option-actions">
+                    <button mat-icon-button color="primary" class="edit-button"
+                            (click)="openEditUnitDialog(unit, $event); unitSelect.close()">
+                      <mat-icon>edit</mat-icon>
+                    </button>
+                    <button mat-icon-button color="warn" class="delete-button"
+                            (click)="deleteUnit(unit.id, $event); unitSelect.close()">
+                      <mat-icon>delete</mat-icon>
+                    </button>
+                  </div>
+                </div>
+              </mat-option>
+            }
+          </mat-select>
+          @if (productForm.controls['unitId'].invalid && productForm.controls['unitId'].touched) {
+            <mat-error>
+              Unit is required.
+            </mat-error>
+          }
+        </mat-form-field>
+        <button (click)="unitDialogOpen = true" aria-label="Add new unit" class="add-button" color="primary"
+                mat-mini-fab
+                type="button">
+          <mat-icon>add</mat-icon>
+        </button>
+      </div>
+
+      @if (unitDialogOpen) {
+        <div class="dialog-overlay">
+          <div class="dialog-container mat-elevation-z8">
+            <h2>Add New Unit</h2>
+            <mat-form-field appearance="outline" style="width: 100%">
+              <mat-label>Enter new unit</mat-label>
+              <input matInput [(ngModel)]="newUnit" [ngModelOptions]="{standalone: true}">
+            </mat-form-field>
+            <div class="dialog-actions">
+              <button mat-button (click)="unitDialogOpen = false">Cancel</button>
+              <button mat-raised-button color="primary" [disabled]="!newUnit || newUnit.trim() === ''"
+                      (click)="addNewUnit(); unitDialogOpen = false">Confirm
+              </button>
+            </div>
+          </div>
+        </div>
+      }
+
+      @if (editUnitDialogOpen) {
+        <div class="dialog-overlay">
+          <div class="dialog-container mat-elevation-z8">
+            <h2>Edit Unit</h2>
+            <mat-form-field appearance="outline" style="width: 100%">
+              <mat-label>Update unit name</mat-label>
+              <input matInput [(ngModel)]="updatedUnitName" [ngModelOptions]="{standalone: true}">
+            </mat-form-field>
+            <div class="dialog-actions">
+              <button mat-button (click)="editUnitDialogOpen = false">Cancel</button>
+              <button mat-raised-button color="primary" [disabled]="!updatedUnitName || updatedUnitName.trim() === ''"
+                      (click)="updateUnit()">Update
+              </button>
+            </div>
+          </div>
+        </div>
+      }
+
+      <div class="input-with-button">
+        <mat-form-field appearance="outline" class="flex-grow">
+          <mat-label>Category</mat-label>
+          <mat-select #categorySelect formControlName="categoryId">
+            @for (category of availableCategories; track category.id) {
+              <mat-option [value]="category.id">
+                <div class="option-with-actions">
+                  <span>{{ category.name }}</span>
+                  <div class="option-actions">
+                    <button mat-icon-button color="primary" class="edit-button"
+                            (click)="openEditCategoryDialog(category, $event); categorySelect.close()">
+                      <mat-icon>edit</mat-icon>
+                    </button>
+                    <button mat-icon-button color="warn" class="delete-button"
+                            (click)="deleteCategory(category.id, $event); categorySelect.close()">
+                      <mat-icon>delete</mat-icon>
+                    </button>
+                  </div>
+                </div>
+              </mat-option>
+            }
+          </mat-select>
+          @if (productForm.controls['categoryId'].invalid && productForm.controls['categoryId'].touched) {
+            <mat-error>
+              Category is required.
+            </mat-error>
+          }
+        </mat-form-field>
+        <button (click)="categoryDialogOpen = true" aria-label="Add new category" class="add-button" color="primary"
+                mat-mini-fab
+                type="button">
+          <mat-icon>add</mat-icon>
+        </button>
+      </div>
+
+      @if (categoryDialogOpen) {
+        <div class="dialog-overlay">
+          <div class="dialog-container mat-elevation-z8">
+            <h2>Add New Category</h2>
+            <mat-form-field appearance="outline" style="width: 100%">
+              <mat-label>Enter new category</mat-label>
+              <input matInput [(ngModel)]="newCategory" [ngModelOptions]="{standalone: true}">
+            </mat-form-field>
+            <div class="dialog-actions">
+              <button mat-button (click)="categoryDialogOpen = false">Cancel</button>
+              <button mat-raised-button color="primary" [disabled]="!newCategory || newCategory.trim() === ''"
+                      (click)="addNewCategory(); categoryDialogOpen = false">Confirm
+              </button>
+            </div>
+          </div>
+        </div>
+      }
+
+      @if (editCategoryDialogOpen) {
+        <div class="dialog-overlay">
+          <div class="dialog-container mat-elevation-z8">
+            <h2>Edit Category</h2>
+            <mat-form-field appearance="outline" style="width: 100%">
+              <mat-label>Update category name</mat-label>
+              <input matInput [(ngModel)]="updatedCategoryName" [ngModelOptions]="{standalone: true}">
+            </mat-form-field>
+            <div class="dialog-actions">
+              <button mat-button (click)="editCategoryDialogOpen = false">Cancel</button>
+              <button mat-raised-button color="primary"
+                      [disabled]="!updatedCategoryName || updatedCategoryName.trim() === ''"
+                      (click)="updateCategory()">Update
+              </button>
+            </div>
+          </div>
+        </div>
+      }
+      <div class="form-group">
+        <h3>Product Images (Max 5)</h3>
+        <div class="image-inputs">
+          @for (imageControl of imageControls; track $index) {
+            <div class="image-input-container">
+              <mat-form-field appearance="outline">
+                <mat-label>Image URL {{ $index + 1 }}</mat-label>
+                <input matInput [formControl]="imageControl" placeholder="Enter image URL">
+              </mat-form-field>
+              @if ($index > 0) {
+                <button type="button" mat-icon-button color="warn" (click)="removeImageField($index)">
+                  <mat-icon>delete</mat-icon>
+                </button>
+              }
+            </div>
+          }
+        </div>
+        @if (imageControls.length < 5) {
+          <button type="button" mat-button color="primary" (click)="addImageField()">
+            <mat-icon>add</mat-icon>
+            Add Another Image
+          </button>
+        }
+      </div>
+      <mat-form-field appearance="outline">
+        <mat-label>Description</mat-label>
+        <textarea formControlName="description"
+                  matInput
+                  placeholder="Enter description"
+                  rows="4"></textarea>
+        @if (productForm.controls['description'].invalid && productForm.controls['description'].touched) {
+          <mat-error>
+            Description is required, max 200 chars.
+          </mat-error>
+        }
+      </mat-form-field>
+
+      <button [disabled]="productForm.invalid"
+              color="primary"
+              mat-raised-button
+              type="submit">
+        {{ 'Add' }} Product
+      </button>
+    </form>
+  </div>
+</div>

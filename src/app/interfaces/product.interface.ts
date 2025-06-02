@@ -2,8 +2,11 @@ export interface Product {
   id: number;
   name: string;
   stock: number;
-  category: string;
-  image: string;
+  categoryId: string;
+  images: string[];
   description: string;
-  isEmpty: boolean;
+  barcode: string;
+  isEmpty?: boolean;
+  stockDisplay?: string;
+  unitId: string;
 }
