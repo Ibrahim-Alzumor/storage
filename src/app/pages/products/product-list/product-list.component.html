@@ -182,8 +182,8 @@
             <tr>
               <td resizableColumn>{{ product.name }}</td>
               <td resizableColumn>{{ product.stockDisplay }}</td>
-              <td resizableColumn>{{ getUnitName(product.unitId) }}</td>
-              <td resizableColumn>{{ getCategoryName(product.categoryId) }}</td>
+              <td resizableColumn>{{ product.unit.name }}</td>
+              <td resizableColumn>{{ product.category.name }}</td>
               <td resizableColumn>{{ product.description }}</td>
             </tr>
           }
@@ -192,8 +192,8 @@
             <tr>
               <td resizableColumn>{{ product.name }}</td>
               <td resizableColumn>{{ product.stock }}</td>
-              <td resizableColumn>{{ getUnitName(product.unitId) }}</td>
-              <td resizableColumn>{{ getCategoryName(product.categoryId) }}</td>
+              <td resizableColumn>{{ product.unit.name }}</td>
+              <td resizableColumn>{{ product.category.name }}</td>
               <td resizableColumn>{{ product.description }}</td>
               <td resizableColumn>
                 <div class="product-image-container">
@@ -221,8 +221,8 @@
             <tr>
               <td resizableColumn>{{ product.name }}</td>
               <td resizableColumn>{{ product.stock }}</td>
-              <td resizableColumn>{{ getUnitName(product.unitId) }}</td>
-              <td resizableColumn>{{ getCategoryName(product.categoryId) }}</td>
+              <td resizableColumn>{{ product.unit.name }}</td>
+              <td resizableColumn>{{ product.category.name }}</td>
               <td resizableColumn>{{ product.description }}</td>
               <td resizableColumn>
                 <div class="product-image-container">

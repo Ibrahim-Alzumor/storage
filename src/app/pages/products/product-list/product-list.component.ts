@@ -18,6 +18,8 @@ import {DraggableColumnDirective} from '../../../directives/draggable-column.dir
 import {MatSelectModule} from '@angular/material/select';
 import {Unit} from '../../../interfaces/unit.interface';
 import {Category} from '../../../interfaces/category.interface';
+import {UnitService} from '../../../services/unit.service';
+import {CategoryService} from '../../../services/category.service';
 
 @Component({
   selector: 'app-product-list',
@@ -77,6 +79,8 @@ export class ProductListComponent implements OnInit {
     private barcodeService: BarcodeService,
     private notificationService: NotificationService,
     private matIconRegistry: MatIconRegistry,
+    private unitService: UnitService,
+    private categoryService: CategoryService
   ) {
     this.productForm = this.fb.group({
       products: this.fb.array([])
@@ -99,7 +103,6 @@ export class ProductListComponent implements OnInit {
   ngOnInit() {
     this.loadProductsNotEdit();
     this.initializeBarcodeScanner();
-    this.barcodeService.startListening();
   }
 
   expandImages(images: string[], productName: string): void {
@@ -128,7 +131,7 @@ export class ProductListComponent implements OnInit {
   }
 
   loadAvailableOptions() {
-    this.productService.getUnits().subscribe({
+    this.unitService.getUnits().subscribe({
       next: (units) => {
         this.availableUnits = units;
       },
@@ -137,7 +140,7 @@ export class ProductListComponent implements OnInit {
       }
     });
 
-    this.productService.getCategories().subscribe({
+    this.categoryService.getCategories().subscribe({
       next: (categories) => {
         this.availableCategories = categories;
       },
@@ -145,16 +148,6 @@ export class ProductListComponent implements OnInit {
         console.log('Failed to load categories');
       }
     });
-  }
-
-  getCategoryName(categoryId: string | undefined): string {
-    if (!categoryId) return 'Not categorized';
-    return this.categoryMap.get(categoryId) || 'Unknown category';
-  }
-
-  getUnitName(unitId: string | undefined): string {
-    if (!unitId) return '';
-    return this.unitMap.get(unitId) || 'Unknown unit';
   }
 
   sortProducts(column: string): void {
@@ -176,14 +169,10 @@ export class ProductListComponent implements OnInit {
           comparison = a.stock - b.stock;
           break;
         case 'unit':
-          const unitNameA = this.getUnitName(a.unitId);
-          const unitNameB = this.getUnitName(b.unitId);
-          comparison = unitNameA.localeCompare(unitNameB);
+          comparison = (a.unit.name || '').localeCompare(b.unit.name || '');
           break;
         case 'category':
-          const categoryNameA = this.getCategoryName(a.categoryId);
-          const categoryNameB = this.getCategoryName(b.categoryId);
-          comparison = categoryNameA.localeCompare(categoryNameB);
+          comparison = (a.category.name || '').localeCompare(b.category.name || '');
           break;
         case 'description':
           comparison = (a.description || '').localeCompare(b.description || '');
@@ -282,7 +271,7 @@ export class ProductListComponent implements OnInit {
 
   extractUnits(): void {
     this.unitMap.clear();
-    this.productService.getUnits().subscribe({
+    this.unitService.getUnits().subscribe({
       next: (units) => {
         units.forEach(unit => this.unitMap.set(unit.id, unit.name));
       },
@@ -292,48 +281,61 @@ export class ProductListComponent implements OnInit {
     });
   }
 
-  async saveChanges(): Promise<void> {
-    if (!this.productForm.valid) {
-      this.notificationService.showNotification('Please fix the form errors before saving', 'warning');
+  saveChanges(): void {
+    const productsToUpdate = this.productsFormArray.controls
+      .map((control, index) => {
+        this.processImagesBeforeSave();
+        const formValues = control.value;
+        const originalProduct = this.products[index];
+
+        const changes: Partial<Product> = {};
+
+        switch (true) {
+          case formValues.name !== originalProduct.name:
+            changes.name = formValues.name;
+            break;
+
+          case formValues.stock !== originalProduct.stock:
+            changes.stock = formValues.stock;
+            break;
+
+          case formValues.unitId !== originalProduct.unit.id:
+            const unit = this.availableUnits.find(u => u.id === formValues.unitId);
+            if (unit) changes.unit = unit;
+            break;
+
+          case formValues.categoryId !== originalProduct.category.id:
+            const category = this.availableCategories.find(c => c.id === formValues.categoryId);
+            if (category) changes.category = category;
+            break;
+        }
+
+        return {
+          id: originalProduct.id,
+          changes: Object.keys(changes).length > 0 ? changes : null
+        };
+      })
+      .filter(item => item.changes !== null);
+
+    if (productsToUpdate.length === 0) {
+      this.notificationService.showNotification('No changes to save', 'info');
       return;
     }
-    this.processImagesBeforeSave();
-    try {
-      const updatedProducts = this.productsFormArray.value as Product[];
-      const updatePromises = updatedProducts.map((updatedProduct, index) => {
-        const originalProduct = this.products[index];
-        const changes = this.getChangedProperties(originalProduct, updatedProduct);
-        if (Object.keys(changes).length > 1 && changes.id) {
-          return firstValueFrom(this.productService.update(changes.id, changes));
-        }
-        return Promise.resolve();
-      }).filter(p => p !== undefined);
 
-      if (updatePromises.length > 0) {
-        await Promise.all(updatePromises);
-        this.notificationService.showNotification('All changes saved successfully', 'success');
-      }
-
-      this.isEditMode = false;
-      this.allProducts = await firstValueFrom(this.productService.getAll());
-      this.applyFilters();
-      this.extractCategories();
-      this.extractUnits();
-    } catch (error) {
-      this.notificationService.showNotification('Error saving changes: ' + (error as Error).message, 'error');
-    }
-  }
-
-  getChangedProperties(original: Product, updated: Product): Partial<Product> {
-    const changes: Partial<Product> = {id: original.id};
-
-    for (const key of Object.keys(original) as (keyof Product)[]) {
-      if (key !== 'id' && original[key] !== updated[key]) {
-        (changes as Record<keyof Product, Product[keyof Product]>)[key] = updated[key];
-      }
-    }
-
-    return changes;
+    Promise.all(
+      productsToUpdate.map(item =>
+        firstValueFrom(this.productService.update(item.id, item.changes!))
+      )
+    )
+      .then(() => {
+        this.notificationService.showNotification('Products updated successfully', 'success');
+        this.isEditMode = false;
+        this.loadProductsNotEdit();
+      })
+      .catch(error => {
+        this.notificationService.showNotification('Error updating products', 'error');
+        console.error('Error updating products:', error);
+      });
   }
 
   initializeBarcodeScanner(): void {
@@ -399,32 +401,39 @@ export class ProductListComponent implements OnInit {
   }
 
   filterByCategory(categoryName: string | null): void {
-    if (categoryName === null) {
+    this.selectedCategoryName = categoryName;
+    this.showCategoryDropdown = false;
+
+    if (!categoryName) {
       this.selectedCategoryId = null;
-      this.selectedCategoryName = null;
+      this.products = [...this.allProducts];
     } else {
-      const entry = Array.from(this.categoryMap.entries()).find(([_, name]) => name === categoryName);
-      if (entry) {
-        this.selectedCategoryId = entry[0];
-        this.selectedCategoryName = categoryName;
-      }
+      const category = this.availableCategories.find(c => c.name === categoryName);
+      this.selectedCategoryId = category?.id || null;
+
+      this.products = this.allProducts.filter(product =>
+        product.category && product.category.name === categoryName
+      );
     }
-    this.applyFilters();
   }
 
   filterByUnit(unitName: string | null): void {
-    if (unitName === null) {
+    this.selectedUnitName = unitName;
+    this.showUnitDropdown = false;
+
+    if (!unitName) {
       this.selectedUnitId = null;
-      this.selectedUnitName = null;
+      this.products = [...this.allProducts];
     } else {
-      const entry = Array.from(this.unitMap.entries()).find(([_, name]) => name === unitName);
-      if (entry) {
-        this.selectedUnitId = entry[0];
-        this.selectedUnitName = unitName;
-      }
+      const unit = this.availableUnits.find(u => u.name === unitName);
+      this.selectedUnitId = unit?.id || null;
+
+      this.products = this.allProducts.filter(product =>
+        product.unit && product.unit.name === unitName
+      );
     }
-    this.applyFilters();
   }
+
 
   applyFilters(): void {
     if (!this.selectedCategoryId && !this.selectedUnitId) {
@@ -437,7 +446,7 @@ export class ProductListComponent implements OnInit {
       });
     } else if (this.selectedCategoryId && !this.selectedUnitId) {
       this.products = this.allProducts
-        .filter(product => product.categoryId === this.selectedCategoryId)
+        .filter(product => product.category.id === this.selectedCategoryId)
         .map(p => {
           const pending = this.scannedAdditions.get(p.id) || 0;
           return {
@@ -447,7 +456,7 @@ export class ProductListComponent implements OnInit {
         });
     } else if (!this.selectedCategoryId && this.selectedUnitId) {
       this.products = this.allProducts
-        .filter(product => product.unitId === this.selectedUnitId)
+        .filter(product => product.unit.id === this.selectedUnitId)
         .map(p => {
           const pending = this.scannedAdditions.get(p.id) || 0;
           return {
@@ -523,7 +532,7 @@ export class ProductListComponent implements OnInit {
 
   extractCategories(): void {
     this.categoryMap.clear();
-    this.productService.getCategories().subscribe({
+    this.categoryService.getCategories().subscribe({
       next: (categories) => {
         categories.forEach(cat => this.categoryMap.set(cat.id, cat.name));
       },
@@ -583,8 +592,8 @@ export class ProductListComponent implements OnInit {
       id: [product.id],
       name: [product.name, [Validators.required, Validators.maxLength(50)]],
       stock: [product.stock, [Validators.required, Validators.min(0)]],
-      unitId: [product.unitId, Validators.required],
-      categoryId: [product.categoryId, Validators.required],
+      unitId: [product.unit.id, Validators.required],
+      categoryId: [product.category.id, Validators.required],
       images: [imagesValue],
       description: [product.description, Validators.required]
     });

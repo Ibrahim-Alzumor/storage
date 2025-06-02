@@ -31,6 +31,9 @@
         <mat-form-field appearance="outline" class="flex-grow">
           <mat-label>Unit</mat-label>
           <mat-select #unitSelect formControlName="unitId">
+            <mat-select-trigger>
+              {{ getUnitNameById(productForm.get('unitId')?.value) }}
+            </mat-select-trigger>
             @for (unit of availableUnits; track unit.id) {
               <mat-option [value]="unit.id">
                 <div class="option-with-actions">
@@ -102,6 +105,9 @@
         <mat-form-field appearance="outline" class="flex-grow">
           <mat-label>Category</mat-label>
           <mat-select #categorySelect formControlName="categoryId">
+            <mat-select-trigger>
+              {{ getCategoryNameById(productForm.get('categoryId')?.value) }}
+            </mat-select-trigger>
             @for (category of availableCategories; track category.id) {
               <mat-option [value]="category.id">
                 <div class="option-with-actions">
