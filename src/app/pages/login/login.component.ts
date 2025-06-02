@@ -29,13 +29,13 @@ export class LoginComponent {
     private notificationService: NotificationService,
   ) {
     this.loginForm = new FormGroup({
-      email: new FormControl('',
+      email: new FormControl('i.alzumor@bisan.com',
         [
           Validators.required,
           Validators.email,
         ]),
       password: new FormControl(
-        '',
+        '123123123@Asd',
         [
           Validators.required,
           Validators.minLength(8),

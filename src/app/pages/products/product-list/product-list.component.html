@@ -124,7 +124,7 @@
             <mat-icon>{{ sortDirection === 'asc' ? 'arrow_upward' : 'arrow_downward' }}</mat-icon>
           }
         </th>
-        <th draggableColumn resizableColumn>Image</th>
+        <th draggableColumn resizableColumn>Images</th>
         @if (this.getClearanceLevel() >= 2) {
           @if (!isEditMode) {
             <th draggableColumn resizableColumn>Actions</th>
@@ -171,7 +171,8 @@
               </td>
               <td resizableColumn>
                 <mat-form-field>
-                  <input matInput [formControlName]="'image'" class="custom-input">
+                  <input matInput [formControlName]="'images'" class="custom-input"
+                         placeholder="Use commas to seperate images">
                 </mat-form-field>
               </td>
             </tr>
@@ -195,12 +196,14 @@
               <td resizableColumn>{{ getCategoryName(product.categoryId) }}</td>
               <td resizableColumn>{{ product.description }}</td>
               <td resizableColumn>
-                <img [src]="product.image || 'https://thumb.ac-illust.com/b1/b170870007dfa419295d949814474ab2_t.jpeg'"
-                     height="50"
-                     width="50"
-                     alt="Product image"
-                     class="expandable-image"
-                     (click)="expandImage($event)"/>
+                <div class="product-image-container">
+                  <img
+                    [src]="getImage(product)"
+                    alt="{{ product.name }}"
+                    class="product-thumbnail"
+                    (click)="expandImages(product.images, product.name)"
+                  >
+                </div>
               </td>
               <td resizableColumn>
                 <button class="edit-button" color="primary" mat-raised-button (click)="addToOrder(product)">
@@ -222,12 +225,14 @@
               <td resizableColumn>{{ getCategoryName(product.categoryId) }}</td>
               <td resizableColumn>{{ product.description }}</td>
               <td resizableColumn>
-                <img [src]="product.image || 'https://thumb.ac-illust.com/b1/b170870007dfa419295d949814474ab2_t.jpeg'"
-                     height="50"
-                     width="50"
-                     alt="Product image"
-                     class="expandable-image"
-                     (click)="expandImage($event)"/>
+                <div class="product-image-container">
+                  <img
+                    [src]="getImage(product)"
+                    alt="{{ product.name }}"
+                    class="product-thumbnail"
+                    (click)="expandImages(product.images, product.name)"
+                  >
+                </div>
               </td>
               @if (this.getClearanceLevel() >= 2) {
                 <td resizableColumn>
@@ -243,9 +248,38 @@
     </table>
   </form>
 </div>
-@if (showExpandedImage) {
-  <div class="image-modal" (click)="closeExpandedImage()">
-    <span class="close-btn" (click)="closeExpandedImage()">&times;</span>
-    <img [src]="expandedImageSrc" alt="Expanded product image" (click)="$event.stopPropagation()">
+@if (showExpandedImages) {
+  <div class="modal" (click)="closeExpandedImages()">
+    <div class="modal-content image-modal">
+      <span class="close" (click)="closeExpandedImages()">&times;</span>
+      <h2>{{ expandedProductName }}</h2>
+
+      <div class="image-carousel">
+        @if (expandedImages.length > 1) {
+          <button
+            class="carousel-side-button prev"
+            (click)="previousImage(); $event.stopPropagation()"
+            [disabled]="currentImageIndex === 0"
+          >
+            <mat-icon>arrow_back</mat-icon>
+          </button>
+        }
+
+        <div class="carousel-image-container">
+          <img [src]="expandedImages[currentImageIndex]" alt="{{ expandedProductName }}" class="expanded-image">
+          <div class="image-counter">{{ currentImageIndex + 1 }} / {{ expandedImages.length }}</div>
+        </div>
+
+        @if (expandedImages.length > 1) {
+          <button
+            class="carousel-side-button next"
+            (click)="nextImage(); $event.stopPropagation()"
+            [disabled]="currentImageIndex === expandedImages.length - 1"
+          >
+            <mat-icon>arrow_forward</mat-icon>
+          </button>
+        }
+      </div>
+    </div>
   </div>
 }

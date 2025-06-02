@@ -50,8 +50,6 @@ export class ProductListComponent implements OnInit {
   showPendingChanges = false;
   isOrderMode = false;
   orderItems: Map<number, number> = new Map();
-  showExpandedImage = false;
-  expandedImageSrc = '';
   sortColumn: string = '';
   sortDirection: 'asc' | 'desc' = 'asc';
   availableUnits: Unit[] = [];
@@ -65,6 +63,10 @@ export class ProductListComponent implements OnInit {
   showUnitDropdown = false;
   categoryMap: Map<string, string> = new Map();
   unitMap: Map<string, string> = new Map();
+  showExpandedImages = false;
+  expandedImages: string[] = [];
+  expandedProductName = '';
+  currentImageIndex = 0;
 
   constructor(
     private productService: ProductService,
@@ -100,14 +102,29 @@ export class ProductListComponent implements OnInit {
     this.barcodeService.startListening();
   }
 
-  expandImage(event: MouseEvent): void {
-    const imgElement = event.target as HTMLImageElement;
-    this.expandedImageSrc = imgElement.src;
-    this.showExpandedImage = true;
+  expandImages(images: string[], productName: string): void {
+    if (images && images[0] != '') return;
+
+    this.expandedImages = images;
+    this.expandedProductName = productName;
+    this.currentImageIndex = 0;
+    this.showExpandedImages = true;
   }
 
-  closeExpandedImage(): void {
-    this.showExpandedImage = false;
+  closeExpandedImages(): void {
+    this.showExpandedImages = false;
+  }
+
+  previousImage(): void {
+    if (this.currentImageIndex > 0) {
+      this.currentImageIndex--;
+    }
+  }
+
+  nextImage(): void {
+    if (this.currentImageIndex < this.expandedImages.length - 1) {
+      this.currentImageIndex++;
+    }
   }
 
   loadAvailableOptions() {
@@ -191,7 +208,7 @@ export class ProductListComponent implements OnInit {
           this.allProducts = products;
           this.applyFilters();
           this.extractCategories();
-          this.loadUnits();
+          this.extractUnits();
           this.loading = false;
         });
       } else {
@@ -235,7 +252,7 @@ export class ProductListComponent implements OnInit {
             this.allProducts = products;
             this.applyFilters();
             this.extractCategories();
-            this.loadUnits();
+            this.extractUnits();
             this.initializeForm();
             this.loading = false;
           },
@@ -250,7 +267,7 @@ export class ProductListComponent implements OnInit {
             this.allProducts = products;
             this.applyFilters();
             this.extractCategories();
-            this.loadUnits();
+            this.extractUnits();
             this.initializeForm();
             this.loading = false;
           },
@@ -263,7 +280,7 @@ export class ProductListComponent implements OnInit {
     });
   }
 
-  loadUnits(): void {
+  extractUnits(): void {
     this.unitMap.clear();
     this.productService.getUnits().subscribe({
       next: (units) => {
@@ -280,7 +297,7 @@ export class ProductListComponent implements OnInit {
       this.notificationService.showNotification('Please fix the form errors before saving', 'warning');
       return;
     }
-
+    this.processImagesBeforeSave();
     try {
       const updatedProducts = this.productsFormArray.value as Product[];
       const updatePromises = updatedProducts.map((updatedProduct, index) => {
@@ -301,7 +318,7 @@ export class ProductListComponent implements OnInit {
       this.allProducts = await firstValueFrom(this.productService.getAll());
       this.applyFilters();
       this.extractCategories();
-      this.loadUnits();
+      this.extractUnits();
     } catch (error) {
       this.notificationService.showNotification('Error saving changes: ' + (error as Error).message, 'error');
     }
@@ -521,12 +538,30 @@ export class ProductListComponent implements OnInit {
       this.allProducts = products;
       this.applyFilters();
       this.extractCategories();
-      this.loadUnits();
+      this.extractUnits();
     });
   }
 
-  getProductById(id: number): Product | undefined {
-    return this.products.find(p => p.id === id);
+  processImagesBeforeSave(): void {
+    this.productsFormArray.controls.forEach(productGroup => {
+      const imagesValue = productGroup.get('images')?.value;
+
+      if (typeof imagesValue === 'string' && imagesValue) {
+        const imageUrls = imagesValue
+          .split(',')
+          .map(url => url.trim())
+          .filter(url => url !== '');
+        productGroup.get('images')?.setValue(imageUrls.length > 0 ? imageUrls : []);
+      }
+    });
+  }
+
+  getImage(product: Product): string {
+    if (product.images && product.images[0] != '') {
+      return product.images[0]
+    }
+
+    return 'https://thumb.ac-illust.com/b1/b170870007dfa419295d949814474ab2_t.jpeg'
   }
 
   private initializeForm(): void {
@@ -537,13 +572,20 @@ export class ProductListComponent implements OnInit {
   }
 
   private createProductFormGroup(product: Product): FormGroup {
+    let imagesValue = '';
+    if (product.images && Array.isArray(product.images)) {
+      imagesValue = product.images.join(', ');
+    } else {
+      imagesValue = product.images;
+    }
+
     return this.fb.group({
       id: [product.id],
       name: [product.name, [Validators.required, Validators.maxLength(50)]],
       stock: [product.stock, [Validators.required, Validators.min(0)]],
       unitId: [product.unitId, Validators.required],
       categoryId: [product.categoryId, Validators.required],
-      image: [product.image],
+      images: [imagesValue],
       description: [product.description, Validators.required]
     });
   }

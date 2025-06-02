@@ -114,7 +114,7 @@ export class ProductService {
   }
 
   private cleanUpProduct(product: any): Product {
-    const {id, name, stock, unitId, categoryId, image, description, barcode} = product;
-    return {id, name, stock, unitId, categoryId, image, description, barcode};
+    const {id, name, stock, unitId, categoryId, images, description, barcode} = product;
+    return {id, name, stock, unitId, categoryId, images, description, barcode};
   }
 }

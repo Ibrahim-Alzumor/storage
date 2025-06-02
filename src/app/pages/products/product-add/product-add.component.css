@@ -412,3 +412,21 @@ h2 {
   --mat-option-label-text-color: white !important;
   --mat-option-hover-state-layer-color: #333333 !important;
 }
+
+.image-inputs {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-bottom: 15px;
+}
+
+.image-input-container {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.image-input-container mat-form-field {
+  flex-grow: 1;
+}
+

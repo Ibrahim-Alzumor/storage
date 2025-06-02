@@ -3,7 +3,7 @@ export interface Product {
   name: string;
   stock: number;
   categoryId: string;
-  image: string;
+  images: string[];
   description: string;
   barcode: string;
   isEmpty?: boolean;

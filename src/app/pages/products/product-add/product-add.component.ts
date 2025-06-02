@@ -1,5 +1,13 @@
 import {Component, OnInit} from '@angular/core';
-import {FormBuilder, FormGroup, FormsModule, ReactiveFormsModule, Validators} from '@angular/forms';
+import {
+  FormArray,
+  FormBuilder,
+  FormControl,
+  FormGroup,
+  FormsModule,
+  ReactiveFormsModule,
+  Validators
+} from '@angular/forms';
 import {ProductService} from '../../../services/product.service';
 import {Router} from '@angular/router';
 import {Product} from '../../../interfaces/product.interface';
@@ -44,6 +52,8 @@ export class ProductAddComponent implements OnInit {
   selectedCategoryForEdit: Category | null = null;
   updatedUnitName: string = '';
   updatedCategoryName: string = '';
+  imageControls: FormControl[] = [];
+
 
   constructor(
     private authService: AuthService,
@@ -52,14 +62,19 @@ export class ProductAddComponent implements OnInit {
     private router: Router,
     private notificationService: NotificationService
   ) {
+    this.imageControls = [new FormControl('')];
     this.productForm = this.fb.group({
       name: ['', [Validators.required, Validators.maxLength(50)]],
       stock: [0, [Validators.required, Validators.min(0)]],
       unitId: ['', Validators.required],
       categoryId: ['', Validators.required],
-      image: [''],
+      images: this.fb.array([this.imageControls[0]]),
       description: ['', Validators.required],
     })
+  }
+
+  get imagesFormArray(): FormArray {
+    return this.productForm.get('images') as FormArray;
   }
 
   ngOnInit() {
@@ -79,6 +94,24 @@ export class ProductAddComponent implements OnInit {
     });
   }
 
+  addImageField(): void {
+    if (this.imageControls.length >= 5) {
+      this.notificationService.showNotification('Maximum 5 images allowed', 'warning');
+      return;
+    }
+
+    const newControl = new FormControl('');
+    this.imageControls.push(newControl);
+    this.imagesFormArray.push(newControl);
+  }
+
+  removeImageField(index: number): void {
+    if (index <= 0 || index >= this.imageControls.length) return;
+
+    this.imageControls.splice(index, 1);
+    this.imagesFormArray.removeAt(index);
+  }
+
   loadCategories() {
     this.productService.getCategories().subscribe({
       next: (categories) => {
@@ -96,15 +129,31 @@ export class ProductAddComponent implements OnInit {
       return;
     }
 
-    const product: Product = {id: this.productId || 0, ...this.productForm.value};
+    const imageUrls = this.imageControls
+      .map(control => control.value)
+      .filter(url => url && url.trim() !== '');
+
+    const formValue = this.productForm.value;
+    const product: Product = {
+      id: this.productId || 0,
+      name: formValue.name,
+      stock: formValue.stock,
+      unitId: formValue.unitId,
+      categoryId: formValue.categoryId,
+      description: formValue.description,
+      images: imageUrls,
+      barcode: ''
+    };
+
     this.productService.create(product).subscribe({
       next: () => {
         this.notificationService.showNotification('Product Added!', 'success');
         this.router.navigate(['/']);
       },
       error: err => this.notificationService.showNotification(err.error?.message || 'Error adding product', 'error'),
-    })
+    });
   }
+
 
   addNewUnit(): void {
     if (!this.newUnit || this.newUnit.trim() === '') {

@@ -169,19 +169,30 @@
           </div>
         </div>
       }
-
-      <mat-form-field appearance="outline">
-        <mat-label>Image URL</mat-label>
-        <input formControlName="image"
-               matInput
-               placeholder="Enter image URL">
-        @if (productForm.controls['image'].invalid && productForm.controls['image'].touched) {
-          <mat-error>
-            Image URL is required.
-          </mat-error>
+      <div class="form-group">
+        <h3>Product Images (Max 5)</h3>
+        <div class="image-inputs">
+          @for (imageControl of imageControls; track $index) {
+            <div class="image-input-container">
+              <mat-form-field appearance="outline">
+                <mat-label>Image URL {{ $index + 1 }}</mat-label>
+                <input matInput [formControl]="imageControl" placeholder="Enter image URL">
+              </mat-form-field>
+              @if ($index > 0) {
+                <button type="button" mat-icon-button color="warn" (click)="removeImageField($index)">
+                  <mat-icon>delete</mat-icon>
+                </button>
+              }
+            </div>
+          }
+        </div>
+        @if (imageControls.length < 5) {
+          <button type="button" mat-button color="primary" (click)="addImageField()">
+            <mat-icon>add</mat-icon>
+            Add Another Image
+          </button>
         }
-      </mat-form-field>
-
+      </div>
       <mat-form-field appearance="outline">
         <mat-label>Description</mat-label>
         <textarea formControlName="description"
