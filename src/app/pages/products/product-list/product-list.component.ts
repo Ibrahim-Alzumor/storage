@@ -580,6 +580,7 @@ export class ProductListComponent implements OnInit {
     });
   }
 
+
   private createProductFormGroup(product: Product): FormGroup {
     let imagesValue = '';
     if (product.images && Array.isArray(product.images)) {
