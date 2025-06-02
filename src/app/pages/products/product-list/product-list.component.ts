@@ -519,6 +519,7 @@ export class ProductListComponent implements OnInit {
       this.notificationService.showNotification('Please add items to order', 'warning');
       return;
     }
+
     this.productService.createOrder({items}).subscribe({
       next: () => {
         this.notificationService.showNotification('Order Submitted!', 'success');
