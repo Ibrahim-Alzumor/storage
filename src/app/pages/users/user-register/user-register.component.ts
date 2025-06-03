@@ -167,7 +167,7 @@ export class UserRegisterComponent implements OnInit {
 
           this.registerForm.get('email')?.disable();
         },
-        error: (error) => {
+        error: () => {
           this.notificationService.showNotification('Error loading user data', 'error');
           this.router.navigate(['/users']);
         }

@@ -85,7 +85,7 @@ export class OrderInvoiceComponent implements OnInit {
           }, 500);
         });
       },
-      error: (error) => {
+      error: () => {
         this.notificationService.showNotification('Error loading order data', 'error');
         this.router.navigate(['/orders']);
       }
