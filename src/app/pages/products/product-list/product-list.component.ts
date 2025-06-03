@@ -106,7 +106,9 @@ export class ProductListComponent implements OnInit {
   }
 
   expandImages(images: string[], productName: string): void {
-    if (images && images[0] != '') return;
+    if (images && images[0] == '') {
+      return
+    }
 
     this.expandedImages = images;
     this.expandedProductName = productName;

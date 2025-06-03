@@ -185,6 +185,16 @@
               <td resizableColumn>{{ product.unit.name }}</td>
               <td resizableColumn>{{ product.category.name }}</td>
               <td resizableColumn>{{ product.description }}</td>
+              <td resizableColumn>
+                <div class="product-image-container">
+                  <img
+                    [src]="getImage(product)"
+                    alt="{{ product.name }}"
+                    class="product-thumbnail"
+                    (click)="expandImages(product.images, product.name)"
+                  >
+                </div>
+              </td>
             </tr>
           }
         } @else if (isOrderMode) {

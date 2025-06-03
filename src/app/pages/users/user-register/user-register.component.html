@@ -3,7 +3,7 @@
     <div class="header-section">
       <h2>{{ editMode ? 'Edit User' : 'Register New User' }}</h2>
       <button (click)="goBack()" class="back-button" mat-stroked-button>
-        <span class="material-symbols-outlined">arrow_back</span> Back to Users
+        <span class="material-symbols-outlined">arrow_back</span>
       </button>
     </div>
     <form (ngSubmit)="onRegister()" [formGroup]="registerForm">
