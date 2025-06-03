@@ -193,7 +193,7 @@ input:focus, textarea:focus, select:focus {
   margin-top: 10px;
 }
 
-.edit-button {
+.button {
   padding: 8px 16px;
   margin: 5px;
   background-color: red !important;
@@ -201,7 +201,7 @@ input:focus, textarea:focus, select:focus {
   font-size: 1.25rem;
 }
 
-.edit-button:hover {
+.button:hover {
   background-color: crimson !important;
 }
 

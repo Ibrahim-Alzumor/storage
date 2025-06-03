@@ -46,50 +46,23 @@ export class ChartsComponent implements OnInit {
   chartDataBar: ChartData<'bar'> = {labels: [], datasets: []};
   chartDataLine: ChartData<'line'> = {labels: [], datasets: []};
   loading = false;
-
-  chartOptions = {
-    responsive: true,
-    plugins: {
-      legend: {
-        labels: {
-          color: 'white'
-        }
-      },
-      title: {
-        display: true,
-        text: 'Sales Data',
-        color: 'white',
-        font: {
-          size: 18,
-          weight: 'bold'
-        }
-      },
-      tooltip: {
-        enabled: true,
-        backgroundColor: 'rgba(255, 255, 255, 0.9)',
-        titleColor: '#000',
-        bodyColor: '#000',
-      }
-    },
-    scales: {
-      x: {
-        ticks: {
-          color: 'white',
-        },
-        grid: {
-          color: 'rgba(255, 255, 255, 0.1)',
-        }
-      },
-      y: {
-        ticks: {
-          color: 'white',
-        },
-        grid: {
-          color: 'rgba(255, 255, 255, 0.1)',
-        }
-      }
-    }
-  };
+  colorPalette = [
+    '#FF6384',
+    '#36A2EB',
+    '#FFCE56',
+    '#4BC0C0',
+    '#9966FF',
+    '#FF9F40',
+    '#7CFC00',
+    '#FF4500',
+    '#1E90FF',
+    '#00FFFF',
+    '#FF1493',
+    '#32CD32',
+    '#BA55D3',
+    '#FF8C00',
+    '#00FA9A'
+  ];
 
   constructor(
     private fb: FormBuilder,
@@ -150,14 +123,20 @@ export class ChartsComponent implements OnInit {
 
       this.chartDataBar = {
         labels: dates,
-        datasets: Object.entries(groupedByProduct).map(([productId, values]) => ({
-          label: productsMap[productId] || `Product ${productId}`,
-          data: dates.map(date => values[date] || 0),
-          backgroundColor: 'rgba(255, 255, 255, 0.7)',
-          borderColor: 'rgba(255, 255, 255, 1)',
-          borderWidth: 1,
-        }))
+        datasets: Object.entries(groupedByProduct).map(([productId, values], index) => {
+          const colorIndex = index % this.colorPalette.length;
+          const color = this.colorPalette[colorIndex];
+
+          return {
+            label: productsMap[productId] || `Product ${productId}`,
+            data: dates.map(date => values[date] || 0),
+            backgroundColor: color,
+            borderColor: color,
+            borderWidth: 1,
+          };
+        })
       };
+
 
       this.chartDataLine = {
         labels: dates,
@@ -166,8 +145,8 @@ export class ChartsComponent implements OnInit {
             label: 'Total Sold',
             data: dates.map(date => groupedByDate[date] || 0),
             fill: false,
-            borderColor: 'rgba(255, 255, 255, 0.8)',
-            backgroundColor: 'rgba(255, 255, 255, 0.8)',
+            borderColor: '#ff0037',
+            backgroundColor: '#ff0037',
             tension: 0.1,
             pointRadius: 4,
             pointHoverRadius: 6,

@@ -20,6 +20,9 @@ import {Unit} from '../../../interfaces/unit.interface';
 import {Category} from '../../../interfaces/category.interface';
 import {UnitService} from '../../../services/unit.service';
 import {CategoryService} from '../../../services/category.service';
+import {OrderService} from '../../../services/order.service';
+import {UserService} from '../../../services/user.service';
+import {Order} from '../../../interfaces/order.interface';
 
 @Component({
   selector: 'app-product-list',
@@ -80,7 +83,9 @@ export class ProductListComponent implements OnInit {
     private notificationService: NotificationService,
     private matIconRegistry: MatIconRegistry,
     private unitService: UnitService,
-    private categoryService: CategoryService
+    private categoryService: CategoryService,
+    private orderService: OrderService,
+    private userService: UserService,
   ) {
     this.productForm = this.fb.group({
       products: this.fb.array([])
@@ -310,6 +315,10 @@ export class ProductListComponent implements OnInit {
             const category = this.availableCategories.find(c => c.id === formValues.categoryId);
             if (category) changes.category = category;
             break;
+
+          case formValues.images !== originalProduct.images:
+            changes.images = formValues.images;
+            break;
         }
 
         return {
@@ -522,14 +531,30 @@ export class ProductListComponent implements OnInit {
       return;
     }
 
-    this.productService.createOrder({items}).subscribe({
-      next: () => {
-        this.notificationService.showNotification('Order Submitted!', 'success');
-        this.orderItems.clear();
-        this.isOrderMode = false;
-        this.loadProductsNotEdit();
+    const userEmail = this.authService.getUserEmail;
+    this.userService.getByEmail(userEmail).subscribe({
+      next: (user) => {
+        const order: Order = {
+          id: 0,
+          userEmail: user.email,
+          items: items,
+          timestamp: new Date(),
+        };
+
+        this.orderService.createOrder(order).subscribe({
+          next: () => {
+            this.notificationService.showNotification('Order Submitted!', 'success');
+            this.orderItems.clear();
+            this.isOrderMode = false;
+            this.loadProductsNotEdit();
+          },
+          error: (err) => this.notificationService.showNotification(err.error?.message || 'Error submitting order', 'error')
+        });
       },
-      error: (err) => this.notificationService.showNotification(err.error?.message || 'Error submitting order', 'error')
+      error: (err) => {
+        this.notificationService.showNotification('Error getting user information', 'error');
+        console.error(err);
+      }
     });
   }
 

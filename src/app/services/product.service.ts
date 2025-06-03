@@ -95,12 +95,6 @@ export class ProductService {
     return this.http.delete<void>(`${environment.apiUrl}/products/${id}`);
   }
 
-  createOrder(order: { items: { productId: number; quantity: number }[] }): Observable<Product> {
-    return this.http.post<any>(`${environment.apiUrl}/orders`, order).pipe(
-      map(dto => this.toProduct(dto))
-    );
-  }
-
   addBarcodeToProduct(id: number, barcodeId: string): Observable<Product> {
     return this.http.put<any>(`${environment.apiUrl}/products/${id}/barcode`, {barcodeId}).pipe(
       map(dto => this.toProduct(dto))
@@ -113,7 +107,7 @@ export class ProductService {
     );
   }
 
-  private toProduct(dto: any): Product {
+  toProduct(dto: any): Product {
     const {id, name, stock, unitId, categoryId, images, description, barcode} = dto;
 
     const category = this.categoryService.getCategoryById(categoryId) || {

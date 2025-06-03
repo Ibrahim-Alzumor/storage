@@ -1,0 +1,87 @@
+<div class="table-container">
+  <form (ngSubmit)="applyFilters()" [formGroup]="filterForm" class="filter-form">
+    <label>Start Date:
+      <input formControlName="start" type="date">
+    </label>
+    <label>End Date:
+      <input formControlName="end" type="date">
+    </label>
+    <label>Email:
+      <input formControlName="email" placeholder="(optional)" type="text">
+    </label>
+    <button color="primary" mat-raised-button type="submit">Filter Orders</button>
+    <button (click)="clearFilters()" mat-button type="button">Clear Filters</button>
+  </form>
+
+  @if (loading) {
+    <div class="loading-spinner">
+      <mat-spinner diameter="40"></mat-spinner>
+    </div>
+  }
+
+  @if (!loading && orders.length === 0) {
+    <div class="no-results">
+      No orders found.
+      @if (route.snapshot.queryParams['email']) {
+        Try a different email.
+        <button mat-button (click)="clearSearch()">Show All Orders</button>
+      }
+    </div>
+  }
+
+  <table>
+    <thead>
+    <tr>
+      <th (click)="sortOrders('id')" draggableColumn resizableColumn>
+        Order ID
+        @if (sortColumn === 'id') {
+          <span class="material-symbols-outlined sort-icon">
+            {{ sortDirection === 'asc' ? 'arrow_upward' : 'arrow_downward' }}
+          </span>
+        }
+      </th>
+      <th (click)="sortOrders('email')" draggableColumn resizableColumn>
+        Customer Email
+        @if (sortColumn === 'email') {
+          <span class="material-symbols-outlined sort-icon">
+            {{ sortDirection === 'asc' ? 'arrow_upward' : 'arrow_downward' }}
+          </span>
+        }
+      </th>
+      <th (click)="sortOrders('date')" draggableColumn resizableColumn>
+        Order Date
+        @if (sortColumn === 'date') {
+          <span class="material-symbols-outlined sort-icon">
+            {{ sortDirection === 'asc' ? 'arrow_upward' : 'arrow_downward' }}
+          </span>
+        }
+      </th>
+      <th (click)="sortOrders('items')" draggableColumn resizableColumn>
+        Items
+        @if (sortColumn === 'items') {
+          <span class="material-symbols-outlined sort-icon">
+            {{ sortDirection === 'asc' ? 'arrow_upward' : 'arrow_downward' }}
+          </span>
+        }
+      </th>
+      <th draggableColumn resizableColumn>Actions</th>
+    </tr>
+    </thead>
+    <tbody>
+      @for (order of orders; track order.id) {
+        <tr (click)="printInvoice(getOrderId(order))">
+          <td resizableColumn>{{ getOrderId(order) }}</td>
+          <td resizableColumn>{{ order.userEmail }}</td>
+          <td resizableColumn>{{ formatDate(order.timestamp) }}</td>
+          <td resizableColumn>{{ getTotalItems(order) }}</td>
+          <td resizableColumn>
+            <button class="button" mat-raised-button color="primary"
+                    (click)="$event.stopPropagation(); printInvoice(getOrderId(order))">
+              Print Invoice
+            </button>
+          </td>
+        </tr>
+      }
+    </tbody>
+  </table>
+</div>
