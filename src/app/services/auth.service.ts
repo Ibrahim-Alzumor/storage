@@ -5,7 +5,7 @@ import {catchError, tap} from 'rxjs/operators';
 import {jwtDecode} from "jwt-decode";
 import {Login} from '../interfaces/login.interface';
 import {Router} from '@angular/router';
-import {NotificationService} from '../services/notification.service';
+import {NotificationService} from './notification.service';
 import {throwError} from 'rxjs';
 
 @Injectable({

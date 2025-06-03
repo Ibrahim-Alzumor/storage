@@ -1,6 +1,6 @@
 import {Component, OnInit} from '@angular/core';
 import {FormBuilder, FormGroup, FormsModule, ReactiveFormsModule, Validators} from '@angular/forms';
-import {AuthService} from '../../../auth/auth.service';
+import {AuthService} from '../../../services/auth.service';
 import {UserService} from '../../../services/user.service';
 import {NotificationService} from '../../../services/notification.service';
 import {User} from '../../../interfaces/user.interface';

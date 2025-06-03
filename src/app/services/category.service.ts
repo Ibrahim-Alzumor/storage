@@ -65,7 +65,7 @@ export class CategoryService {
     return this.categories.find(c => c.id === id);
   }
 
-  private loadCategories() {
+  loadCategories() {
     this.getCategories().subscribe(categories => {
       this.categories = categories;
     });

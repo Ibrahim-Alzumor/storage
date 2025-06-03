@@ -65,7 +65,7 @@ export class UnitService {
     return this.units.find(u => u.id === id);
   }
 
-  private loadUnits() {
+  loadUnits() {
     this.getUnits().subscribe(units => {
       this.units = units;
     });

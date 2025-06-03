@@ -14,7 +14,7 @@ import {Product} from '../../../interfaces/product.interface';
 import {MatFormFieldModule} from '@angular/material/form-field';
 import {MatInputModule} from '@angular/material/input';
 import {MatButtonModule} from '@angular/material/button';
-import {AuthService} from '../../../auth/auth.service';
+import {AuthService} from '../../../services/auth.service';
 import {NotificationService} from '../../../services/notification.service';
 import {MatIcon} from '@angular/material/icon';
 import {MatSelect, MatSelectModule} from '@angular/material/select';

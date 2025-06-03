@@ -3,7 +3,7 @@ import {provideHttpClient, withInterceptors} from '@angular/common/http';
 import {provideRouter, Routes} from '@angular/router';
 import {TokenInterceptor} from './interceptors/token.interceptor';
 import {ProductListComponent} from './pages/products/product-list/product-list.component';
-import {AuthGuard} from './auth/auth.guard';
+import {AuthGuard} from './guards/auth.guard';
 import {ProductAddComponent} from './pages/products/product-add/product-add.component';
 import {LoginComponent} from './pages/login/login.component';
 import {UserRegisterComponent} from './pages/users/user-register/user-register.component';

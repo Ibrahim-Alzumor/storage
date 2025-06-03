@@ -6,7 +6,7 @@ import {MatIconModule, MatIconRegistry} from '@angular/material/icon';
 import {MatProgressSpinnerModule} from '@angular/material/progress-spinner';
 import {User} from '../../../interfaces/user.interface';
 import {UserService} from '../../../services/user.service';
-import {AuthService} from '../../../auth/auth.service';
+import {AuthService} from '../../../services/auth.service';
 import {NotificationService} from '../../../services/notification.service';
 import {DraggableColumnDirective} from '../../../directives/draggable-column.directive';
 import {ResizableColumnDirective} from '../../../directives/resizable-column.directive';

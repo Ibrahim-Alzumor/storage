@@ -10,7 +10,7 @@ import {firstValueFrom} from 'rxjs';
 
 import {Product} from '../../../interfaces/product.interface';
 import {ProductService} from '../../../services/product.service';
-import {AuthService} from '../../../auth/auth.service';
+import {AuthService} from '../../../services/auth.service';
 import {BarcodeService} from '../../../services/barcode.service';
 import {NotificationService} from '../../../services/notification.service';
 import {ResizableColumnDirective} from '../../../directives/resizable-column.directive';
@@ -277,6 +277,7 @@ export class ProductListComponent implements OnInit {
   }
 
   extractUnits(): void {
+    this.unitService.loadUnits();
     this.unitMap.clear();
     this.unitService.getUnits().subscribe({
       next: (units) => {
@@ -559,6 +560,7 @@ export class ProductListComponent implements OnInit {
   }
 
   extractCategories(): void {
+    this.categoryService.loadCategories()
     this.categoryMap.clear();
     this.categoryService.getCategories().subscribe({
       next: (categories) => {
@@ -572,10 +574,10 @@ export class ProductListComponent implements OnInit {
 
   initializeProducts(): void {
     this.productService.getAll().subscribe(products => {
-      this.allProducts = products;
-      this.applyFilters();
       this.extractCategories();
       this.extractUnits();
+      this.allProducts = products;
+      this.applyFilters();
     });
   }
 

@@ -18,7 +18,6 @@ export class AppComponent implements OnInit {
     this.router.events.subscribe((event) => {
       if (event instanceof NavigationEnd) {
         const currentUrl = event.urlAfterRedirects || event.url;
-        console.log('Navigation URL:', currentUrl);
 
         const hideNavbarRoutes = ['/login', '/invoice'];
 
@@ -27,7 +26,6 @@ export class AppComponent implements OnInit {
         );
 
         this.showNavbar = !shouldHideNavbar;
-        console.log('showNavbar:', this.showNavbar);
       }
     });
   }
