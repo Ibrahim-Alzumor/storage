@@ -11,6 +11,7 @@ import {BarcodeScannerComponent} from './pages/barcode-scanner/barcode-scanner.c
 import {ChartsComponent} from './pages/charts/charts.component';
 import {UserListComponent} from './pages/users/user-list/user-list.component';
 import {OrderListComponent} from './pages/orders/order-list/order-list.component';
+import {OrderInvoiceComponent} from './pages/orders/order-invoice/order-invoice.component';
 
 const routes: Routes = [
   {path: '', component: ProductListComponent, canActivate: [AuthGuard], data: {minimumRequiredLevel: 0}},
@@ -22,6 +23,7 @@ const routes: Routes = [
   {path: 'barcode', component: BarcodeScannerComponent, canActivate: [AuthGuard], data: {minimumRequiredLevel: 2}},
   {path: 'charts', component: ChartsComponent, canActivate: [AuthGuard], data: {minimumRequiredLevel: 2}},
   {path: 'orders', component: OrderListComponent, canActivate: [AuthGuard], data: {minimumRequiredLevel: 2}},
+  {path: 'invoice', component: OrderInvoiceComponent, canActivate: [AuthGuard], data: {minimumRequiredLevel: 2}},
 ];
 
 export const appConfig: ApplicationConfig = {

@@ -69,14 +69,14 @@
     </thead>
     <tbody>
       @for (order of orders; track order.id) {
-        <tr (click)="printInvoice(getOrderId(order))">
+        <tr (click)="printInvoice(order.id)">
           <td resizableColumn>{{ getOrderId(order) }}</td>
           <td resizableColumn>{{ order.userEmail }}</td>
           <td resizableColumn>{{ formatDate(order.timestamp) }}</td>
           <td resizableColumn>{{ getTotalItems(order) }}</td>
           <td resizableColumn>
             <button class="button" mat-raised-button color="primary"
-                    (click)="$event.stopPropagation(); printInvoice(getOrderId(order))">
+                    (click)="$event.stopPropagation(); printInvoice(order.id)">
               Print Invoice
             </button>
           </td>

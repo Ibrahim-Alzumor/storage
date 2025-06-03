@@ -40,7 +40,6 @@ export class OrderListComponent implements OnInit {
     private orderService: OrderService,
     protected route: ActivatedRoute,
     private router: Router,
-    private authService: AuthService,
     private notificationService: NotificationService,
     private matIconRegistry: MatIconRegistry,
     private fb: FormBuilder,
@@ -121,8 +120,8 @@ export class OrderListComponent implements OnInit {
     this.router.navigate(['/orders'], {queryParams: {}});
   }
 
-  printInvoice(orderId: number | string): void {
-    this.router.navigate(['/invoice'], {queryParams: {orderId: orderId.toString()}});
+  printInvoice(orderId: number): void {
+    this.router.navigate(['/invoice'], {queryParams: {orderId}});
   }
 
   getOrderId(order: Order): number | string {

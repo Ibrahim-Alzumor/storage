@@ -17,10 +17,21 @@ export class AppComponent implements OnInit {
   constructor(private router: Router,) {
     this.router.events.subscribe((event) => {
       if (event instanceof NavigationEnd) {
-        this.showNavbar = !(event.url === '/login');
+        const currentUrl = event.urlAfterRedirects || event.url;
+        console.log('Navigation URL:', currentUrl);
+
+        const hideNavbarRoutes = ['/login', '/invoice'];
+
+        const shouldHideNavbar = hideNavbarRoutes.some(route =>
+          currentUrl === route || currentUrl.startsWith(route)
+        );
+
+        this.showNavbar = !shouldHideNavbar;
+        console.log('showNavbar:', this.showNavbar);
       }
     });
   }
+
 
   ngOnInit(): void {
   }
