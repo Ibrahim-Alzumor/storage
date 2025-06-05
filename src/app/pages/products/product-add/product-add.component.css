@@ -430,3 +430,14 @@ h2 {
   flex-grow: 1;
 }
 
+h3 {
+  color: white;
+}
+
+button[mat-button][color="primary"] mat-icon {
+  color: white !important;
+}
+
+button[mat-icon-button][color="warn"] mat-icon {
+  color: #ff0000 !important;
+}

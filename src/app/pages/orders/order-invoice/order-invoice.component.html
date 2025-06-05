@@ -1,0 +1,49 @@
+<div class="invoice-container">
+  <div class="invoice-header">
+    <h1>Invoice</h1>
+  </div>
+</div>
+@if (order) {
+  <div>
+    <div class="invoice-info">
+      <div class="invoice-details">
+        <p><strong>Invoice #:</strong> INV-{{ order.id }}</p>
+        <p><strong>Date:</strong> {{ order.timestamp | date:'mediumDate' }}</p>
+      </div>
+      <div class="customer-details">
+        <h3>Customer</h3>
+        <p>{{ order.userEmail }}</p>
+      </div>
+    </div>
+
+    <h2>Order Items</h2>
+    <table class="items-table">
+      <thead>
+      <tr>
+        <th>Product</th>
+        <th>Quantity</th>
+        <th>Unit</th>
+      </tr>
+      </thead>
+      <tbody>
+        @for (item of order.items; track $index) {
+          <tr>
+            <td>{{ item.product?.name || 'Unknown Product' }}</td>
+            <td>{{ item.quantity }}</td>
+            <td>{{ item.product?.unit?.name || 'N/A' }}</td>
+          </tr>
+        }
+      </tbody>
+    </table>
+
+    <div class="invoice-footer">
+      <p><strong>Total Items:</strong> {{ getTotalItems() }}</p>
+      <p class="thank-you">Thank you for your business!</p>
+    </div>
+  </div>
+}
+@if (!order) {
+  <div class="loading">
+    <p>Loading order data...</p>
+  </div>
+}

@@ -18,31 +18,37 @@
         <button mat-button (click)="filterByUnit(null)">Clear Filter</button>
       </div>
     }
-    @if (this.getClearanceLevel() >= 2 && !isOrderMode) {
-      <button (click)="toggleEditMode()" class="edit-button" color="primary" mat-raised-button>
-        {{ isEditMode ? 'Cancel Editing' : 'Edit Products' }}
-      </button>
-    }
-    @if (this.getClearanceLevel() >= 1 && !isEditMode) {
-      <button (click)="toggleOrderMode()" class="edit-button" color="primary" mat-raised-button>
-        {{ isOrderMode ? 'Cancel Order' : 'Order Products' }}
-      </button>
-    }
+    <ng-container *appHasPermission="PRODUCT_EDIT">
+      @if (!isOrderMode) {
+        <button (click)="toggleEditMode()" class="button" color="primary" mat-raised-button>
+          {{ isEditMode ? 'Cancel Editing' : 'Edit Products' }}
+        </button>
+      }
+    </ng-container>
+    <ng-container *appHasPermission="ORDER_CREATE">
+      @if (!isEditMode) {
+        <button (click)="toggleOrderMode()" class="button" color="primary" mat-raised-button>
+          {{ isOrderMode ? 'Cancel Order' : 'Order Products' }}
+        </button>
+      }
+    </ng-container>
     @if (isEditMode) {
-      <button class="edit-button" mat-raised-button color="primary" (click)="saveChanges()">
+      <button class="button" mat-raised-button color="primary" (click)="saveChanges()">
         Save Changes
       </button>
     }
     @if (isOrderMode && orderItems.size > 0) {
-      <button class="edit-button" mat-raised-button color="primary" (click)="submitOrder()">
+      <button class="button" mat-raised-button color="primary" (click)="submitOrder()">
         Submit Order
       </button>
     }
-    @if (hasStartedScanning && scannedAdditions.size > 0) {
-      <button class="edit-button" mat-raised-button color="primary" (click)="confirmScannedAdditions()">
-        Confirm Scanned Additions
-      </button>
-    }
+    <ng-container *appHasPermission="PRODUCT_SCAN">
+      @if (hasStartedScanning && scannedAdditions.size > 0) {
+        <button class="button" mat-raised-button color="primary" (click)="confirmScannedAdditions()">
+          Confirm Scanned Additions
+        </button>
+      }
+    </ng-container>
   </div>
   @if (loading) {
     <div class="loading-spinner">
@@ -89,9 +95,9 @@
               <div class="item" (click)="filterByUnit(null)">
                 All Units
               </div>
-              @for (unitName of unitNames; track unitName) {
-                <div class="item" (click)="filterByUnit(unitName)">
-                  {{ unitName }}
+              @for (unit of availableUnits; track unit.id) {
+                <div class="item" (click)="filterByUnit(unit.name)">
+                  {{ unit.name }}
                 </div>
               }
             </div>
@@ -110,9 +116,9 @@
               <div class="item" (click)="filterByCategory(null)">
                 All Categories
               </div>
-              @for (categoryName of categoryNames; track categoryName) {
-                <div class="item" (click)="filterByCategory(categoryName)">
-                  {{ categoryName }}
+              @for (category of availableCategories; track category.id) {
+                <div class="item" (click)="filterByCategory(category.name)">
+                  {{ category.name }}
                 </div>
               }
             </div>
@@ -125,11 +131,11 @@
           }
         </th>
         <th draggableColumn resizableColumn>Images</th>
-        @if (this.getClearanceLevel() >= 2) {
+        <ng-container *appHasPermission="PRODUCT_DELETE">
           @if (!isEditMode) {
             <th draggableColumn resizableColumn>Actions</th>
           }
-        }
+        </ng-container>
       </tr>
       </thead>
       <tbody formArrayName="products">
@@ -182,9 +188,19 @@
             <tr>
               <td resizableColumn>{{ product.name }}</td>
               <td resizableColumn>{{ product.stockDisplay }}</td>
-              <td resizableColumn>{{ getUnitName(product.unitId) }}</td>
-              <td resizableColumn>{{ getCategoryName(product.categoryId) }}</td>
+              <td resizableColumn>{{ product.unit.name }}</td>
+              <td resizableColumn>{{ product.category.name }}</td>
               <td resizableColumn>{{ product.description }}</td>
+              <td resizableColumn>
+                <div class="product-image-container">
+                  <img
+                    [src]="getImage(product)"
+                    alt="{{ product.name }}"
+                    class="product-thumbnail"
+                    (click)="expandImages(product.images, product.name)"
+                  >
+                </div>
+              </td>
             </tr>
           }
         } @else if (isOrderMode) {
@@ -192,8 +208,8 @@
             <tr>
               <td resizableColumn>{{ product.name }}</td>
               <td resizableColumn>{{ product.stock }}</td>
-              <td resizableColumn>{{ getUnitName(product.unitId) }}</td>
-              <td resizableColumn>{{ getCategoryName(product.categoryId) }}</td>
+              <td resizableColumn>{{ product.unit.name }}</td>
+              <td resizableColumn>{{ product.category.name }}</td>
               <td resizableColumn>{{ product.description }}</td>
               <td resizableColumn>
                 <div class="product-image-container">
@@ -206,11 +222,11 @@
                 </div>
               </td>
               <td resizableColumn>
-                <button class="edit-button" color="primary" mat-raised-button (click)="addToOrder(product)">
+                <button class="button" color="primary" mat-raised-button (click)="addToOrder(product)">
                   +
                 </button>
                 <span>{{ orderItems.get(product.id) || 0 }}</span>
-                <button class="edit-button" color="warn" mat-raised-button (click)="removeFromOrder(product)">
+                <button class="button" color="warn" mat-raised-button (click)="removeFromOrder(product)">
                   -
                 </button>
               </td>
@@ -221,8 +237,8 @@
             <tr>
               <td resizableColumn>{{ product.name }}</td>
               <td resizableColumn>{{ product.stock }}</td>
-              <td resizableColumn>{{ getUnitName(product.unitId) }}</td>
-              <td resizableColumn>{{ getCategoryName(product.categoryId) }}</td>
+              <td resizableColumn>{{ product.unit.name }}</td>
+              <td resizableColumn>{{ product.category.name }}</td>
               <td resizableColumn>{{ product.description }}</td>
               <td resizableColumn>
                 <div class="product-image-container">
@@ -234,13 +250,13 @@
                   >
                 </div>
               </td>
-              @if (this.getClearanceLevel() >= 2) {
+              <ng-container *appHasPermission="PRODUCT_DELETE">
                 <td resizableColumn>
-                  <button class="edit-button" color="warn" mat-raised-button (click)="deleteProduct(product.id)">
+                  <button class="button" color="warn" mat-raised-button (click)="deleteProduct(product.id)">
                     Delete
                   </button>
                 </td>
-              }
+              </ng-container>
             </tr>
           }
         }

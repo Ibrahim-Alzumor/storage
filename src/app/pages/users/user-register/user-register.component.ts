@@ -1,8 +1,9 @@
 import {Component, OnInit} from '@angular/core';
 import {FormBuilder, FormGroup, FormsModule, ReactiveFormsModule, Validators} from '@angular/forms';
-import {AuthService} from '../../../auth/auth.service';
+import {AuthService} from '../../../services/auth.service';
 import {UserService} from '../../../services/user.service';
 import {NotificationService} from '../../../services/notification.service';
+import {ClearanceLevelService} from '../../../services/clearance-level.service';
 import {User} from '../../../interfaces/user.interface';
 import {ActivatedRoute, Router} from '@angular/router';
 import {MatFormFieldModule} from '@angular/material/form-field';
@@ -11,6 +12,9 @@ import {MatButtonModule} from '@angular/material/button';
 import {MatIconModule} from '@angular/material/icon';
 import {MatSelectModule} from '@angular/material/select';
 import {MatSlideToggleModule} from '@angular/material/slide-toggle';
+import {HasPermissionDirective} from '../../../directives/has-permission.directive';
+import {USER_DISABLE} from '../../../constants/function-permissions';
+import {ClearanceLevel} from '../../../interfaces/clearance-level.interface';
 
 @Component({
   selector: 'app-users-register',
@@ -24,23 +28,26 @@ import {MatSlideToggleModule} from '@angular/material/slide-toggle';
     MatButtonModule,
     MatIconModule,
     MatSelectModule,
-    MatSlideToggleModule
+    MatSlideToggleModule,
+    HasPermissionDirective
   ]
 })
 export class UserRegisterComponent implements OnInit {
   registerForm: FormGroup;
-  possibleClearanceLevels: { value: number; label: string }[] = [];
+  possibleClearanceLevels: ClearanceLevel[] = [];
   clearanceLevel: number | undefined;
   editMode = false;
   userEmail: string | null = null;
   user: User | null = null;
   hidePassword = true;
+  protected readonly USER_DISABLE = USER_DISABLE;
 
   constructor(
     private fb: FormBuilder,
     public authService: AuthService,
     private userService: UserService,
     private notificationService: NotificationService,
+    private clearanceLevelService: ClearanceLevelService,
     private route: ActivatedRoute,
     private router: Router
   ) {
@@ -54,9 +61,7 @@ export class UserRegisterComponent implements OnInit {
       clearanceLevel: [0, Validators.required],
       active: [true]
     });
-    this.setPossibleClearanceLevels();
   }
-
 
   get firstNameErrorMessage(): string | null {
     const firstNameControl = this.registerForm.controls['email'];
@@ -136,6 +141,8 @@ export class UserRegisterComponent implements OnInit {
   }
 
   ngOnInit() {
+    this.possibleClearanceLevels = this.clearanceLevelService.getClearanceLevelsValue();
+    this.possibleClearanceLevels.sort((a, b) => a.level - b.level);
     this.authService.isLoggedIn();
     this.route.queryParams.subscribe(params => {
       const email = params['email'];
@@ -167,32 +174,11 @@ export class UserRegisterComponent implements OnInit {
 
           this.registerForm.get('email')?.disable();
         },
-        error: (error) => {
+        error: () => {
           this.notificationService.showNotification('Error loading user data', 'error');
           this.router.navigate(['/users']);
         }
       });
-    }
-  }
-
-
-  setPossibleClearanceLevels() {
-    const myLevel: number = this.authService.clearanceLevel;
-    if (myLevel === 3 || myLevel === 4) {
-      this.possibleClearanceLevels = [
-        {value: 0, label: 'Worker'},
-        {value: 1, label: 'Associate'},
-        {value: 2, label: 'Manager'},
-        {value: 3, label: 'Owner'},
-      ];
-    } else if (myLevel === 2) {
-      this.possibleClearanceLevels = [
-        {value: 0, label: 'Worker'},
-        {value: 1, label: 'Associate'},
-        {value: 2, label: 'Manager'},
-      ];
-    } else {
-      this.possibleClearanceLevels = [];
     }
   }
 

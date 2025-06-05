@@ -68,13 +68,11 @@
         }
       </th>
       <th draggableColumn resizableColumn>Status</th>
-      @if (this.getClearanceLevel() >= 2) {
-        <th draggableColumn resizableColumn>Actions</th>
-      }
+      <th *appHasPermission="USER_EDIT" draggableColumn resizableColumn>Actions</th>
     </tr>
     </thead>
     <tbody>
-      @for (user of users; track user.email) {
+      @for (user of users; track $index) {
         <tr [ngClass]="{'inactive-user': user.active === false}">
           <td resizableColumn>{{ user.firstName }}</td>
           <td resizableColumn>{{ user.lastName }}</td>
@@ -86,13 +84,11 @@
               {{ user.active !== false ? 'Active' : 'Inactive' }}
             </span>
           </td>
-          @if (this.getClearanceLevel() >= 2) {
-            <td resizableColumn>
-              <button class="edit-button" mat-raised-button color="primary" (click)="editUser(user.email)">
-                Edit
-              </button>
-            </td>
-          }
+          <td resizableColumn *appHasPermission="USER_EDIT">
+            <button class="edit-button" mat-raised-button color="primary" (click)="editUser(user.email)">
+              Edit
+            </button>
+          </td>
         </tr>
       }
     </tbody>

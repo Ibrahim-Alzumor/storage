@@ -5,7 +5,7 @@ import {catchError, tap} from 'rxjs/operators';
 import {jwtDecode} from "jwt-decode";
 import {Login} from '../interfaces/login.interface';
 import {Router} from '@angular/router';
-import {NotificationService} from '../services/notification.service';
+import {NotificationService} from './notification.service';
 import {throwError} from 'rxjs';
 
 @Injectable({
@@ -22,7 +22,7 @@ export class AuthService {
     if (token) {
       try {
         const decodedToken: any = jwtDecode(token);
-        if (decodedToken.exp && decodedToken.exp * 1000 < Date.now()) {
+        if (decodedToken.exp && decodedToken.exp * 10000 < Date.now()) {
           this.logout();
           return null;
         }

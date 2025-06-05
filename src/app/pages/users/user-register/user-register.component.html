@@ -3,7 +3,7 @@
     <div class="header-section">
       <h2>{{ editMode ? 'Edit User' : 'Register New User' }}</h2>
       <button (click)="goBack()" class="back-button" mat-stroked-button>
-        <span class="material-symbols-outlined">arrow_back</span> Back to Users
+        <span class="material-symbols-outlined">arrow_back</span>
       </button>
     </div>
     <form (ngSubmit)="onRegister()" [formGroup]="registerForm">
@@ -123,14 +123,14 @@
       <mat-form-field appearance="outline">
         <mat-label>Clearance Level</mat-label>
         <mat-select formControlName="clearanceLevel">
-          @for (level of possibleClearanceLevels; track level.value) {
-            <mat-option [value]="level.value">{{ level.label }}</mat-option>
+          @for (level of possibleClearanceLevels; track $index) {
+            <mat-option>{{ level.name }}</mat-option>
           }
         </mat-select>
       </mat-form-field>
 
       @if (editMode) {
-        <div class="status-section">
+        <div class="status-section" *appHasPermission="USER_DISABLE">
           <h3>User Status</h3>
           <div class="status-toggle">
             <span class="status-badge" [class.active]="registerForm.value.active"

@@ -6,10 +6,12 @@ import {MatIconModule, MatIconRegistry} from '@angular/material/icon';
 import {MatProgressSpinnerModule} from '@angular/material/progress-spinner';
 import {User} from '../../../interfaces/user.interface';
 import {UserService} from '../../../services/user.service';
-import {AuthService} from '../../../auth/auth.service';
 import {NotificationService} from '../../../services/notification.service';
 import {DraggableColumnDirective} from '../../../directives/draggable-column.directive';
 import {ResizableColumnDirective} from '../../../directives/resizable-column.directive';
+import {HasPermissionDirective} from '../../../directives/has-permission.directive';
+import {USER_EDIT} from '../../../constants/function-permissions';
+import {ClearanceLevelService} from '../../../services/clearance-level.service';
 
 @Component({
   selector: 'app-user-list',
@@ -24,7 +26,8 @@ import {ResizableColumnDirective} from '../../../directives/resizable-column.dir
     MatIconModule,
     MatProgressSpinnerModule,
     DraggableColumnDirective,
-    ResizableColumnDirective
+    ResizableColumnDirective,
+    HasPermissionDirective
   ]
 })
 export class UserListComponent implements OnInit {
@@ -34,14 +37,15 @@ export class UserListComponent implements OnInit {
   clearanceLevel: number | undefined;
   sortColumn: string = '';
   sortDirection: 'asc' | 'desc' = 'asc';
+  protected readonly USER_EDIT = USER_EDIT;
 
   constructor(
     private userService: UserService,
     protected route: ActivatedRoute,
     private router: Router,
-    private authService: AuthService,
     private notificationService: NotificationService,
     private matIconRegistry: MatIconRegistry,
+    private clearanceLevelService: ClearanceLevelService,
   ) {
     this.matIconRegistry.setDefaultFontSetClass('material-symbols-outlined');
   }
@@ -89,23 +93,10 @@ export class UserListComponent implements OnInit {
     this.router.navigate(['/users'], {queryParams: {}});
   }
 
-  getClearanceLevel(): number {
-    return this.clearanceLevel = this.authService.clearanceLevel;
-  }
-
   getClearanceLabel(level: number): string {
-    switch (level) {
-      case 0:
-        return 'Worker';
-      case 1:
-        return 'Associate';
-      case 2:
-        return 'Manager';
-      case 3:
-        return 'Owner';
-      default:
-        return 'Unknown';
-    }
+    const allLevels = this.clearanceLevelService.getClearanceLevelsValue();
+    const match = allLevels.find(cl => cl.level === level);
+    return match ? match.name : '';
   }
 
   editUser(email: string): void {

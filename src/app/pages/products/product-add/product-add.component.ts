@@ -14,13 +14,15 @@ import {Product} from '../../../interfaces/product.interface';
 import {MatFormFieldModule} from '@angular/material/form-field';
 import {MatInputModule} from '@angular/material/input';
 import {MatButtonModule} from '@angular/material/button';
-import {AuthService} from '../../../auth/auth.service';
+import {AuthService} from '../../../services/auth.service';
 import {NotificationService} from '../../../services/notification.service';
 import {MatIcon} from '@angular/material/icon';
-import {MatSelect} from '@angular/material/select';
+import {MatSelect, MatSelectModule} from '@angular/material/select';
 import {MatOption} from '@angular/material/core';
 import {Unit} from '../../../interfaces/unit.interface';
 import {Category} from '../../../interfaces/category.interface';
+import {UnitService} from '../../../services/unit.service';
+import {CategoryService} from '../../../services/category.service';
 
 @Component({
   selector: 'app-product-add',
@@ -32,7 +34,8 @@ import {Category} from '../../../interfaces/category.interface';
     FormsModule,
     MatIcon,
     MatSelect,
-    MatOption
+    MatOption,
+    MatSelectModule
   ],
   templateUrl: './product-add.component.html',
   styleUrl: './product-add.component.css'
@@ -60,7 +63,9 @@ export class ProductAddComponent implements OnInit {
     private fb: FormBuilder,
     private productService: ProductService,
     private router: Router,
-    private notificationService: NotificationService
+    private notificationService: NotificationService,
+    private unitService: UnitService,
+    private categoryService: CategoryService
   ) {
     this.imageControls = [new FormControl('')];
     this.productForm = this.fb.group({
@@ -78,20 +83,13 @@ export class ProductAddComponent implements OnInit {
   }
 
   ngOnInit() {
-    this.loadUnits();
-    this.loadCategories();
+    this.loadAvailableOptions();
     this.authService.isLoggedIn();
   }
 
-  loadUnits() {
-    this.productService.getUnits().subscribe({
-      next: (units) => {
-        this.availableUnits = units;
-      },
-      error: () => {
-        console.log('failed to load units');
-      }
-    });
+  loadAvailableOptions() {
+    this.availableCategories = this.categoryService.categories
+    this.availableUnits = this.unitService.units;
   }
 
   addImageField(): void {
@@ -112,17 +110,6 @@ export class ProductAddComponent implements OnInit {
     this.imagesFormArray.removeAt(index);
   }
 
-  loadCategories() {
-    this.productService.getCategories().subscribe({
-      next: (categories) => {
-        this.availableCategories = categories;
-      },
-      error: () => {
-        console.log('Failed to load categories');
-      }
-    });
-  }
-
   onSubmit(): void {
     if (!this.productForm.valid) {
       this.notificationService.showNotification('Not valid product form', 'error');
@@ -134,12 +121,19 @@ export class ProductAddComponent implements OnInit {
       .filter(url => url && url.trim() !== '');
 
     const formValue = this.productForm.value;
+
+    const selectedCategory = this.availableCategories.find(c => c.id === formValue.categoryId) ||
+      {id: formValue.categoryId, name: 'Unknown Category'};
+
+    const selectedUnit = this.availableUnits.find(u => u.id === formValue.unitId) ||
+      {id: formValue.unitId, name: 'Unknown Unit'};
+
     const product: Product = {
       id: this.productId || 0,
       name: formValue.name,
       stock: formValue.stock,
-      unitId: formValue.unitId,
-      categoryId: formValue.categoryId,
+      unit: selectedUnit,
+      category: selectedCategory,
       description: formValue.description,
       images: imageUrls,
       barcode: ''
@@ -166,7 +160,7 @@ export class ProductAddComponent implements OnInit {
       return;
     }
 
-    this.productService.addUnit(this.newUnit).subscribe({
+    this.unitService.addUnit(this.newUnit).subscribe({
       next: (response) => {
         this.availableUnits.push(response);
         this.productForm.get('unitId')?.setValue(response.id);
@@ -191,7 +185,7 @@ export class ProductAddComponent implements OnInit {
       return;
     }
 
-    this.productService.addCategory(this.newCategory).subscribe({
+    this.categoryService.addCategory(this.newCategory).subscribe({
       next: (response) => {
         this.availableCategories.push(response);
         this.productForm.get('categoryId')?.setValue(response.id);
@@ -231,7 +225,7 @@ export class ProductAddComponent implements OnInit {
       return;
     }
 
-    this.productService.updateUnit(this.selectedUnitForEdit.id, {name: this.updatedUnitName}).subscribe({
+    this.unitService.updateUnit(this.selectedUnitForEdit.id, {name: this.updatedUnitName}).subscribe({
       next: (updatedUnit) => {
         const index = this.availableUnits.findIndex(u => u.id === updatedUnit.id);
         if (index !== -1) {
@@ -262,7 +256,7 @@ export class ProductAddComponent implements OnInit {
       return;
     }
 
-    this.productService.updateCategory(this.selectedCategoryForEdit.id, {name: this.updatedCategoryName}).subscribe({
+    this.categoryService.updateCategory(this.selectedCategoryForEdit.id, {name: this.updatedCategoryName}).subscribe({
       next: (updatedCategory) => {
         const index = this.availableCategories.findIndex(c => c.id === updatedCategory.id);
         if (index !== -1) {
@@ -282,7 +276,7 @@ export class ProductAddComponent implements OnInit {
   deleteUnit(unitId: string, event: Event): void {
     event.stopPropagation();
     if (confirm('Are you sure you want to delete this unit? This action cannot be undone.')) {
-      this.productService.deleteUnit(unitId).subscribe({
+      this.unitService.deleteUnit(unitId).subscribe({
         next: () => {
           this.availableUnits = this.availableUnits.filter(unit => unit.id !== unitId);
           if (this.productForm.get('unitId')?.value === unitId) {
@@ -301,7 +295,7 @@ export class ProductAddComponent implements OnInit {
   deleteCategory(categoryId: string, event: Event): void {
     event.stopPropagation();
     if (confirm('Are you sure you want to delete this category? This action cannot be undone.')) {
-      this.productService.deleteCategory(categoryId).subscribe({
+      this.categoryService.deleteCategory(categoryId).subscribe({
         next: () => {
           this.availableCategories = this.availableCategories.filter(category => category.id !== categoryId);
           if (this.productForm.get('categoryId')?.value === categoryId) {
@@ -315,5 +309,17 @@ export class ProductAddComponent implements OnInit {
         }
       });
     }
+  }
+
+  getUnitNameById(unitId: string): string {
+    if (!unitId) return '';
+    const unit = this.availableUnits.find(u => u.id === unitId);
+    return unit ? unit.name : '';
+  }
+
+  getCategoryNameById(categoryId: string): string {
+    if (!categoryId) return '';
+    const category = this.availableCategories.find(c => c.id === categoryId);
+    return category ? category.name : '';
   }
 }

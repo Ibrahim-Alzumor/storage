@@ -35,7 +35,7 @@
         <tr>
           <td resizableColumn>{{ product.name }}</td>
           <td resizableColumn>{{ product.stock }}</td>
-          <td resizableColumn>{{ getCategoryName(product.categoryId) }}</td>
+          <td resizableColumn>{{ product.category.name }}</td>
           <td resizableColumn>{{ product.description }}</td>
           <button mat-button (click)="assignBarcodeToProduct(product)" resizableColumn>Assign Barcode</button>
         </tr>

@@ -7,10 +7,18 @@ import {MatProgressSpinner} from '@angular/material/progress-spinner';
 import {MatIcon, MatIconRegistry} from '@angular/material/icon';
 import {MatMenuModule} from '@angular/material/menu';
 import {firstValueFrom} from 'rxjs';
+import {HasPermissionDirective} from '../../../directives/has-permission.directive';
+import {ClearanceLevelService} from '../../../services/clearance-level.service';
+import {
+  PRODUCT_DELETE,
+  PRODUCT_EDIT,
+  PRODUCT_SCAN,
+  ORDER_CREATE
+} from '../../../constants/function-permissions';
 
 import {Product} from '../../../interfaces/product.interface';
 import {ProductService} from '../../../services/product.service';
-import {AuthService} from '../../../auth/auth.service';
+import {AuthService} from '../../../services/auth.service';
 import {BarcodeService} from '../../../services/barcode.service';
 import {NotificationService} from '../../../services/notification.service';
 import {ResizableColumnDirective} from '../../../directives/resizable-column.directive';
@@ -18,6 +26,11 @@ import {DraggableColumnDirective} from '../../../directives/draggable-column.dir
 import {MatSelectModule} from '@angular/material/select';
 import {Unit} from '../../../interfaces/unit.interface';
 import {Category} from '../../../interfaces/category.interface';
+import {UnitService} from '../../../services/unit.service';
+import {CategoryService} from '../../../services/category.service';
+import {OrderService} from '../../../services/order.service';
+import {UserService} from '../../../services/user.service';
+import {Order} from '../../../interfaces/order.interface';
 
 @Component({
   selector: 'app-product-list',
@@ -33,6 +46,7 @@ import {Category} from '../../../interfaces/category.interface';
     ResizableColumnDirective,
     DraggableColumnDirective,
     MatSelectModule,
+    HasPermissionDirective,
   ],
   templateUrl: './product-list.component.html',
   styleUrls: ['./product-list.component.css',
@@ -61,12 +75,14 @@ export class ProductListComponent implements OnInit {
   allProducts: Product[] = [];
   showCategoryDropdown = false;
   showUnitDropdown = false;
-  categoryMap: Map<string, string> = new Map();
-  unitMap: Map<string, string> = new Map();
   showExpandedImages = false;
   expandedImages: string[] = [];
   expandedProductName = '';
   currentImageIndex = 0;
+  protected readonly PRODUCT_DELETE = PRODUCT_DELETE;
+  protected readonly PRODUCT_EDIT = PRODUCT_EDIT;
+  protected readonly PRODUCT_SCAN = PRODUCT_SCAN;
+  protected readonly ORDER_CREATE = ORDER_CREATE;
 
   constructor(
     private productService: ProductService,
@@ -77,6 +93,11 @@ export class ProductListComponent implements OnInit {
     private barcodeService: BarcodeService,
     private notificationService: NotificationService,
     private matIconRegistry: MatIconRegistry,
+    private unitService: UnitService,
+    private categoryService: CategoryService,
+    private orderService: OrderService,
+    private userService: UserService,
+    private clearanceLevelService: ClearanceLevelService,
   ) {
     this.productForm = this.fb.group({
       products: this.fb.array([])
@@ -88,22 +109,16 @@ export class ProductListComponent implements OnInit {
     return this.productForm.get('products') as FormArray;
   }
 
-  get categoryNames(): string[] {
-    return Array.from(this.categoryMap.values());
-  }
-
-  get unitNames(): string[] {
-    return Array.from(this.unitMap.values());
-  }
-
   ngOnInit() {
     this.loadProductsNotEdit();
     this.initializeBarcodeScanner();
-    this.barcodeService.startListening();
+    this.loadAvailableOptions()
   }
 
   expandImages(images: string[], productName: string): void {
-    if (images && images[0] != '') return;
+    if (images && images[0] == '') {
+      return
+    }
 
     this.expandedImages = images;
     this.expandedProductName = productName;
@@ -128,33 +143,8 @@ export class ProductListComponent implements OnInit {
   }
 
   loadAvailableOptions() {
-    this.productService.getUnits().subscribe({
-      next: (units) => {
-        this.availableUnits = units;
-      },
-      error: () => {
-        console.log('Failed to load units');
-      }
-    });
-
-    this.productService.getCategories().subscribe({
-      next: (categories) => {
-        this.availableCategories = categories;
-      },
-      error: () => {
-        console.log('Failed to load categories');
-      }
-    });
-  }
-
-  getCategoryName(categoryId: string | undefined): string {
-    if (!categoryId) return 'Not categorized';
-    return this.categoryMap.get(categoryId) || 'Unknown category';
-  }
-
-  getUnitName(unitId: string | undefined): string {
-    if (!unitId) return '';
-    return this.unitMap.get(unitId) || 'Unknown unit';
+    this.availableCategories = this.categoryService.categories
+    this.availableUnits = this.unitService.units;
   }
 
   sortProducts(column: string): void {
@@ -176,14 +166,10 @@ export class ProductListComponent implements OnInit {
           comparison = a.stock - b.stock;
           break;
         case 'unit':
-          const unitNameA = this.getUnitName(a.unitId);
-          const unitNameB = this.getUnitName(b.unitId);
-          comparison = unitNameA.localeCompare(unitNameB);
+          comparison = (a.unit.name || '').localeCompare(b.unit.name || '');
           break;
         case 'category':
-          const categoryNameA = this.getCategoryName(a.categoryId);
-          const categoryNameB = this.getCategoryName(b.categoryId);
-          comparison = categoryNameA.localeCompare(categoryNameB);
+          comparison = (a.category.name || '').localeCompare(b.category.name || '');
           break;
         case 'description':
           comparison = (a.description || '').localeCompare(b.description || '');
@@ -194,8 +180,9 @@ export class ProductListComponent implements OnInit {
     });
   }
 
-  getClearanceLevel(): number {
-    return this.clearanceLevel = this.authService.clearanceLevel;
+  async hasPermission(functionId: string): Promise<boolean> {
+    const clearanceLevel = this.authService.clearanceLevel;
+    return this.clearanceLevelService.checkPermission(clearanceLevel, functionId);
   }
 
   loadProductsNotEdit() {
@@ -207,8 +194,6 @@ export class ProductListComponent implements OnInit {
         this.productService.getByName(name).subscribe(products => {
           this.allProducts = products;
           this.applyFilters();
-          this.extractCategories();
-          this.extractUnits();
           this.loading = false;
         });
       } else {
@@ -218,7 +203,13 @@ export class ProductListComponent implements OnInit {
     });
   }
 
-  deleteProduct(id: number): void {
+  async deleteProduct(id: number): Promise<void> {
+    const hasPermission = await this.hasPermission(PRODUCT_DELETE);
+    if (!hasPermission) {
+      this.notificationService.showNotification('You do not have permission to delete products', 'error');
+      return;
+    }
+
     this.productService.delete(id).subscribe({
       next: () => {
         this.notificationService.showNotification('Product Deleted!', 'success');
@@ -232,13 +223,22 @@ export class ProductListComponent implements OnInit {
     this.router.navigate(['/'], {queryParams: {}});
   }
 
-  toggleEditMode(): void {
+  async toggleEditMode(): Promise<void> {
+    if (!this.isEditMode) {
+      const hasPermission = await this.hasPermission(PRODUCT_EDIT);
+      if (!hasPermission) {
+        this.notificationService.showNotification('You do not have permission to edit products', 'error');
+        return;
+      }
+    }
+
     this.isEditMode = !this.isEditMode;
     if (this.isEditMode) {
       this.loadProductsEdit();
       this.loadAvailableOptions();
     } else {
       this.loadProductsNotEdit();
+      this.loadAvailableOptions();
     }
   }
 
@@ -251,8 +251,6 @@ export class ProductListComponent implements OnInit {
           next: (products) => {
             this.allProducts = products;
             this.applyFilters();
-            this.extractCategories();
-            this.extractUnits();
             this.initializeForm();
             this.loading = false;
           },
@@ -266,8 +264,6 @@ export class ProductListComponent implements OnInit {
           next: (products) => {
             this.allProducts = products;
             this.applyFilters();
-            this.extractCategories();
-            this.extractUnits();
             this.initializeForm();
             this.loading = false;
           },
@@ -280,60 +276,65 @@ export class ProductListComponent implements OnInit {
     });
   }
 
-  extractUnits(): void {
-    this.unitMap.clear();
-    this.productService.getUnits().subscribe({
-      next: (units) => {
-        units.forEach(unit => this.unitMap.set(unit.id, unit.name));
-      },
-      error: () => {
-        console.log('Failed to load units');
-      }
-    });
-  }
+  saveChanges(): void {
+    const productsToUpdate = this.productsFormArray.controls
+      .map((control, index) => {
+        this.processImagesBeforeSave();
+        const formValues = control.value;
+        const originalProduct = this.products[index];
 
-  async saveChanges(): Promise<void> {
-    if (!this.productForm.valid) {
-      this.notificationService.showNotification('Please fix the form errors before saving', 'warning');
+        const changes: Partial<Product> = {};
+
+        switch (true) {
+          case formValues.name !== originalProduct.name:
+            changes.name = formValues.name;
+            break;
+
+          case formValues.stock !== originalProduct.stock:
+            changes.stock = formValues.stock;
+            break;
+
+          case formValues.unitId !== originalProduct.unit.id:
+            const unit = this.availableUnits.find(u => u.id === formValues.unitId);
+            if (unit) changes.unit = unit;
+            break;
+
+          case formValues.categoryId !== originalProduct.category.id:
+            const category = this.availableCategories.find(c => c.id === formValues.categoryId);
+            if (category) changes.category = category;
+            break;
+
+          case formValues.images !== originalProduct.images:
+            changes.images = formValues.images;
+            break;
+        }
+
+        return {
+          id: originalProduct.id,
+          changes: Object.keys(changes).length > 0 ? changes : null
+        };
+      })
+      .filter(item => item.changes !== null);
+
+    if (productsToUpdate.length === 0) {
+      this.notificationService.showNotification('No changes to save', 'info');
       return;
     }
-    this.processImagesBeforeSave();
-    try {
-      const updatedProducts = this.productsFormArray.value as Product[];
-      const updatePromises = updatedProducts.map((updatedProduct, index) => {
-        const originalProduct = this.products[index];
-        const changes = this.getChangedProperties(originalProduct, updatedProduct);
-        if (Object.keys(changes).length > 1 && changes.id) {
-          return firstValueFrom(this.productService.update(changes.id, changes));
-        }
-        return Promise.resolve();
-      }).filter(p => p !== undefined);
 
-      if (updatePromises.length > 0) {
-        await Promise.all(updatePromises);
-        this.notificationService.showNotification('All changes saved successfully', 'success');
-      }
-
-      this.isEditMode = false;
-      this.allProducts = await firstValueFrom(this.productService.getAll());
-      this.applyFilters();
-      this.extractCategories();
-      this.extractUnits();
-    } catch (error) {
-      this.notificationService.showNotification('Error saving changes: ' + (error as Error).message, 'error');
-    }
-  }
-
-  getChangedProperties(original: Product, updated: Product): Partial<Product> {
-    const changes: Partial<Product> = {id: original.id};
-
-    for (const key of Object.keys(original) as (keyof Product)[]) {
-      if (key !== 'id' && original[key] !== updated[key]) {
-        (changes as Record<keyof Product, Product[keyof Product]>)[key] = updated[key];
-      }
-    }
-
-    return changes;
+    Promise.all(
+      productsToUpdate.map(item =>
+        firstValueFrom(this.productService.update(item.id, item.changes!))
+      )
+    )
+      .then(() => {
+        this.notificationService.showNotification('Products updated successfully', 'success');
+        this.isEditMode = false;
+        this.loadProductsNotEdit();
+      })
+      .catch(error => {
+        this.notificationService.showNotification('Error updating products', 'error');
+        console.error('Error updating products:', error);
+      });
   }
 
   initializeBarcodeScanner(): void {
@@ -367,7 +368,13 @@ export class ProductListComponent implements OnInit {
     });
   }
 
-  confirmScannedAdditions(): void {
+  async confirmScannedAdditions(): Promise<void> {
+    const hasPermission = await this.hasPermission(PRODUCT_SCAN);
+    if (!hasPermission) {
+      this.notificationService.showNotification('You do not have permission to update product stock via scanning', 'error');
+      return;
+    }
+
     const updateRequests = [];
 
     for (const [productId, addedAmount] of this.scannedAdditions.entries()) {
@@ -399,32 +406,38 @@ export class ProductListComponent implements OnInit {
   }
 
   filterByCategory(categoryName: string | null): void {
-    if (categoryName === null) {
+    this.selectedCategoryName = categoryName;
+    this.showCategoryDropdown = false;
+    if (!categoryName) {
       this.selectedCategoryId = null;
-      this.selectedCategoryName = null;
+      this.products = [...this.allProducts];
     } else {
-      const entry = Array.from(this.categoryMap.entries()).find(([_, name]) => name === categoryName);
-      if (entry) {
-        this.selectedCategoryId = entry[0];
-        this.selectedCategoryName = categoryName;
-      }
+      const category = this.availableCategories.find(c => c.name === categoryName);
+      this.selectedCategoryId = category?.id || null;
+
+      this.products = this.allProducts.filter(product =>
+        product.category && product.category.name === categoryName
+      );
     }
-    this.applyFilters();
   }
 
   filterByUnit(unitName: string | null): void {
-    if (unitName === null) {
+    this.selectedUnitName = unitName;
+    this.showUnitDropdown = false;
+
+    if (!unitName) {
       this.selectedUnitId = null;
-      this.selectedUnitName = null;
+      this.products = [...this.allProducts];
     } else {
-      const entry = Array.from(this.unitMap.entries()).find(([_, name]) => name === unitName);
-      if (entry) {
-        this.selectedUnitId = entry[0];
-        this.selectedUnitName = unitName;
-      }
+      const unit = this.availableUnits.find(u => u.name === unitName);
+      this.selectedUnitId = unit?.id || null;
+
+      this.products = this.allProducts.filter(product =>
+        product.unit && product.unit.name === unitName
+      );
     }
-    this.applyFilters();
   }
+
 
   applyFilters(): void {
     if (!this.selectedCategoryId && !this.selectedUnitId) {
@@ -437,7 +450,7 @@ export class ProductListComponent implements OnInit {
       });
     } else if (this.selectedCategoryId && !this.selectedUnitId) {
       this.products = this.allProducts
-        .filter(product => product.categoryId === this.selectedCategoryId)
+        .filter(product => product.category.id === this.selectedCategoryId)
         .map(p => {
           const pending = this.scannedAdditions.get(p.id) || 0;
           return {
@@ -447,7 +460,7 @@ export class ProductListComponent implements OnInit {
         });
     } else if (!this.selectedCategoryId && this.selectedUnitId) {
       this.products = this.allProducts
-        .filter(product => product.unitId === this.selectedUnitId)
+        .filter(product => product.unit.id === this.selectedUnitId)
         .map(p => {
           const pending = this.scannedAdditions.get(p.id) || 0;
           return {
@@ -479,7 +492,15 @@ export class ProductListComponent implements OnInit {
     this.showUnitDropdown = false;
   }
 
-  toggleOrderMode(): void {
+  async toggleOrderMode(): Promise<void> {
+    if (!this.isOrderMode) {
+      const hasPermission = await this.hasPermission(ORDER_CREATE);
+      if (!hasPermission) {
+        this.notificationService.showNotification('You do not have permission to create orders', 'error');
+        return;
+      }
+    }
+
     this.isOrderMode = !this.isOrderMode;
     if (this.isOrderMode) {
       this.loadProductsNotEdit();
@@ -504,31 +525,42 @@ export class ProductListComponent implements OnInit {
     }
   }
 
-  submitOrder(): void {
+  async submitOrder(): Promise<void> {
+    const hasPermission = await this.hasPermission(ORDER_CREATE);
+    if (!hasPermission) {
+      this.notificationService.showNotification('You do not have permission to create orders', 'error');
+      return;
+    }
+
     const items = Array.from(this.orderItems.entries()).map(([productId, quantity]) => ({productId, quantity}));
     if (items.length === 0) {
       this.notificationService.showNotification('Please add items to order', 'warning');
       return;
     }
-    this.productService.createOrder({items}).subscribe({
-      next: () => {
-        this.notificationService.showNotification('Order Submitted!', 'success');
-        this.orderItems.clear();
-        this.isOrderMode = false;
-        this.loadProductsNotEdit();
-      },
-      error: (err) => this.notificationService.showNotification(err.error?.message || 'Error submitting order', 'error')
-    });
-  }
 
-  extractCategories(): void {
-    this.categoryMap.clear();
-    this.productService.getCategories().subscribe({
-      next: (categories) => {
-        categories.forEach(cat => this.categoryMap.set(cat.id, cat.name));
+    const userEmail = this.authService.getUserEmail;
+    this.userService.getByEmail(userEmail).subscribe({
+      next: (user) => {
+        const order: Order = {
+          id: 0,
+          userEmail: user.email,
+          items: items,
+          timestamp: new Date(),
+        };
+
+        this.orderService.createOrder(order).subscribe({
+          next: () => {
+            this.notificationService.showNotification('Order Submitted!', 'success');
+            this.orderItems.clear();
+            this.isOrderMode = false;
+            this.loadProductsNotEdit();
+          },
+          error: (err) => this.notificationService.showNotification(err.error?.message || 'Error submitting order', 'error')
+        });
       },
-      error: () => {
-        console.log('Failed to load categories');
+      error: (err) => {
+        this.notificationService.showNotification('Error getting user information', 'error');
+        console.error(err);
       }
     });
   }
@@ -537,8 +569,6 @@ export class ProductListComponent implements OnInit {
     this.productService.getAll().subscribe(products => {
       this.allProducts = products;
       this.applyFilters();
-      this.extractCategories();
-      this.extractUnits();
     });
   }
 
@@ -583,8 +613,8 @@ export class ProductListComponent implements OnInit {
       id: [product.id],
       name: [product.name, [Validators.required, Validators.maxLength(50)]],
       stock: [product.stock, [Validators.required, Validators.min(0)]],
-      unitId: [product.unitId, Validators.required],
-      categoryId: [product.categoryId, Validators.required],
+      unitId: [product.unit.id, Validators.required],
+      categoryId: [product.category.id, Validators.required],
       images: [imagesValue],
       description: [product.description, Validators.required]
     });

@@ -8,6 +8,7 @@ import {MatProgressSpinner} from '@angular/material/progress-spinner';
 import {NotificationService} from '../../services/notification.service';
 import {DraggableColumnDirective} from '../../directives/draggable-column.directive';
 import {ResizableColumnDirective} from '../../directives/resizable-column.directive';
+import {CategoryService} from '../../services/category.service';
 
 @Component({
   selector: 'app-barcode-scanner',
@@ -32,7 +33,8 @@ export class BarcodeScannerComponent implements OnInit {
     private productService: ProductService,
     protected route: ActivatedRoute,
     private router: Router,
-    private notificationService: NotificationService
+    private notificationService: NotificationService,
+    private categoryService: CategoryService,
   ) {
   }
 
@@ -64,7 +66,7 @@ export class BarcodeScannerComponent implements OnInit {
 
   loadCategories(): void {
     this.categoryMap.clear();
-    this.productService.getCategories().subscribe({
+    this.categoryService.getCategories().subscribe({
       next: (categories) => {
         categories.forEach(cat => this.categoryMap.set(cat.id, cat.name));
       },
@@ -74,10 +76,6 @@ export class BarcodeScannerComponent implements OnInit {
     });
   }
 
-  getCategoryName(categoryId: string | undefined): string {
-    if (!categoryId) return 'Not categorized';
-    return this.categoryMap.get(categoryId) || 'Unknown category';
-  }
 
   assignBarcodeToProduct(product: Product): void {
     if (!this.pendingBarcode) return;
