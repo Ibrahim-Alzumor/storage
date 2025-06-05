@@ -83,20 +83,13 @@ export class ProductAddComponent implements OnInit {
   }
 
   ngOnInit() {
-    this.loadUnits();
-    this.loadCategories();
+    this.loadAvailableOptions();
     this.authService.isLoggedIn();
   }
 
-  loadUnits() {
-    this.unitService.getUnits().subscribe({
-      next: (units) => {
-        this.availableUnits = units;
-      },
-      error: () => {
-        console.log('failed to load units');
-      }
-    });
+  loadAvailableOptions() {
+    this.availableCategories = this.categoryService.categories
+    this.availableUnits = this.unitService.units;
   }
 
   addImageField(): void {
@@ -115,17 +108,6 @@ export class ProductAddComponent implements OnInit {
 
     this.imageControls.splice(index, 1);
     this.imagesFormArray.removeAt(index);
-  }
-
-  loadCategories() {
-    this.categoryService.getCategories().subscribe({
-      next: (categories) => {
-        this.availableCategories = categories;
-      },
-      error: () => {
-        console.log('Failed to load categories');
-      }
-    });
   }
 
   onSubmit(): void {

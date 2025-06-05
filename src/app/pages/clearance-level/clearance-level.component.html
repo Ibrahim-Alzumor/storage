@@ -10,7 +10,7 @@
         </div>
         <div class="card-body">
           <ul class="list-group">
-            @for (level of clearanceLevels$ | async; track level.level) {
+            @for (level of clearanceLevels; track level.level) {
               <li
                 (click)="selectLevel(level); creatingNewLevel = true"
                 [class.active]="selectedLevel?.level === level.level"
@@ -105,17 +105,17 @@
               <thead>
               <tr>
                 <th>Function</th>
-                @for (level of clearanceLevels$ | async; track level.level) {
+                @for (level of clearanceLevels; track level.level) {
                   <th>{{ level.name }} ({{ level.level }})</th>
                 }
               </tr>
               </thead>
               <tbody>
-                @for (func of groupFunctionsByCategory(functions$ | async); track func.id) {
+                @for (func of groupFunctionsByCategory(functions); track func.id) {
                   <ng-container>
                     @if (func.isFirstInCategory) {
                       <tr>
-                        <td [attr.colspan]="((clearanceLevels$ | async)?.length || 0) + 1" class="function-category">
+                        <td [attr.colspan]="((clearanceLevels)?.length || 0) + 1" class="function-category">
                           {{ func.category }}
                         </td>
                       </tr>
@@ -125,7 +125,7 @@
                         <div>{{ func.name }}</div>
                         <small class="text-muted">{{ func.description }}</small>
                       </td>
-                      @for (level of clearanceLevels$ | async; track level.level) {
+                      @for (level of clearanceLevels; track level.level) {
                         <td class="text-center">
                           <input
                             #checkbox

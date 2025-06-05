@@ -15,7 +15,6 @@ import {MatSlideToggleModule} from '@angular/material/slide-toggle';
 import {HasPermissionDirective} from '../../../directives/has-permission.directive';
 import {USER_DISABLE} from '../../../constants/function-permissions';
 import {ClearanceLevel} from '../../../interfaces/clearance-level.interface';
-import {Observable} from 'rxjs';
 
 @Component({
   selector: 'app-users-register',
@@ -36,7 +35,6 @@ import {Observable} from 'rxjs';
 export class UserRegisterComponent implements OnInit {
   registerForm: FormGroup;
   possibleClearanceLevels: ClearanceLevel[] = [];
-  // possibleClearanceLevels: { value: number; label: string }[] = [];
   clearanceLevel: number | undefined;
   editMode = false;
   userEmail: string | null = null;

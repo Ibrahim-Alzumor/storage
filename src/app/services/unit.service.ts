@@ -9,7 +9,7 @@ import {Unit} from '../interfaces/unit.interface';
   providedIn: 'root'
 })
 export class UnitService {
-  private units: Unit[] = [];
+  public units: Unit[] = [];
 
   constructor(private http: HttpClient) {
     this.loadUnits();

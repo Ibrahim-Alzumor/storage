@@ -75,8 +75,6 @@ export class ProductListComponent implements OnInit {
   allProducts: Product[] = [];
   showCategoryDropdown = false;
   showUnitDropdown = false;
-  categoryMap: Map<string, string> = new Map();
-  unitMap: Map<string, string> = new Map();
   showExpandedImages = false;
   expandedImages: string[] = [];
   expandedProductName = '';
@@ -111,17 +109,10 @@ export class ProductListComponent implements OnInit {
     return this.productForm.get('products') as FormArray;
   }
 
-  get categoryNames(): string[] {
-    return Array.from(this.categoryMap.values());
-  }
-
-  get unitNames(): string[] {
-    return Array.from(this.unitMap.values());
-  }
-
   ngOnInit() {
     this.loadProductsNotEdit();
     this.initializeBarcodeScanner();
+    this.loadAvailableOptions()
   }
 
   expandImages(images: string[], productName: string): void {
@@ -152,23 +143,8 @@ export class ProductListComponent implements OnInit {
   }
 
   loadAvailableOptions() {
-    this.unitService.getUnits().subscribe({
-      next: (units) => {
-        this.availableUnits = units;
-      },
-      error: () => {
-        console.log('Failed to load units');
-      }
-    });
-
-    this.categoryService.getCategories().subscribe({
-      next: (categories) => {
-        this.availableCategories = categories;
-      },
-      error: () => {
-        console.log('Failed to load categories');
-      }
-    });
+    this.availableCategories = this.categoryService.categories
+    this.availableUnits = this.unitService.units;
   }
 
   sortProducts(column: string): void {
@@ -218,8 +194,6 @@ export class ProductListComponent implements OnInit {
         this.productService.getByName(name).subscribe(products => {
           this.allProducts = products;
           this.applyFilters();
-          this.extractCategories();
-          this.extractUnits();
           this.loading = false;
         });
       } else {
@@ -264,6 +238,7 @@ export class ProductListComponent implements OnInit {
       this.loadAvailableOptions();
     } else {
       this.loadProductsNotEdit();
+      this.loadAvailableOptions();
     }
   }
 
@@ -276,8 +251,6 @@ export class ProductListComponent implements OnInit {
           next: (products) => {
             this.allProducts = products;
             this.applyFilters();
-            this.extractCategories();
-            this.extractUnits();
             this.initializeForm();
             this.loading = false;
           },
@@ -291,8 +264,6 @@ export class ProductListComponent implements OnInit {
           next: (products) => {
             this.allProducts = products;
             this.applyFilters();
-            this.extractCategories();
-            this.extractUnits();
             this.initializeForm();
             this.loading = false;
           },
@@ -301,19 +272,6 @@ export class ProductListComponent implements OnInit {
             this.loading = false;
           }
         });
-      }
-    });
-  }
-
-  extractUnits(): void {
-    this.unitService.loadUnits();
-    this.unitMap.clear();
-    this.unitService.getUnits().subscribe({
-      next: (units) => {
-        units.forEach(unit => this.unitMap.set(unit.id, unit.name));
-      },
-      error: () => {
-        console.log('Failed to load units');
       }
     });
   }
@@ -450,7 +408,6 @@ export class ProductListComponent implements OnInit {
   filterByCategory(categoryName: string | null): void {
     this.selectedCategoryName = categoryName;
     this.showCategoryDropdown = false;
-
     if (!categoryName) {
       this.selectedCategoryId = null;
       this.products = [...this.allProducts];
@@ -608,23 +565,8 @@ export class ProductListComponent implements OnInit {
     });
   }
 
-  extractCategories(): void {
-    this.categoryService.loadCategories()
-    this.categoryMap.clear();
-    this.categoryService.getCategories().subscribe({
-      next: (categories) => {
-        categories.forEach(cat => this.categoryMap.set(cat.id, cat.name));
-      },
-      error: () => {
-        console.log('Failed to load categories');
-      }
-    });
-  }
-
   initializeProducts(): void {
     this.productService.getAll().subscribe(products => {
-      this.extractCategories();
-      this.extractUnits();
       this.allProducts = products;
       this.applyFilters();
     });

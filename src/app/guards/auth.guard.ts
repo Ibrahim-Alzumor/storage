@@ -28,12 +28,7 @@ export class AuthGuard implements CanActivate {
       this.authService.logout();
       return false;
     }
-
-    // const requiredFunctions: string = route.data['requiredFunctions'];
-    // if (requiredFunctions) {
-    //   const hasPermissionNavigation = await firstValueFrom(
-    //     this.clearanceLevelService.canAccess(requiredFunctions)
-    //   );
+    
     const currentLevel = this.authService.clearanceLevel;
     const requiredFunctions: string = route.data['requiredFunctions'];
     if (requiredFunctions) {

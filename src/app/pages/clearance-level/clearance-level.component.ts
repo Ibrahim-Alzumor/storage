@@ -13,8 +13,8 @@ import {map, Observable} from 'rxjs';
   styleUrl: './clearance-level.component.css'
 })
 export class ClearanceLevelComponent implements OnInit {
-  clearanceLevels$: Observable<ClearanceLevel[]>;
-  functions$: Observable<FunctionPermission[]>;
+  clearanceLevels: ClearanceLevel[] = [];
+  functions: FunctionPermission[] = [];
   creatingNewLevel = false;
 
   clearanceLevelForm: FormGroup;
@@ -24,8 +24,8 @@ export class ClearanceLevelComponent implements OnInit {
     private clearanceLevelService: ClearanceLevelService,
     private fb: FormBuilder
   ) {
-    this.clearanceLevels$ = this.clearanceLevelService.clearanceLevels$;
-    this.functions$ = this.clearanceLevelService.functions$;
+    this.clearanceLevels = this.clearanceLevelService.clearanceLevels;
+    this.functions = this.clearanceLevelService.functions;
 
     this.clearanceLevelForm = this.fb.group({
       level: ['', [Validators.required, Validators.min(0)]],
@@ -35,12 +35,10 @@ export class ClearanceLevelComponent implements OnInit {
   }
 
   ngOnInit(): void {
-    this.clearanceLevelService.getClearanceLevels().subscribe();
-    this.clearanceLevelService.getFunctions().subscribe();
+    this.clearanceLevels = this.clearanceLevelService.clearanceLevels;
+    this.functions = this.clearanceLevelService.functions;
 
-    this.clearanceLevels$ = this.clearanceLevelService.clearanceLevels$.pipe(
-      map(levels => [...levels].sort((a, b) => b.level - a.level))
-    );
+    this.clearanceLevels = this.clearanceLevelService.clearanceLevels.sort((a, b) => b.level - a.level)
   }
 
   selectLevel(level: ClearanceLevel): void {

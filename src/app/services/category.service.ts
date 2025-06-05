@@ -9,7 +9,7 @@ import {Category} from '../interfaces/category.interface';
   providedIn: 'root'
 })
 export class CategoryService {
-  private categories: Category[] = [];
+  public categories: Category[] = [];
 
   constructor(private http: HttpClient) {
     this.loadCategories();

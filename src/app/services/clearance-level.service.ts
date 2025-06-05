@@ -1,5 +1,5 @@
 import {Injectable} from '@angular/core';
-import {HttpClient} from '@angular/common/http';
+import {HttpClient, HttpParams} from '@angular/common/http';
 import {BehaviorSubject, firstValueFrom, Observable, of} from 'rxjs';
 import {catchError, map, switchMap, tap} from 'rxjs/operators';
 import {environment} from '../enviroments/enviroment';
@@ -9,6 +9,8 @@ import {ClearanceLevel, FunctionPermission} from '../interfaces/clearance-level.
   providedIn: 'root'
 })
 export class ClearanceLevelService {
+  functions: FunctionPermission[] = [];
+  clearanceLevels: ClearanceLevel[] = [];
   private clearanceLevelsSubject = new BehaviorSubject<ClearanceLevel[]>([]);
   clearanceLevels$ = this.clearanceLevelsSubject.asObservable();
   private functionsSubject = new BehaviorSubject<FunctionPermission[]>([]);
@@ -17,18 +19,6 @@ export class ClearanceLevelService {
   constructor(private http: HttpClient) {
     this.loadFunctions();
     this.loadClearanceLevels();
-  }
-
-  getClearanceLevels(): Observable<ClearanceLevel[]> {
-    return this.http
-      .get<ClearanceLevel[]>(`${environment.apiUrl}/clearance-levels`)
-      .pipe(
-        tap(clearanceLevels => this.clearanceLevelsSubject.next(clearanceLevels)),
-        catchError(err => {
-          console.error('Error fetching clearance levels:', err);
-          return of([]);
-        })
-      );
   }
 
   createClearanceLevel(clearanceLevel: ClearanceLevel): Observable<ClearanceLevel> {
@@ -49,9 +39,27 @@ export class ClearanceLevelService {
     );
   }
 
+  getClearanceLevels(): Observable<ClearanceLevel[]> {
+    return this.http
+      .get<ClearanceLevel[]>(`${environment.apiUrl}/clearance-levels`)
+      .pipe(
+        tap(clearanceLevels => this.clearanceLevelsSubject.next(clearanceLevels)),
+        map(clearanceLevels =>
+          this.clearanceLevels = clearanceLevels,
+        ),
+        catchError(err => {
+          console.error('Error fetching clearance levels:', err);
+          return of([]);
+        })
+      );
+  }
+
   getFunctions(): Observable<FunctionPermission[]> {
     return this.http.get<FunctionPermission[]>(`${environment.apiUrl}/clearance-levels/functions`).pipe(
       tap(functions => this.functionsSubject.next(functions)),
+      map(functions =>
+        this.functions = functions,
+      ),
       catchError(error => {
         console.error('Error fetching functions', error);
         return of([]);
@@ -85,16 +93,7 @@ export class ClearanceLevelService {
 
 
   hasPermissionNavigation(userClearanceLevel: number, functionId: string): Observable<boolean> {
-    return this.http.get<ClearanceLevel[]>(`${environment.apiUrl}/clearance-levels`).pipe(
-      map(levels => {
-        const lvl = levels.find(l => l.level === userClearanceLevel);
-        return lvl ? lvl.allowedFunctions.includes(functionId) : false;
-      }),
-      catchError(err => {
-        console.error("Error fetching clearance‐levels:", err);
-        return of(false);
-      })
-    );
+    return this.http.get<boolean>(`${environment.apiUrl}/clearance-levels/${userClearanceLevel}/has-permission/${functionId}`);
   }
 
   public getClearanceLevelsValue(): ClearanceLevel[] {

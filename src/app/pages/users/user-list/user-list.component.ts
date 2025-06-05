@@ -6,16 +6,12 @@ import {MatIconModule, MatIconRegistry} from '@angular/material/icon';
 import {MatProgressSpinnerModule} from '@angular/material/progress-spinner';
 import {User} from '../../../interfaces/user.interface';
 import {UserService} from '../../../services/user.service';
-import {AuthService} from '../../../services/auth.service';
 import {NotificationService} from '../../../services/notification.service';
 import {DraggableColumnDirective} from '../../../directives/draggable-column.directive';
 import {ResizableColumnDirective} from '../../../directives/resizable-column.directive';
 import {HasPermissionDirective} from '../../../directives/has-permission.directive';
-import {PRODUCT_EDIT, USER_EDIT} from '../../../constants/function-permissions';
-import {map, Observable} from 'rxjs';
-import {ClearanceLevel} from '../../../interfaces/clearance-level.interface';
+import {USER_EDIT} from '../../../constants/function-permissions';
 import {ClearanceLevelService} from '../../../services/clearance-level.service';
-import {Unit} from '../../../interfaces/unit.interface';
 
 @Component({
   selector: 'app-user-list',
@@ -96,21 +92,6 @@ export class UserListComponent implements OnInit {
   clearSearch(): void {
     this.router.navigate(['/users'], {queryParams: {}});
   }
-
-  // getClearanceLabel(level: number): string {
-  //   switch (level) {
-  //     case 0:
-  //       return 'Worker';
-  //     case 1:
-  //       return 'Associate';
-  //     case 2:
-  //       return 'Manager';
-  //     case 3:
-  //       return 'Owner';
-  //     default:
-  //       return 'Unknown';
-  //   }
-  // }
 
   getClearanceLabel(level: number): string {
     const allLevels = this.clearanceLevelService.getClearanceLevelsValue();

@@ -95,9 +95,9 @@
               <div class="item" (click)="filterByUnit(null)">
                 All Units
               </div>
-              @for (unitName of unitNames; track unitName) {
-                <div class="item" (click)="filterByUnit(unitName)">
-                  {{ unitName }}
+              @for (unit of availableUnits; track unit.id) {
+                <div class="item" (click)="filterByUnit(unit.name)">
+                  {{ unit.name }}
                 </div>
               }
             </div>
@@ -116,9 +116,9 @@
               <div class="item" (click)="filterByCategory(null)">
                 All Categories
               </div>
-              @for (categoryName of categoryNames; track categoryName) {
-                <div class="item" (click)="filterByCategory(categoryName)">
-                  {{ categoryName }}
+              @for (category of availableCategories; track category.id) {
+                <div class="item" (click)="filterByCategory(category.name)">
+                  {{ category.name }}
                 </div>
               }
             </div>

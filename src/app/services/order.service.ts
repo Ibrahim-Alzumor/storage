@@ -26,11 +26,6 @@ export class OrderService {
     return this.http.get<Order>(`${environment.apiUrl}/orders/${id}`);
   }
 
-  searchOrders(searchTerm: string): Observable<Order[]> {
-    const params = new HttpParams().set('name', searchTerm.trim());
-    return this.http.get<Order[]>(`${environment.apiUrl}/orders/search`, {params});
-  }
-
   getFilteredOrders(start: string, end: string, email: string): Observable<Order[]> {
     let params = new HttpParams();
 
@@ -49,7 +44,8 @@ export class OrderService {
     return this.http.get<Order[]>(`${environment.apiUrl}/orders/filtered`, {params});
   }
 
-  updateOrder(orderId: number, orderData: Partial<Order>): Observable<Order> {
-    return this.http.put<Order>(`${environment.apiUrl}/orders/${orderId}`, orderData);
-  }
+  // leaving for later
+  // updateOrder(orderId: number, orderData: Partial<Order>): Observable<Order> {
+  //   return this.http.put<Order>(`${environment.apiUrl}/orders/${orderId}`, orderData);
+  // }
 }
