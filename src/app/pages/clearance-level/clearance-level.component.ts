@@ -3,7 +3,6 @@ import {CommonModule} from '@angular/common';
 import {FormBuilder, FormGroup, FormsModule, ReactiveFormsModule, Validators} from '@angular/forms';
 import {ClearanceLevelService} from '../../services/clearance-level.service';
 import {ClearanceLevel, FunctionPermission} from '../../interfaces/clearance-level.interface';
-import {map, Observable} from 'rxjs';
 
 @Component({
   selector: 'app-clearance-level',
