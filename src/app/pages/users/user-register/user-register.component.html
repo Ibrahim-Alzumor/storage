@@ -123,8 +123,8 @@
       <mat-form-field appearance="outline">
         <mat-label>Clearance Level</mat-label>
         <mat-select formControlName="clearanceLevel">
-          @for (level of possibleClearanceLevels; track level.value) {
-            <mat-option [value]="level.value">{{ level.label }}</mat-option>
+          @for (level of possibleClearanceLevels; track $index) {
+            <mat-option>{{ level.name }}</mat-option>
           }
         </mat-select>
       </mat-form-field>

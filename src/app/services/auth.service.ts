@@ -22,7 +22,7 @@ export class AuthService {
     if (token) {
       try {
         const decodedToken: any = jwtDecode(token);
-        if (decodedToken.exp && decodedToken.exp * 1000 < Date.now()) {
+        if (decodedToken.exp && decodedToken.exp * 10000 < Date.now()) {
           this.logout();
           return null;
         }

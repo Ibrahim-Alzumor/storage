@@ -14,6 +14,8 @@ import {MatSelectModule} from '@angular/material/select';
 import {MatSlideToggleModule} from '@angular/material/slide-toggle';
 import {HasPermissionDirective} from '../../../directives/has-permission.directive';
 import {USER_DISABLE} from '../../../constants/function-permissions';
+import {ClearanceLevel} from '../../../interfaces/clearance-level.interface';
+import {Observable} from 'rxjs';
 
 @Component({
   selector: 'app-users-register',
@@ -33,7 +35,8 @@ import {USER_DISABLE} from '../../../constants/function-permissions';
 })
 export class UserRegisterComponent implements OnInit {
   registerForm: FormGroup;
-  possibleClearanceLevels: { value: number; label: string }[] = [];
+  possibleClearanceLevels: ClearanceLevel[] = [];
+  // possibleClearanceLevels: { value: number; label: string }[] = [];
   clearanceLevel: number | undefined;
   editMode = false;
   userEmail: string | null = null;
@@ -60,7 +63,6 @@ export class UserRegisterComponent implements OnInit {
       clearanceLevel: [0, Validators.required],
       active: [true]
     });
-    this.setPossibleClearanceLevels();
   }
 
   get firstNameErrorMessage(): string | null {
@@ -141,6 +143,8 @@ export class UserRegisterComponent implements OnInit {
   }
 
   ngOnInit() {
+    this.possibleClearanceLevels = this.clearanceLevelService.getClearanceLevelsValue();
+    this.possibleClearanceLevels.sort((a, b) => a.level - b.level);
     this.authService.isLoggedIn();
     this.route.queryParams.subscribe(params => {
       const email = params['email'];
@@ -177,26 +181,6 @@ export class UserRegisterComponent implements OnInit {
           this.router.navigate(['/users']);
         }
       });
-    }
-  }
-
-  setPossibleClearanceLevels() {
-    const myLevel: number = this.authService.clearanceLevel;
-    if (myLevel === 3 || myLevel === 4) {
-      this.possibleClearanceLevels = [
-        {value: 0, label: 'Worker'},
-        {value: 1, label: 'Associate'},
-        {value: 2, label: 'Manager'},
-        {value: 3, label: 'Owner'},
-      ];
-    } else if (myLevel === 2) {
-      this.possibleClearanceLevels = [
-        {value: 0, label: 'Worker'},
-        {value: 1, label: 'Associate'},
-        {value: 2, label: 'Manager'},
-      ];
-    } else {
-      this.possibleClearanceLevels = [];
     }
   }
 

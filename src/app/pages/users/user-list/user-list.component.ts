@@ -12,6 +12,10 @@ import {DraggableColumnDirective} from '../../../directives/draggable-column.dir
 import {ResizableColumnDirective} from '../../../directives/resizable-column.directive';
 import {HasPermissionDirective} from '../../../directives/has-permission.directive';
 import {PRODUCT_EDIT, USER_EDIT} from '../../../constants/function-permissions';
+import {map, Observable} from 'rxjs';
+import {ClearanceLevel} from '../../../interfaces/clearance-level.interface';
+import {ClearanceLevelService} from '../../../services/clearance-level.service';
+import {Unit} from '../../../interfaces/unit.interface';
 
 @Component({
   selector: 'app-user-list',
@@ -37,16 +41,15 @@ export class UserListComponent implements OnInit {
   clearanceLevel: number | undefined;
   sortColumn: string = '';
   sortDirection: 'asc' | 'desc' = 'asc';
-  protected readonly PRODUCT_EDIT = PRODUCT_EDIT;
   protected readonly USER_EDIT = USER_EDIT;
 
   constructor(
     private userService: UserService,
     protected route: ActivatedRoute,
     private router: Router,
-    private authService: AuthService,
     private notificationService: NotificationService,
     private matIconRegistry: MatIconRegistry,
+    private clearanceLevelService: ClearanceLevelService,
   ) {
     this.matIconRegistry.setDefaultFontSetClass('material-symbols-outlined');
   }
@@ -94,23 +97,25 @@ export class UserListComponent implements OnInit {
     this.router.navigate(['/users'], {queryParams: {}});
   }
 
-  getClearanceLevel(): number {
-    return this.clearanceLevel = this.authService.clearanceLevel;
-  }
+  // getClearanceLabel(level: number): string {
+  //   switch (level) {
+  //     case 0:
+  //       return 'Worker';
+  //     case 1:
+  //       return 'Associate';
+  //     case 2:
+  //       return 'Manager';
+  //     case 3:
+  //       return 'Owner';
+  //     default:
+  //       return 'Unknown';
+  //   }
+  // }
 
   getClearanceLabel(level: number): string {
-    switch (level) {
-      case 0:
-        return 'Worker';
-      case 1:
-        return 'Associate';
-      case 2:
-        return 'Manager';
-      case 3:
-        return 'Owner';
-      default:
-        return 'Unknown';
-    }
+    const allLevels = this.clearanceLevelService.getClearanceLevelsValue();
+    const match = allLevels.find(cl => cl.level === level);
+    return match ? match.name : '';
   }
 
   editUser(email: string): void {

@@ -72,7 +72,7 @@
     </tr>
     </thead>
     <tbody>
-      @for (user of users; track user.email) {
+      @for (user of users; track $index) {
         <tr [ngClass]="{'inactive-user': user.active === false}">
           <td resizableColumn>{{ user.firstName }}</td>
           <td resizableColumn>{{ user.lastName }}</td>

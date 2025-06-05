@@ -4,7 +4,6 @@ import {BehaviorSubject, firstValueFrom, Observable, of} from 'rxjs';
 import {catchError, map, switchMap, tap} from 'rxjs/operators';
 import {environment} from '../enviroments/enviroment';
 import {ClearanceLevel, FunctionPermission} from '../interfaces/clearance-level.interface';
-import {AuthService} from './auth.service';
 
 @Injectable({
   providedIn: 'root'
@@ -96,6 +95,10 @@ export class ClearanceLevelService {
         return of(false);
       })
     );
+  }
+
+  public getClearanceLevelsValue(): ClearanceLevel[] {
+    return this.clearanceLevelsSubject.getValue();
   }
 
   hasPermissionInProject(userClearanceLevel: number, functionId: string): Observable<boolean> {
