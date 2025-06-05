@@ -7,6 +7,14 @@ import {MatProgressSpinner} from '@angular/material/progress-spinner';
 import {MatIcon, MatIconRegistry} from '@angular/material/icon';
 import {MatMenuModule} from '@angular/material/menu';
 import {firstValueFrom} from 'rxjs';
+import {HasPermissionDirective} from '../../../directives/has-permission.directive';
+import {ClearanceLevelService} from '../../../services/clearance-level.service';
+import {
+  PRODUCT_DELETE,
+  PRODUCT_EDIT,
+  PRODUCT_SCAN,
+  ORDER_CREATE
+} from '../../../constants/function-permissions';
 
 import {Product} from '../../../interfaces/product.interface';
 import {ProductService} from '../../../services/product.service';
@@ -38,6 +46,7 @@ import {Order} from '../../../interfaces/order.interface';
     ResizableColumnDirective,
     DraggableColumnDirective,
     MatSelectModule,
+    HasPermissionDirective,
   ],
   templateUrl: './product-list.component.html',
   styleUrls: ['./product-list.component.css',
@@ -72,6 +81,10 @@ export class ProductListComponent implements OnInit {
   expandedImages: string[] = [];
   expandedProductName = '';
   currentImageIndex = 0;
+  protected readonly PRODUCT_DELETE = PRODUCT_DELETE;
+  protected readonly PRODUCT_EDIT = PRODUCT_EDIT;
+  protected readonly PRODUCT_SCAN = PRODUCT_SCAN;
+  protected readonly ORDER_CREATE = ORDER_CREATE;
 
   constructor(
     private productService: ProductService,
@@ -86,6 +99,7 @@ export class ProductListComponent implements OnInit {
     private categoryService: CategoryService,
     private orderService: OrderService,
     private userService: UserService,
+    private clearanceLevelService: ClearanceLevelService,
   ) {
     this.productForm = this.fb.group({
       products: this.fb.array([])
@@ -190,8 +204,9 @@ export class ProductListComponent implements OnInit {
     });
   }
 
-  getClearanceLevel(): number {
-    return this.clearanceLevel = this.authService.clearanceLevel;
+  async hasPermission(functionId: string): Promise<boolean> {
+    const clearanceLevel = this.authService.clearanceLevel;
+    return this.clearanceLevelService.checkPermission(clearanceLevel, functionId);
   }
 
   loadProductsNotEdit() {
@@ -214,7 +229,13 @@ export class ProductListComponent implements OnInit {
     });
   }
 
-  deleteProduct(id: number): void {
+  async deleteProduct(id: number): Promise<void> {
+    const hasPermission = await this.hasPermission(PRODUCT_DELETE);
+    if (!hasPermission) {
+      this.notificationService.showNotification('You do not have permission to delete products', 'error');
+      return;
+    }
+
     this.productService.delete(id).subscribe({
       next: () => {
         this.notificationService.showNotification('Product Deleted!', 'success');
@@ -228,7 +249,15 @@ export class ProductListComponent implements OnInit {
     this.router.navigate(['/'], {queryParams: {}});
   }
 
-  toggleEditMode(): void {
+  async toggleEditMode(): Promise<void> {
+    if (!this.isEditMode) {
+      const hasPermission = await this.hasPermission(PRODUCT_EDIT);
+      if (!hasPermission) {
+        this.notificationService.showNotification('You do not have permission to edit products', 'error');
+        return;
+      }
+    }
+
     this.isEditMode = !this.isEditMode;
     if (this.isEditMode) {
       this.loadProductsEdit();
@@ -381,7 +410,13 @@ export class ProductListComponent implements OnInit {
     });
   }
 
-  confirmScannedAdditions(): void {
+  async confirmScannedAdditions(): Promise<void> {
+    const hasPermission = await this.hasPermission(PRODUCT_SCAN);
+    if (!hasPermission) {
+      this.notificationService.showNotification('You do not have permission to update product stock via scanning', 'error');
+      return;
+    }
+
     const updateRequests = [];
 
     for (const [productId, addedAmount] of this.scannedAdditions.entries()) {
@@ -500,7 +535,15 @@ export class ProductListComponent implements OnInit {
     this.showUnitDropdown = false;
   }
 
-  toggleOrderMode(): void {
+  async toggleOrderMode(): Promise<void> {
+    if (!this.isOrderMode) {
+      const hasPermission = await this.hasPermission(ORDER_CREATE);
+      if (!hasPermission) {
+        this.notificationService.showNotification('You do not have permission to create orders', 'error');
+        return;
+      }
+    }
+
     this.isOrderMode = !this.isOrderMode;
     if (this.isOrderMode) {
       this.loadProductsNotEdit();
@@ -525,7 +568,13 @@ export class ProductListComponent implements OnInit {
     }
   }
 
-  submitOrder(): void {
+  async submitOrder(): Promise<void> {
+    const hasPermission = await this.hasPermission(ORDER_CREATE);
+    if (!hasPermission) {
+      this.notificationService.showNotification('You do not have permission to create orders', 'error');
+      return;
+    }
+
     const items = Array.from(this.orderItems.entries()).map(([productId, quantity]) => ({productId, quantity}));
     if (items.length === 0) {
       this.notificationService.showNotification('Please add items to order', 'warning');

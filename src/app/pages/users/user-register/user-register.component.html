@@ -130,7 +130,7 @@
       </mat-form-field>
 
       @if (editMode) {
-        <div class="status-section">
+        <div class="status-section" *appHasPermission="USER_DISABLE">
           <h3>User Status</h3>
           <div class="status-toggle">
             <span class="status-badge" [class.active]="registerForm.value.active"

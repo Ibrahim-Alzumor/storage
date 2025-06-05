@@ -10,31 +10,24 @@
     <li class="nav-item">
       <a class="btn btn-light mx-1" routerLink="/">Products</a>
     </li>
-    @if (this.getClearanceLevel() >= 2) {
-      <li class="nav-item">
-        <a class="btn btn-light mx-1" routerLink="/add">Add Product</a>
-      </li>
-    }
-    @if (this.getClearanceLevel() >= 2) {
-      <li class="nav-item">
-        <a class="btn btn-light mx-1" routerLink="/register">Register User</a>
-      </li>
-    }
-    @if (this.getClearanceLevel() >= 2) {
-      <li class="nav-item">
-        <a class="btn btn-light mx-1" routerLink="/charts">Charts</a>
-      </li>
-    }
-    @if (this.getClearanceLevel() >= 2) {
-      <li class="nav-item">
-        <a class="btn btn-light mx-1" routerLink="/users">Users</a>
-      </li>
-    }
-    @if (this.getClearanceLevel() >= 2) {
-      <li class="nav-item">
-        <a class="btn btn-light mx-1" routerLink="/orders">Orders</a>
-      </li>
-    }
+    <li *appHasPermission="PRODUCT_CREATE" class="nav-item">
+      <a class="btn btn-light mx-1" routerLink="/add">Add Product</a>
+    </li>
+    <li *appHasPermission="USER_CREATE" class="nav-item">
+      <a class="btn btn-light mx-1" routerLink="/register">Register User</a>
+    </li>
+    <li *appHasPermission="REPORT_VIEW" class="nav-item">
+      <a class="btn btn-light mx-1" routerLink="/charts">Charts</a>
+    </li>
+    <li *appHasPermission="USER_VIEW" class="nav-item">
+      <a class="btn btn-light mx-1" routerLink="/users">Users</a>
+    </li>
+    <li *appHasPermission="ORDER_VIEW" class="nav-item">
+      <a class="btn btn-light mx-1" routerLink="/orders">Orders</a>
+    </li>
+    <li *appHasPermission="ADMIN_CLEARANCE_LEVELS" class="nav-item">
+      <a class="btn btn-light mx-1" routerLink="/clearance-levels">Clearance Levels</a>
+    </li>
     <form (ngSubmit)="onSearch()" class="d-flex align-items-center mx-2">
       <input [(ngModel)]="searchTerm" class="form-control search-input" name="search" placeholder="Search"
              type="search">

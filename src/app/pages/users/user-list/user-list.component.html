@@ -68,9 +68,7 @@
         }
       </th>
       <th draggableColumn resizableColumn>Status</th>
-      @if (this.getClearanceLevel() >= 2) {
-        <th draggableColumn resizableColumn>Actions</th>
-      }
+      <th *appHasPermission="USER_EDIT" draggableColumn resizableColumn>Actions</th>
     </tr>
     </thead>
     <tbody>
@@ -86,13 +84,11 @@
               {{ user.active !== false ? 'Active' : 'Inactive' }}
             </span>
           </td>
-          @if (this.getClearanceLevel() >= 2) {
-            <td resizableColumn>
-              <button class="edit-button" mat-raised-button color="primary" (click)="editUser(user.email)">
-                Edit
-              </button>
-            </td>
-          }
+          <td resizableColumn *appHasPermission="USER_EDIT">
+            <button class="edit-button" mat-raised-button color="primary" (click)="editUser(user.email)">
+              Edit
+            </button>
+          </td>
         </tr>
       }
     </tbody>

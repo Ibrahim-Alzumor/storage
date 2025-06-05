@@ -1,0 +1,151 @@
+<div class="container mt-4">
+  <h1 class="mb-4">Clearance Level Management</h1>
+
+  <div class="row">
+    <div class="col-md-4">
+      <div class="card mb-4">
+        <div class="card-header d-flex justify-content-between align-items-center">
+          <h5 class="mb-0">Clearance Levels</h5>
+          <button (click)="createNewLevel()" class="btn btn-sm btn-primary">New Level</button>
+        </div>
+        <div class="card-body">
+          <ul class="list-group">
+            @for (level of clearanceLevels$ | async; track level.level) {
+              <li
+                (click)="selectLevel(level); creatingNewLevel = true"
+                [class.active]="selectedLevel?.level === level.level"
+                class="list-group-item d-flex align-items-center justify-content-between"
+              >
+                <div class="d-flex align-items-center gap-2">
+                  <span class="badge bg-primary">{{ level.level }}</span>
+                  <span class="fw-bold">{{ level.name }}</span>
+                </div>
+                <button
+                  (click)="deleteLevel(level.level); $event.stopPropagation()"
+                  class="btn btn-sm btn-danger"
+                >
+                  <i class="bi bi-trash me-1"></i> Delete Level
+                </button>
+              </li>
+            }
+          </ul>
+        </div>
+      </div>
+
+      @if (creatingNewLevel || selectedLevel) {
+        <div class="card mb-4">
+          <div class="card-header">
+            <h5 class="mb-0">{{ selectedLevel ? 'Edit' : 'Create' }} Clearance Level</h5>
+          </div>
+          <div class="card-body">
+            <form (ngSubmit)="saveLevel()" [formGroup]="clearanceLevelForm">
+              <div class="mb-3">
+                <label class="form-label" for="level">Level</label>
+                <input
+                  class="form-control"
+                  formControlName="level"
+                  id="level"
+                  min="0"
+                  type="number"
+                >
+                @if (clearanceLevelForm.get('level')?.invalid && clearanceLevelForm.get('level')?.touched) {
+                  <div class="invalid-feedback d-block">
+                    Level is required and must be a positive number.
+                  </div>
+                }
+              </div>
+
+              <div class="mb-3">
+                <label class="form-label" for="name">Name</label>
+                <input
+                  class="form-control"
+                  formControlName="name"
+                  id="name"
+                  type="text"
+                >
+                @if (clearanceLevelForm.get('name')?.invalid && clearanceLevelForm.get('name')?.touched) {
+                  <div class="invalid-feedback d-block">
+                    Name is required.
+                  </div>
+                }
+              </div>
+
+              <div class="mb-3">
+                <label class="form-label" for="description">Description</label>
+                <textarea
+                  class="form-control"
+                  formControlName="description"
+                  id="description"
+                  rows="3"
+                ></textarea>
+              </div>
+
+              <div class="d-flex justify-content-end gap-2">
+                <button type="button" (click)="cancelEdit()" class="btn btn-secondary">
+                  Cancel
+                </button>
+                <button [disabled]="clearanceLevelForm.invalid" class="btn btn-primary" type="submit">
+                  {{ selectedLevel ? 'Update' : 'Create' }} Clearance Level
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      }
+    </div>
+
+    <div class="col-md-8">
+      <div class="card">
+        <div class="card-header">
+          <h5 class="mb-0">Function Permissions</h5>
+        </div>
+        <div class="card-body">
+          <div class="table-responsive">
+            <table class="table table-bordered">
+              <thead>
+              <tr>
+                <th>Function</th>
+                @for (level of clearanceLevels$ | async; track level.level) {
+                  <th>{{ level.name }} ({{ level.level }})</th>
+                }
+              </tr>
+              </thead>
+              <tbody>
+                @for (func of groupFunctionsByCategory(functions$ | async); track func.id) {
+                  <ng-container>
+                    @if (func.isFirstInCategory) {
+                      <tr>
+                        <td [attr.colspan]="((clearanceLevels$ | async)?.length || 0) + 1" class="function-category">
+                          {{ func.category }}
+                        </td>
+                      </tr>
+                    }
+                    <tr>
+                      <td>
+                        <div>{{ func.name }}</div>
+                        <small class="text-muted">{{ func.description }}</small>
+                      </td>
+                      @for (level of clearanceLevels$ | async; track level.level) {
+                        <td class="text-center">
+                          <input
+                            #checkbox
+                            (change)="toggleFunction(level, func.id, checkbox.checked)"
+                            [checked]="isFunctionAllowed(level, func.id)"
+                            [id]="'func-' + func.id + '-level-' + level.level"
+                            class="form-check-input"
+                            type="checkbox"
+                          >
+                          <div class="clearance-level-name">{{ level.name }}</div>
+                        </td>
+                      }
+                    </tr>
+                  </ng-container>
+                }
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

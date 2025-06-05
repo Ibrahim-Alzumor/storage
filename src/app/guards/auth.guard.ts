@@ -2,32 +2,55 @@ import {Injectable} from '@angular/core';
 import {ActivatedRouteSnapshot, CanActivate, Router} from '@angular/router';
 import {AuthService} from '../services/auth.service';
 import {NotificationService} from '../services/notification.service';
+import {ClearanceLevelService} from '../services/clearance-level.service';
+import {FunctionInitializerService} from '../services/function-initializer.service';
+import {Observable} from 'rxjs';
+import {ClearanceLevel} from '../interfaces/clearance-level.interface';
 
 
 @Injectable({
   providedIn: 'root',
 })
 export class AuthGuard implements CanActivate {
-  constructor(private router: Router, private authService: AuthService, private notificationService: NotificationService
+  clearanceLevels$: Observable<ClearanceLevel[]>;
+
+  constructor(
+    private router: Router,
+    private authService: AuthService,
+    private notificationService: NotificationService,
+    private clearanceLevelService: ClearanceLevelService,
   ) {
+    this.clearanceLevels$ = this.clearanceLevelService.clearanceLevels$;
   }
 
-  canActivate(route: ActivatedRouteSnapshot): boolean {
+  async canActivate(route: ActivatedRouteSnapshot): Promise<boolean> {
     if (!this.authService.isLoggedIn()) {
       this.router.navigate(['/login']);
       this.authService.logout();
-    }
-    const minimumRequiredLevel = route.data['minimumRequiredLevel'] || 0;
-    const currentLevel = this.authService.clearanceLevel;
-
-    if (minimumRequiredLevel > currentLevel) {
-      this.notificationService.showAccessDeniedNotification(minimumRequiredLevel);
-      this.router.navigate(['']);
       return false;
     }
 
+    // const requiredFunctions: string = route.data['requiredFunctions'];
+    // if (requiredFunctions) {
+    //   const hasPermissionNavigation = await firstValueFrom(
+    //     this.clearanceLevelService.canAccess(requiredFunctions)
+    //   );
+    const currentLevel = this.authService.clearanceLevel;
+    const requiredFunctions: string = route.data['requiredFunctions'];
+    if (requiredFunctions) {
+      const hasPermission = await this.clearanceLevelService.checkPermission(
+        currentLevel,
+        requiredFunctions
+      );
+      if (!hasPermission) {
+        this.notificationService.showNotification('Not Allowed', 'error');
+        this.router.navigate(['']);
+        return false;
+      }
+
+      return true;
+    }
     return true;
   }
 
 }
-

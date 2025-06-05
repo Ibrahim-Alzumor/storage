@@ -18,16 +18,20 @@
         <button mat-button (click)="filterByUnit(null)">Clear Filter</button>
       </div>
     }
-    @if (this.getClearanceLevel() >= 2 && !isOrderMode) {
-      <button (click)="toggleEditMode()" class="button" color="primary" mat-raised-button>
-        {{ isEditMode ? 'Cancel Editing' : 'Edit Products' }}
-      </button>
-    }
-    @if (this.getClearanceLevel() >= 1 && !isEditMode) {
-      <button (click)="toggleOrderMode()" class="button" color="primary" mat-raised-button>
-        {{ isOrderMode ? 'Cancel Order' : 'Order Products' }}
-      </button>
-    }
+    <ng-container *appHasPermission="PRODUCT_EDIT">
+      @if (!isOrderMode) {
+        <button (click)="toggleEditMode()" class="button" color="primary" mat-raised-button>
+          {{ isEditMode ? 'Cancel Editing' : 'Edit Products' }}
+        </button>
+      }
+    </ng-container>
+    <ng-container *appHasPermission="ORDER_CREATE">
+      @if (!isEditMode) {
+        <button (click)="toggleOrderMode()" class="button" color="primary" mat-raised-button>
+          {{ isOrderMode ? 'Cancel Order' : 'Order Products' }}
+        </button>
+      }
+    </ng-container>
     @if (isEditMode) {
       <button class="button" mat-raised-button color="primary" (click)="saveChanges()">
         Save Changes
@@ -38,11 +42,13 @@
         Submit Order
       </button>
     }
-    @if (hasStartedScanning && scannedAdditions.size > 0) {
-      <button class="button" mat-raised-button color="primary" (click)="confirmScannedAdditions()">
-        Confirm Scanned Additions
-      </button>
-    }
+    <ng-container *appHasPermission="PRODUCT_SCAN">
+      @if (hasStartedScanning && scannedAdditions.size > 0) {
+        <button class="button" mat-raised-button color="primary" (click)="confirmScannedAdditions()">
+          Confirm Scanned Additions
+        </button>
+      }
+    </ng-container>
   </div>
   @if (loading) {
     <div class="loading-spinner">
@@ -125,11 +131,11 @@
           }
         </th>
         <th draggableColumn resizableColumn>Images</th>
-        @if (this.getClearanceLevel() >= 2) {
+        <ng-container *appHasPermission="PRODUCT_DELETE">
           @if (!isEditMode) {
             <th draggableColumn resizableColumn>Actions</th>
           }
-        }
+        </ng-container>
       </tr>
       </thead>
       <tbody formArrayName="products">
@@ -244,13 +250,13 @@
                   >
                 </div>
               </td>
-              @if (this.getClearanceLevel() >= 2) {
+              <ng-container *appHasPermission="PRODUCT_DELETE">
                 <td resizableColumn>
                   <button class="button" color="warn" mat-raised-button (click)="deleteProduct(product.id)">
                     Delete
                   </button>
                 </td>
-              }
+              </ng-container>
             </tr>
           }
         }

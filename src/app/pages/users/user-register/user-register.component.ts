@@ -3,6 +3,7 @@ import {FormBuilder, FormGroup, FormsModule, ReactiveFormsModule, Validators} fr
 import {AuthService} from '../../../services/auth.service';
 import {UserService} from '../../../services/user.service';
 import {NotificationService} from '../../../services/notification.service';
+import {ClearanceLevelService} from '../../../services/clearance-level.service';
 import {User} from '../../../interfaces/user.interface';
 import {ActivatedRoute, Router} from '@angular/router';
 import {MatFormFieldModule} from '@angular/material/form-field';
@@ -11,6 +12,8 @@ import {MatButtonModule} from '@angular/material/button';
 import {MatIconModule} from '@angular/material/icon';
 import {MatSelectModule} from '@angular/material/select';
 import {MatSlideToggleModule} from '@angular/material/slide-toggle';
+import {HasPermissionDirective} from '../../../directives/has-permission.directive';
+import {USER_DISABLE} from '../../../constants/function-permissions';
 
 @Component({
   selector: 'app-users-register',
@@ -24,7 +27,8 @@ import {MatSlideToggleModule} from '@angular/material/slide-toggle';
     MatButtonModule,
     MatIconModule,
     MatSelectModule,
-    MatSlideToggleModule
+    MatSlideToggleModule,
+    HasPermissionDirective
   ]
 })
 export class UserRegisterComponent implements OnInit {
@@ -35,12 +39,14 @@ export class UserRegisterComponent implements OnInit {
   userEmail: string | null = null;
   user: User | null = null;
   hidePassword = true;
+  protected readonly USER_DISABLE = USER_DISABLE;
 
   constructor(
     private fb: FormBuilder,
     public authService: AuthService,
     private userService: UserService,
     private notificationService: NotificationService,
+    private clearanceLevelService: ClearanceLevelService,
     private route: ActivatedRoute,
     private router: Router
   ) {
@@ -56,7 +62,6 @@ export class UserRegisterComponent implements OnInit {
     });
     this.setPossibleClearanceLevels();
   }
-
 
   get firstNameErrorMessage(): string | null {
     const firstNameControl = this.registerForm.controls['email'];
@@ -174,7 +179,6 @@ export class UserRegisterComponent implements OnInit {
       });
     }
   }
-
 
   setPossibleClearanceLevels() {
     const myLevel: number = this.authService.clearanceLevel;

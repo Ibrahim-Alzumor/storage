@@ -10,6 +10,8 @@ import {AuthService} from '../../../services/auth.service';
 import {NotificationService} from '../../../services/notification.service';
 import {DraggableColumnDirective} from '../../../directives/draggable-column.directive';
 import {ResizableColumnDirective} from '../../../directives/resizable-column.directive';
+import {HasPermissionDirective} from '../../../directives/has-permission.directive';
+import {PRODUCT_EDIT, USER_EDIT} from '../../../constants/function-permissions';
 
 @Component({
   selector: 'app-user-list',
@@ -24,7 +26,8 @@ import {ResizableColumnDirective} from '../../../directives/resizable-column.dir
     MatIconModule,
     MatProgressSpinnerModule,
     DraggableColumnDirective,
-    ResizableColumnDirective
+    ResizableColumnDirective,
+    HasPermissionDirective
   ]
 })
 export class UserListComponent implements OnInit {
@@ -34,6 +37,8 @@ export class UserListComponent implements OnInit {
   clearanceLevel: number | undefined;
   sortColumn: string = '';
   sortDirection: 'asc' | 'desc' = 'asc';
+  protected readonly PRODUCT_EDIT = PRODUCT_EDIT;
+  protected readonly USER_EDIT = USER_EDIT;
 
   constructor(
     private userService: UserService,
