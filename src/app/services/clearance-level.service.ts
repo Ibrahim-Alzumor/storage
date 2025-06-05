@@ -15,7 +15,7 @@ export class ClearanceLevelService {
   private functionsSubject = new BehaviorSubject<FunctionPermission[]>([]);
   functions$ = this.functionsSubject.asObservable();
 
-  constructor(private http: HttpClient, private authService: AuthService) {
+  constructor(private http: HttpClient) {
     this.loadFunctions();
     this.loadClearanceLevels();
   }

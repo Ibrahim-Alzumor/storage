@@ -3,7 +3,6 @@ import {ActivatedRouteSnapshot, CanActivate, Router} from '@angular/router';
 import {AuthService} from '../services/auth.service';
 import {NotificationService} from '../services/notification.service';
 import {ClearanceLevelService} from '../services/clearance-level.service';
-import {FunctionInitializerService} from '../services/function-initializer.service';
 import {Observable} from 'rxjs';
 import {ClearanceLevel} from '../interfaces/clearance-level.interface';
 
