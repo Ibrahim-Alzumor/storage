@@ -7,29 +7,26 @@ import {ProductService} from '../../services/product.service';
 import {UserService} from '../../services/user.service';
 import {HasPermissionDirective} from '../../directives/has-permission.directive';
 import {
-  PRODUCT_CREATE,
-  USER_CREATE,
-  REPORT_VIEW,
-  USER_VIEW,
+  ADMIN_CLEARANCE_LEVELS,
   ORDER_VIEW,
-  ADMIN_CLEARANCE_LEVELS
+  PRODUCT_CREATE,
+  REPORT_VIEW,
+  USER_CREATE,
+  USER_VIEW
 } from '../../constants/function-permissions';
 
 @Component({
   selector: 'app-navbar',
-  imports: [
-    RouterLink,
-    FormsModule,
-    HasPermissionDirective,
-  ],
+  standalone: true,
+  imports: [RouterLink, FormsModule, HasPermissionDirective],
   templateUrl: './navbar.component.html',
   styleUrl: './navbar.component.css'
 })
 export class NavbarComponent implements OnInit {
-  searchTerm: string = '';
+  searchTerm = '';
   searchResults: Product[] = [];
   clearanceLevel: number | undefined;
-  userFirstName: string = '';
+  userFirstName = '';
   protected readonly PRODUCT_CREATE = PRODUCT_CREATE;
   protected readonly USER_CREATE = USER_CREATE;
   protected readonly REPORT_VIEW = REPORT_VIEW;
@@ -37,7 +34,13 @@ export class NavbarComponent implements OnInit {
   protected readonly ORDER_VIEW = ORDER_VIEW;
   protected readonly ADMIN_CLEARANCE_LEVELS = ADMIN_CLEARANCE_LEVELS;
 
-  constructor(private authService: AuthService, private router: Router, private userService: UserService, private productService: ProductService, private route: ActivatedRoute) {
+  constructor(
+    private authService: AuthService,
+    private router: Router,
+    private userService: UserService,
+    private productService: ProductService,
+    private route: ActivatedRoute
+  ) {
   }
 
   ngOnInit(): void {
@@ -53,19 +56,18 @@ export class NavbarComponent implements OnInit {
   onSearch(): void {
     if (!this.searchTerm.trim()) {
       this.searchResults = [];
-
       this.router.navigate([], {
-        queryParams: {name: null},
+        queryParams: {name: null, page: null, limit: null},
         queryParamsHandling: 'merge',
         replaceUrl: true,
         relativeTo: this.route
       });
       return;
     }
-    this.productService.getByName(this.searchTerm).subscribe(results => {
-      this.searchResults = results;
+    this.productService.getByName(this.searchTerm, 1, 50).subscribe(results => {
+      this.searchResults = results.items;
       this.router.navigate([], {
-        queryParams: {name: this.searchTerm},
+        queryParams: {name: this.searchTerm, page: 1, limit: 50},
         queryParamsHandling: 'merge',
         replaceUrl: true,
         relativeTo: this.route
@@ -77,12 +79,12 @@ export class NavbarComponent implements OnInit {
     const userEmail = this.authService.getUserEmail;
     if (userEmail) {
       this.userService.getByEmail(userEmail).subscribe(
-        (user) => {
+        user => {
           if (user && user.firstName) {
             this.userFirstName = user.firstName;
           }
         },
-        (error) => {
+        error => {
           console.error('Error fetching users details:', error);
         }
       );

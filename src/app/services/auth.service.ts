@@ -12,13 +12,13 @@ import {throwError} from 'rxjs';
   providedIn: 'root'
 })
 export class AuthService {
-  private tokenkey = 'jwt_token';
+  private tokenKey = 'jwt_token';
 
   constructor(private http: HttpClient, private router: Router, private notificationService: NotificationService) {
   }
 
   get token() {
-    const token = localStorage.getItem(this.tokenkey);
+    const token = localStorage.getItem(this.tokenKey);
     if (token) {
       try {
         const decodedToken: any = jwtDecode(token);
@@ -63,7 +63,7 @@ export class AuthService {
     console.log(login);
     return this.http.post<any>(`${environment.apiUrl}/auth/login`, login).pipe(
       tap(res => {
-        localStorage.setItem(this.tokenkey, res.accessToken);
+        localStorage.setItem(this.tokenKey, res.accessToken);
         this.router.navigate(['/']);
       }),
       catchError(err => {
@@ -78,7 +78,7 @@ export class AuthService {
 
 
   logout() {
-    localStorage.removeItem(this.tokenkey);
+    localStorage.removeItem(this.tokenKey);
   }
 
   isLoggedIn() {

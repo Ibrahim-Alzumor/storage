@@ -257,12 +257,6 @@ textarea.form-control {
   outline: none;
 }
 
-.small.text-muted {
-  color: #aaa !important;
-  display: block;
-  margin-top: 4px;
-}
-
 .d-flex {
   display: flex;
 }

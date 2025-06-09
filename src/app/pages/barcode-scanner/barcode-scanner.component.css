@@ -10,6 +10,14 @@ button {
   margin-left: 10px;
 }
 
+span {
+  color: black !important;
+  background-color: #ff3b3b;
+  padding: 10px 8px;
+  justify-content: center;
+  margin-left: 10px;
+}
+
 button:hover {
   background-color: #c82333;
 }

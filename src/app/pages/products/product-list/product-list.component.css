@@ -14,6 +14,23 @@
   background-color: #ff3b3b;
 }
 
+.dropdown-viewport {
+  height: 256px;
+  overflow: auto;
+}
+
+.select-viewport {
+  height: 256px;
+}
+
+span {
+  color: black !important;
+  background-color: #ff3b3b;
+  padding: 10px 8px;
+  justify-content: center;
+  margin-left: 10px;
+}
+
 body.resizing {
   cursor: col-resize;
   user-select: none;

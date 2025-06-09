@@ -5,6 +5,7 @@ import {map, Observable} from 'rxjs';
 import {environment} from '../enviroments/enviroment';
 import {CategoryService} from './category.service';
 import {UnitService} from './unit.service';
+import {PaginationResult} from '../interfaces/pagination-result.interface';
 
 @Injectable({
   providedIn: 'root'
@@ -17,23 +18,71 @@ export class ProductService {
   ) {
   }
 
-  getAll(): Observable<Product[]> {
-    return this.http.get<any[]>(`${environment.apiUrl}/products`).pipe(
-      map(products => products.map(dto => this.toProduct(dto)))
-    );
+  getAll(
+    page: number,
+    limit: number
+  ): Observable<PaginationResult<Product>> {
+    let params = new HttpParams().set('page', page.toString()).set('limit', limit.toString());
+
+    return this.http.get<{
+      items: any[];
+      total: number;
+      page: number;
+      limit: number
+    }>(`${environment.apiUrl}/products`, {params})
+      .pipe(
+        map((res) => {
+          const items = res.items.map((dto) => this.toProduct(dto));
+          return {
+            items,
+            total: res.total,
+            page: res.page,
+            limit: res.limit,
+          };
+        })
+      );
   }
 
-  findAllValidBarcodes(): Observable<Product[]> {
-    return this.http.get<any[]>(`${environment.apiUrl}/products/find-barcodes`).pipe(
-      map(products => products.map(dto => this.toProduct(dto)))
-    );
+  findAllValidBarcodes(page: number, limit: number): Observable<{ items: Product[]; total: number }> {
+    return this.http
+      .get<{ items: any[]; total: number }>(`${environment.apiUrl}/products/find-barcodes`, {
+        params: new HttpParams().set('page', page.toString()).set('limit', limit.toString())
+      })
+      .pipe(
+        map(response => ({
+          items: response.items.map(dto => this.toProduct(dto)),
+          total: response.total
+        }))
+      );
   }
 
-  getByName(searchTerm: string): Observable<Product[]> {
-    const params = new HttpParams().set('name', searchTerm.trim());
-    return this.http.get<any[]>(`${environment.apiUrl}/products/search`, {params}).pipe(
-      map(products => products.map(dto => this.toProduct(dto)))
-    );
+
+  getByName(
+    searchTerm: string,
+    page: number,
+    limit: number
+  ): Observable<PaginationResult<Product>> {
+    let params = new HttpParams()
+      .set('name', searchTerm.trim())
+      .set('page', page.toString())
+      .set('limit', limit.toString());
+
+    return this.http
+      .get<{ items: any[]; total: number; page: number; limit: number }>(
+        `${environment.apiUrl}/products/search`,
+        {params}
+      )
+      .pipe(
+        map((res) => {
+          const items = res.items.map((dto) => this.toProduct(dto));
+          return {
+            items,
+            total: res.total,
+            page: res.page,
+            limit: res.limit,
+          };
+        })
+      );
   }
 
   getOne(id: number): Observable<Product> {

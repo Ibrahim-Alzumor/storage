@@ -9,12 +9,7 @@ import {MatMenuModule} from '@angular/material/menu';
 import {firstValueFrom} from 'rxjs';
 import {HasPermissionDirective} from '../../../directives/has-permission.directive';
 import {ClearanceLevelService} from '../../../services/clearance-level.service';
-import {
-  PRODUCT_DELETE,
-  PRODUCT_EDIT,
-  PRODUCT_SCAN,
-  ORDER_CREATE
-} from '../../../constants/function-permissions';
+import {ORDER_CREATE, PRODUCT_DELETE, PRODUCT_EDIT, PRODUCT_SCAN} from '../../../constants/function-permissions';
 
 import {Product} from '../../../interfaces/product.interface';
 import {ProductService} from '../../../services/product.service';
@@ -31,6 +26,7 @@ import {CategoryService} from '../../../services/category.service';
 import {OrderService} from '../../../services/order.service';
 import {UserService} from '../../../services/user.service';
 import {Order} from '../../../interfaces/order.interface';
+import {CdkFixedSizeVirtualScroll, CdkVirtualForOf, CdkVirtualScrollViewport} from '@angular/cdk/scrolling';
 
 @Component({
   selector: 'app-product-list',
@@ -47,6 +43,9 @@ import {Order} from '../../../interfaces/order.interface';
     DraggableColumnDirective,
     MatSelectModule,
     HasPermissionDirective,
+    CdkVirtualForOf,
+    CdkVirtualScrollViewport,
+    CdkFixedSizeVirtualScroll,
   ],
   templateUrl: './product-list.component.html',
   styleUrls: ['./product-list.component.css',
@@ -72,13 +71,17 @@ export class ProductListComponent implements OnInit {
   selectedCategoryName: string | null = null;
   selectedUnitId: string | null = null;
   selectedUnitName: string | null = null;
-  allProducts: Product[] = [];
   showCategoryDropdown = false;
   showUnitDropdown = false;
   showExpandedImages = false;
   expandedImages: string[] = [];
   expandedProductName = '';
   currentImageIndex = 0;
+  currentPage: number = 1;
+  pageSize: number = 50;
+  totalProducts: number = 0;
+  unitOpen: boolean[] = [];
+  categoryOpen: boolean[] = [];
   protected readonly PRODUCT_DELETE = PRODUCT_DELETE;
   protected readonly PRODUCT_EDIT = PRODUCT_EDIT;
   protected readonly PRODUCT_SCAN = PRODUCT_SCAN;
@@ -100,14 +103,20 @@ export class ProductListComponent implements OnInit {
     private clearanceLevelService: ClearanceLevelService,
   ) {
     this.productForm = this.fb.group({
-      products: this.fb.array([])
+      allProducts: this.fb.array([])
     });
     this.matIconRegistry.setDefaultFontSetClass('material-symbols-outlined');
   }
 
   get productsFormArray(): FormArray {
-    return this.productForm.get('products') as FormArray;
+    return this.productForm.get('allProducts') as FormArray;
   }
+
+  get totalPages(): number {
+    return Math.ceil(this.totalProducts / this.pageSize);
+  }
+
+  trackById = (_: number, item: { id: string | number }) => item.id;
 
   ngOnInit() {
     this.loadProductsNotEdit();
@@ -116,6 +125,9 @@ export class ProductListComponent implements OnInit {
   }
 
   expandImages(images: string[], productName: string): void {
+    if (!images || images.length === 0) {
+      return
+    }
     if (images && images[0] == '') {
       return
     }
@@ -185,24 +197,6 @@ export class ProductListComponent implements OnInit {
     return this.clearanceLevelService.checkPermission(clearanceLevel, functionId);
   }
 
-  loadProductsNotEdit() {
-    this.route.queryParams.subscribe(params => {
-      const name = params['name'];
-      this.loading = true;
-
-      if (name) {
-        this.productService.getByName(name).subscribe(products => {
-          this.allProducts = products;
-          this.applyFilters();
-          this.loading = false;
-        });
-      } else {
-        this.initializeProducts();
-        this.loading = false;
-      }
-    });
-  }
-
   async deleteProduct(id: number): Promise<void> {
     const hasPermission = await this.hasPermission(PRODUCT_DELETE);
     if (!hasPermission) {
@@ -242,14 +236,36 @@ export class ProductListComponent implements OnInit {
     }
   }
 
+
+  loadProductsNotEdit() {
+    this.route.queryParams.subscribe(params => {
+      const name = params['name'];
+      this.loading = true;
+
+      if (name) {
+        this.productService.getByName(name, this.currentPage, this.pageSize).subscribe(result => {
+          this.products = result.items;
+          this.totalProducts = result.total;
+          this.applyFilters();
+          this.loading = false;
+        });
+      } else {
+        this.loadPage();
+      }
+    });
+  }
+
   loadProductsEdit() {
     this.route.queryParams.subscribe(params => {
       const name = params['name'];
       this.loading = true;
       if (name) {
-        this.productService.getByName(name).subscribe({
-          next: (products) => {
-            this.allProducts = products;
+        this.productService.getByName(name, this.currentPage, this.pageSize).subscribe({
+          next: (result) => {
+            this.products = result.items;
+            this.unitOpen = Array(this.products.length).fill(false);
+            this.categoryOpen = Array(this.products.length).fill(false);
+            this.totalProducts = result.total;
             this.applyFilters();
             this.initializeForm();
             this.loading = false;
@@ -260,9 +276,12 @@ export class ProductListComponent implements OnInit {
           }
         });
       } else {
-        this.productService.getAll().subscribe({
-          next: (products) => {
-            this.allProducts = products;
+        this.productService.getAll(this.currentPage, this.pageSize).subscribe({
+          next: (result) => {
+            this.products = result.items;
+            this.unitOpen = Array(this.products.length).fill(false);
+            this.categoryOpen = Array(this.products.length).fill(false);
+            this.totalProducts = result.total;
             this.applyFilters();
             this.initializeForm();
             this.loading = false;
@@ -277,9 +296,10 @@ export class ProductListComponent implements OnInit {
   }
 
   saveChanges(): void {
+    this.processImagesBeforeSave();
+
     const productsToUpdate = this.productsFormArray.controls
       .map((control, index) => {
-        this.processImagesBeforeSave();
         const formValues = control.value;
         const originalProduct = this.products[index];
 
@@ -304,7 +324,7 @@ export class ProductListComponent implements OnInit {
             if (category) changes.category = category;
             break;
 
-          case formValues.images !== originalProduct.images:
+          case !this.imagesAreEqual(formValues.images, originalProduct.images):
             changes.images = formValues.images;
             break;
         }
@@ -335,6 +355,23 @@ export class ProductListComponent implements OnInit {
         this.notificationService.showNotification('Error updating products', 'error');
         console.error('Error updating products:', error);
       });
+  }
+
+  processImagesBeforeSave(): void {
+    this.productsFormArray.controls.forEach(productGroup => {
+      const imagesValue = productGroup.get('images')?.value;
+
+      if (typeof imagesValue === 'string') {
+        const imageUrls = imagesValue
+          .split(',')
+          .map(url => url.trim())
+          .filter(url => url !== '')
+        productGroup.get('images')?.setValue(imageUrls);
+      } else if (Array.isArray(imagesValue)) {
+        const trimmed = imagesValue.map(u => u.trim()).filter(u => u !== '');
+        productGroup.get('images')?.setValue(trimmed);
+      }
+    });
   }
 
   initializeBarcodeScanner(): void {
@@ -410,12 +447,12 @@ export class ProductListComponent implements OnInit {
     this.showCategoryDropdown = false;
     if (!categoryName) {
       this.selectedCategoryId = null;
-      this.products = [...this.allProducts];
+      this.products = [...this.products];
     } else {
       const category = this.availableCategories.find(c => c.name === categoryName);
       this.selectedCategoryId = category?.id || null;
 
-      this.products = this.allProducts.filter(product =>
+      this.products = this.products.filter(product =>
         product.category && product.category.name === categoryName
       );
     }
@@ -427,21 +464,20 @@ export class ProductListComponent implements OnInit {
 
     if (!unitName) {
       this.selectedUnitId = null;
-      this.products = [...this.allProducts];
+      this.products = [...this.products];
     } else {
       const unit = this.availableUnits.find(u => u.name === unitName);
       this.selectedUnitId = unit?.id || null;
 
-      this.products = this.allProducts.filter(product =>
+      this.products = this.products.filter(product =>
         product.unit && product.unit.name === unitName
       );
     }
   }
 
-
   applyFilters(): void {
     if (!this.selectedCategoryId && !this.selectedUnitId) {
-      this.products = [...this.allProducts].map(p => {
+      this.products = [...this.products].map(p => {
         const pending = this.scannedAdditions.get(p.id) || 0;
         return {
           ...p,
@@ -449,7 +485,7 @@ export class ProductListComponent implements OnInit {
         };
       });
     } else if (this.selectedCategoryId && !this.selectedUnitId) {
-      this.products = this.allProducts
+      this.products = this.products
         .filter(product => product.category.id === this.selectedCategoryId)
         .map(p => {
           const pending = this.scannedAdditions.get(p.id) || 0;
@@ -459,7 +495,7 @@ export class ProductListComponent implements OnInit {
           };
         });
     } else if (!this.selectedCategoryId && this.selectedUnitId) {
-      this.products = this.allProducts
+      this.products = this.products
         .filter(product => product.unit.id === this.selectedUnitId)
         .map(p => {
           const pending = this.scannedAdditions.get(p.id) || 0;
@@ -565,44 +601,55 @@ export class ProductListComponent implements OnInit {
     });
   }
 
-  initializeProducts(): void {
-    this.productService.getAll().subscribe(products => {
-      this.allProducts = products;
-      this.applyFilters();
-    });
-  }
-
-  processImagesBeforeSave(): void {
-    this.productsFormArray.controls.forEach(productGroup => {
-      const imagesValue = productGroup.get('images')?.value;
-
-      if (typeof imagesValue === 'string' && imagesValue) {
-        const imageUrls = imagesValue
-          .split(',')
-          .map(url => url.trim())
-          .filter(url => url !== '');
-        productGroup.get('images')?.setValue(imageUrls.length > 0 ? imageUrls : []);
-      }
-    });
+  onPageChange(newPage: number): void {
+    this.currentPage = newPage;
+    this.loading = true;
+    if (this.isEditMode) {
+      this.loadProductsEdit();
+    } else {
+      this.loadProductsNotEdit();
+    }
   }
 
   getImage(product: Product): string {
+    if (!product.images || product.images.length === 0) {
+      return 'https://thumb.ac-illust.com/b1/b170870007dfa419295d949814474ab2_t.jpeg';
+    }
     if (product.images && product.images[0] != '') {
       return product.images[0]
     }
-
     return 'https://thumb.ac-illust.com/b1/b170870007dfa419295d949814474ab2_t.jpeg'
   }
 
-  private initializeForm(): void {
-    const products = this.products.map(product => this.createProductFormGroup(product));
-    this.productForm = this.fb.group({
-      products: this.fb.array(products)
+  private imagesAreEqual(a: string[] | string, b: string[] | string): boolean {
+    const toArr = (val: string[] | string): string[] => {
+      if (!val) return [];
+      return Array.isArray(val)
+        ? val.filter(u => u.trim() !== '')
+        : val.split(',').map(u => u.trim()).filter(u => u !== '');
+    };
+    const arrA = toArr(a);
+    const arrB = toArr(b);
+    if (arrA.length !== arrB.length) return false;
+    return arrA.every((url, i) => url === arrB[i]);
+  }
+
+  private loadPage(): void {
+    this.productService.getAll(this.currentPage, this.pageSize).subscribe(result => {
+      this.products = result.items;
+      this.totalProducts = result.total;
+      this.applyFilters();
+      this.loading = false;
     });
   }
 
+  private initializeForm(): void {
+    const groups = this.products.map(p => this.createProductFormGroup(p));
+    this.productForm.setControl('allProducts', this.fb.array(groups));
+  }
+
   private createProductFormGroup(product: Product): FormGroup {
-    let imagesValue = '';
+    let imagesValue: string;
     if (product.images && Array.isArray(product.images)) {
       imagesValue = product.images.join(', ');
     } else {

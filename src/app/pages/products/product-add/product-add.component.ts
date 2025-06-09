@@ -23,6 +23,7 @@ import {Unit} from '../../../interfaces/unit.interface';
 import {Category} from '../../../interfaces/category.interface';
 import {UnitService} from '../../../services/unit.service';
 import {CategoryService} from '../../../services/category.service';
+import {ScrollingModule} from '@angular/cdk/scrolling';
 
 @Component({
   selector: 'app-product-add',
@@ -35,7 +36,8 @@ import {CategoryService} from '../../../services/category.service';
     MatIcon,
     MatSelect,
     MatOption,
-    MatSelectModule
+    MatSelectModule,
+    ScrollingModule
   ],
   templateUrl: './product-add.component.html',
   styleUrl: './product-add.component.css'
@@ -86,6 +88,8 @@ export class ProductAddComponent implements OnInit {
     this.loadAvailableOptions();
     this.authService.isLoggedIn();
   }
+
+  trackById = (_: number, item: { id: string | number }) => item.id
 
   loadAvailableOptions() {
     this.availableCategories = this.categoryService.categories

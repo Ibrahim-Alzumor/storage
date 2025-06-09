@@ -50,6 +50,27 @@
       }
     </ng-container>
   </div>
+  <div class="table-actions">
+    <button
+      (click)="onPageChange(currentPage - 1)"
+      [disabled]="currentPage === 1"
+      mat-button
+    >
+      Previous
+    </button>
+
+    <span>
+      Page {{ currentPage }} of {{ totalPages }}
+    </span>
+
+    <button
+      (click)="onPageChange(currentPage + 1)"
+      [disabled]="currentPage === totalPages"
+      mat-button
+    >
+      Next
+    </button>
+  </div>
   @if (loading) {
     <div class="loading-spinner">
       <mat-spinner diameter="40"></mat-spinner>
@@ -92,14 +113,15 @@
           </div>
           @if (showUnitDropdown) {
             <div class="dropdown">
-              <div class="item" (click)="filterByUnit(null)">
-                All Units
-              </div>
-              @for (unit of availableUnits; track unit.id) {
-                <div class="item" (click)="filterByUnit(unit.name)">
+              <div class="item" (click)="filterByUnit(null)">All Units</div>
+              <cdk-virtual-scroll-viewport itemSize="32" class="dropdown-viewport">
+                <div
+                  class="item"
+                  *cdkVirtualFor="let unit of availableUnits; trackBy: trackById"
+                  (click)="filterByUnit(unit.name)">
                   {{ unit.name }}
                 </div>
-              }
+              </cdk-virtual-scroll-viewport>
             </div>
           }
         </th>
@@ -113,14 +135,15 @@
           </div>
           @if (showCategoryDropdown) {
             <div class="dropdown">
-              <div class="item" (click)="filterByCategory(null)">
-                All Categories
-              </div>
-              @for (category of availableCategories; track category.id) {
-                <div class="item" (click)="filterByCategory(category.name)">
+              <div class="item" (click)="filterByCategory(null)">All Categories</div>
+              <cdk-virtual-scroll-viewport itemSize="32" class="dropdown-viewport">
+                <div
+                  class="item"
+                  *cdkVirtualFor="let category of availableCategories; trackBy: trackById"
+                  (click)="filterByCategory(category.name)">
                   {{ category.name }}
                 </div>
-              }
+              </cdk-virtual-scroll-viewport>
             </div>
           }
         </th>
@@ -138,7 +161,7 @@
         </ng-container>
       </tr>
       </thead>
-      <tbody formArrayName="products">
+      <tbody formArrayName="allProducts">
         @if (isEditMode) {
           @for (productGroup of productsFormArray.controls; track $index) {
             <tr [formGroupName]="$index">
@@ -153,23 +176,58 @@
                 </mat-form-field>
               <td resizableColumn>
                 <mat-form-field appearance="fill">
-                  <mat-select [formControlName]="'unitId'">
-                    @for (unit of availableUnits; track unit.id) {
-                      <mat-option [value]="unit.id">{{ unit.name }}</mat-option>
+                  <mat-select
+                    panelClass="no-scroll-select"
+                    [formControlName]="'unitId'"
+                    (openedChange)="unitOpen[$index] = $event">
+                    @if (!unitOpen[$index]) {
+                      <ng-container>
+                        <mat-option [value]="productGroup.get('unitId')!.value">
+                          {{ products[$index].unit.name }}
+                        </mat-option>
+                      </ng-container>
+                    }
+                    @if (unitOpen[$index]) {
+                      <ng-container>
+                        <cdk-virtual-scroll-viewport itemSize="32" class="select-viewport">
+                          <mat-option
+                            *cdkVirtualFor="let u of availableUnits; trackBy: trackById"
+                            [value]="u.id">
+                            {{ u.name }}
+                          </mat-option>
+                        </cdk-virtual-scroll-viewport>
+                      </ng-container>
                     }
                   </mat-select>
                 </mat-form-field>
               </td>
               <td resizableColumn>
                 <mat-form-field appearance="fill">
-                  <mat-select [formControlName]="'categoryId'">
-                    @for (category of availableCategories; track category.id) {
-                      <mat-option [value]="category.id">{{ category.name }}</mat-option>
+                  <mat-select
+                    panelClass="no-scroll-select"
+                    [formControlName]="'categoryId'"
+                    (openedChange)="categoryOpen[$index] = $event">
+                    @if (!categoryOpen[$index]) {
+                      <ng-container>
+                        <mat-option [value]="productGroup.get('categoryId')!.value">
+                          {{ products[$index].category.name }}
+                        </mat-option>
+                      </ng-container>
+                    }
+                    @if (categoryOpen[$index]) {
+                      <ng-container>
+                        <cdk-virtual-scroll-viewport itemSize="32" class="select-viewport">
+                          <mat-option
+                            *cdkVirtualFor="let c of availableCategories; trackBy: trackById"
+                            [value]="c.id">
+                            {{ c.name }}
+                          </mat-option>
+                        </cdk-virtual-scroll-viewport>
+                      </ng-container>
                     }
                   </mat-select>
                 </mat-form-field>
               </td>
-
               <td resizableColumn>
                 <mat-form-field>
                   <input matInput [formControlName]="'description'" class="custom-input">

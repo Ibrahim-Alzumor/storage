@@ -34,9 +34,12 @@ export class UserListComponent implements OnInit {
   users: User[] = [];
   allUsers: User[] = [];
   loading = false;
-  clearanceLevel: number | undefined;
-  sortColumn: string = '';
+  clearanceLevel?: number;
+  sortColumn = '';
   sortDirection: 'asc' | 'desc' = 'asc';
+  currentPage = 1;
+  pageSize = 50;
+  totalUsers = 0;
   protected readonly USER_EDIT = USER_EDIT;
 
   constructor(
@@ -50,37 +53,40 @@ export class UserListComponent implements OnInit {
     this.matIconRegistry.setDefaultFontSetClass('material-symbols-outlined');
   }
 
-  ngOnInit() {
+  get totalPages(): number {
+    return Math.ceil(this.totalUsers / this.pageSize);
+  }
+
+  ngOnInit(): void {
     this.loadUsers();
   }
 
-  loadUsers() {
+  loadUsers(): void {
     this.route.queryParams.subscribe(params => {
       const name = params['name'];
       this.loading = true;
-
       if (name) {
-        this.userService.searchUsers(name).subscribe({
-          next: (users) => {
-            this.allUsers = users;
-            this.users = users;
+        this.userService.searchUsers(name, this.currentPage, this.pageSize).subscribe({
+          next: res => {
+            this.allUsers = res.items;
+            this.users = res.items;
+            this.totalUsers = res.total;
             this.loading = false;
           },
-          error: (error) => {
-            console.error('Error fetching users:', error);
+          error: () => {
             this.loading = false;
             this.notificationService.showNotification('Error loading users', 'error');
           }
         });
       } else {
-        this.userService.getAllUsers().subscribe({
-          next: (users) => {
-            this.allUsers = users;
-            this.users = users;
+        this.userService.getAllUsers(this.currentPage, this.pageSize).subscribe({
+          next: res => {
+            this.allUsers = res.items;
+            this.users = res.items;
+            this.totalUsers = res.total;
             this.loading = false;
           },
-          error: (error) => {
-            console.error('Error fetching users:', error);
+          error: () => {
             this.loading = false;
             this.notificationService.showNotification('Error loading users', 'error');
           }
@@ -94,13 +100,11 @@ export class UserListComponent implements OnInit {
   }
 
   getClearanceLabel(level: number): string {
-    const allLevels = this.clearanceLevelService.getClearanceLevelsValue();
-    const match = allLevels.find(cl => cl.level === level);
-    return match ? match.name : '';
+    return this.clearanceLevelService.getClearanceLevelsValue().find(cl => cl.level === level)?.name || '';
   }
 
   editUser(email: string): void {
-    this.router.navigate(['/register'], {queryParams: {email: email}});
+    this.router.navigate(['/register'], {queryParams: {email}});
   }
 
   sortUsers(column: string): void {
@@ -110,29 +114,32 @@ export class UserListComponent implements OnInit {
       this.sortColumn = column;
       this.sortDirection = 'asc';
     }
-
     this.users = [...this.users].sort((a, b) => {
-      let comparison = 0;
-
+      let cmp = 0;
       switch (column) {
         case 'firstName':
-          comparison = (a.firstName || '').localeCompare(b.firstName || '');
+          cmp = (a.firstName || '').localeCompare(b.firstName || '');
           break;
         case 'lastName':
-          comparison = (a.lastName || '').localeCompare(b.lastName || '');
+          cmp = (a.lastName || '').localeCompare(b.lastName || '');
           break;
         case 'email':
-          comparison = a.email.localeCompare(b.email);
+          cmp = a.email.localeCompare(b.email);
           break;
         case 'jobTitle':
-          comparison = (a.jobTitle || '').localeCompare(b.jobTitle || '');
+          cmp = (a.jobTitle || '').localeCompare(b.jobTitle || '');
           break;
         case 'clearanceLevel':
-          comparison = a.clearanceLevel - b.clearanceLevel;
+          cmp = a.clearanceLevel - b.clearanceLevel;
           break;
       }
-
-      return this.sortDirection === 'asc' ? comparison : -comparison;
+      return this.sortDirection === 'asc' ? cmp : -cmp;
     });
+  }
+
+  onPageChange(newPage: number): void {
+    this.currentPage = newPage;
+    this.loading = true;
+    this.loadUsers();
   }
 }

@@ -10,6 +10,16 @@
   background-color: #1a1a1a;
 }
 
+
+.viewport {
+  height: 240px;
+}
+
+.no-scroll-select {
+  overflow: hidden !important;
+  padding: 0 !important;
+}
+
 .product-card {
   background-color: #2a2a2a;
   padding: 30px;
