@@ -105,7 +105,7 @@
               <thead>
               <tr>
                 <th>Function</th>
-                @for (level of clearanceLevels; track level.level) {
+                @for (level of clearanceLevels; track $index) {
                   <th>{{ level.name }} ({{ level.level }})</th>
                 }
               </tr>

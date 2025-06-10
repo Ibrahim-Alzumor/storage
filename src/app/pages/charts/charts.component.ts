@@ -1,23 +1,24 @@
 import {Component, OnInit} from '@angular/core';
 import {FormBuilder, FormGroup, ReactiveFormsModule} from '@angular/forms';
-import {ChartData} from 'chart.js';
-import {HttpClient, HttpParams} from '@angular/common/http';
-import {BaseChartDirective} from 'ng2-charts';
 import {
-  Chart as ChartJS,
-  CategoryScale,
-  LinearScale,
   BarController,
   BarElement,
+  CategoryScale,
+  Chart as ChartJS,
+  ChartData,
+  Legend,
+  LinearScale,
   LineController,
   LineElement,
   PointElement,
   Title,
-  Tooltip,
-  Legend,
+  Tooltip
 } from 'chart.js';
+import {HttpClient, HttpParams} from '@angular/common/http';
+import {BaseChartDirective} from 'ng2-charts';
 import {ProductService} from '../../services/product.service';
 import {environment} from '../../enviroments/enviroment';
+import {lastValueFrom} from 'rxjs';
 
 ChartJS.register(
   CategoryScale,
@@ -113,7 +114,7 @@ export class ChartsComponent implements OnInit {
       await Promise.all(
         productIds.map(async (id) => {
           try {
-            const product = await this.productService.getOne(+id).toPromise();
+            const product = await lastValueFrom(this.productService.getOne(+id));
             productsMap[id] = product?.name || `Product ${id}`;
           } catch {
             productsMap[id] = `Product ${id}`;

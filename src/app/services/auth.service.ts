@@ -1,20 +1,23 @@
 import {Injectable} from '@angular/core';
 import {HttpClient} from '@angular/common/http';
 import {environment} from '../enviroments/enviroment';
-import {catchError, tap} from 'rxjs/operators';
+import {catchError, switchMap, tap} from 'rxjs/operators';
 import {jwtDecode} from "jwt-decode";
 import {Login} from '../interfaces/login.interface';
 import {Router} from '@angular/router';
 import {NotificationService} from './notification.service';
 import {throwError} from 'rxjs';
+import {ClearanceLevelService} from './clearance-level.service';
+import {ClearanceLevel} from '../interfaces/clearance-level.interface';
 
 @Injectable({
   providedIn: 'root'
 })
 export class AuthService {
   private tokenKey = 'jwt_token';
+  private clearanceLevelsKey = 'clearance_levels';
 
-  constructor(private http: HttpClient, private router: Router, private notificationService: NotificationService) {
+  constructor(private http: HttpClient, private router: Router, private notificationService: NotificationService, private clearanceLevelService: ClearanceLevelService,) {
   }
 
   get token() {
@@ -59,11 +62,19 @@ export class AuthService {
     return '';
   }
 
+  private set clearanceCache(levels: ClearanceLevel[]) {
+    localStorage.setItem(this.clearanceLevelsKey, JSON.stringify(levels));
+  }
+
+
   login(login: Login) {
-    console.log(login);
     return this.http.post<any>(`${environment.apiUrl}/auth/login`, login).pipe(
-      tap(res => {
+      tap(async res => {
         localStorage.setItem(this.tokenKey, res.accessToken);
+      }),
+      switchMap(() => this.clearanceLevelService.getClearanceLevels()),
+      tap(clearanceLevels => {
+        this.clearanceCache = clearanceLevels;
         this.router.navigate(['/']);
       }),
       catchError(err => {

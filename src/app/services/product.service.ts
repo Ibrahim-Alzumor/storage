@@ -6,6 +6,7 @@ import {environment} from '../enviroments/enviroment';
 import {CategoryService} from './category.service';
 import {UnitService} from './unit.service';
 import {PaginationResult} from '../interfaces/pagination-result.interface';
+import {NotificationService} from './notification.service';
 
 @Injectable({
   providedIn: 'root'
@@ -14,7 +15,8 @@ export class ProductService {
   constructor(
     private http: HttpClient,
     private categoryService: CategoryService,
-    private unitService: UnitService
+    private unitService: UnitService,
+    private notificationService: NotificationService
   ) {
   }
 
@@ -31,13 +33,12 @@ export class ProductService {
       limit: number
     }>(`${environment.apiUrl}/products`, {params})
       .pipe(
-        map((res) => {
-          const items = res.items.map((dto) => this.toProduct(dto));
+        map((response) => {
           return {
-            items,
-            total: res.total,
-            page: res.page,
-            limit: res.limit,
+            items: this.filter(response.items),
+            total: response.total,
+            page: response.page,
+            limit: response.limit,
           };
         })
       );
@@ -49,11 +50,19 @@ export class ProductService {
         params: new HttpParams().set('page', page.toString()).set('limit', limit.toString())
       })
       .pipe(
-        map(response => ({
-          items: response.items.map(dto => this.toProduct(dto)),
-          total: response.total
-        }))
+        map(response => {
+          return {
+            items: this.filter(response.items),
+            total: response.total
+          }
+        })
       );
+  }
+
+  filter(response: any) {
+    const items = response.map((dto: any) => this.toProduct(dto)
+    );
+    return items.filter((item: any) => item !== null);
   }
 
 
@@ -73,13 +82,12 @@ export class ProductService {
         {params}
       )
       .pipe(
-        map((res) => {
-          const items = res.items.map((dto) => this.toProduct(dto));
+        map((response) => {
           return {
-            items,
-            total: res.total,
-            page: res.page,
-            limit: res.limit,
+            items: this.filter(response.items),
+            total: response.total,
+            page: response.page,
+            limit: response.limit,
           };
         })
       );
@@ -87,7 +95,7 @@ export class ProductService {
 
   getOne(id: number): Observable<Product> {
     return this.http.get<any>(`${environment.apiUrl}/products/${id}`).pipe(
-      map(dto => this.toProduct(dto))
+      map(dto => this.filter([dto]))
     );
   }
 
@@ -103,7 +111,7 @@ export class ProductService {
     };
 
     return this.http.post<any>(`${environment.apiUrl}/products`, productData).pipe(
-      map(response => this.toProduct(response))
+      map(response => this.filter([response]))
     );
   }
 
@@ -135,7 +143,7 @@ export class ProductService {
       updateData.barcode = product.barcode;
     }
     return this.http.put<any>(`${environment.apiUrl}/products/${id}`, updateData).pipe(
-      map(dto => this.toProduct(dto))
+      map(dto => this.filter([dto]))
     );
   }
 
@@ -146,29 +154,29 @@ export class ProductService {
 
   addBarcodeToProduct(id: number, barcodeId: string): Observable<Product> {
     return this.http.put<any>(`${environment.apiUrl}/products/${id}/barcode`, {barcodeId}).pipe(
-      map(dto => this.toProduct(dto))
+      map(dto => this.filter([dto]))
     );
   }
 
   getByBarcode(barcodeId: string): Observable<Product> {
     return this.http.get<any>(`${environment.apiUrl}/products/by-barcode/${barcodeId}`).pipe(
-      map(dto => this.toProduct(dto))
+      map(dto => this.filter([dto]))
     );
   }
 
-  toProduct(dto: any): Product {
-    const {id, name, stock, unitId, categoryId, images, description, barcode} = dto;
+  toProduct(dto: any): Product | null {
+    try {
+      const {id, name, stock, unitId, categoryId, images, description, barcode} = dto;
 
-    const category = this.categoryService.getCategoryById(categoryId) || {
-      id: categoryId,
-      name: 'Unknown Category'
-    };
+      const category = this.categoryService.getCategoryById(categoryId)
 
-    const unit = this.unitService.getUnitById(unitId) || {
-      id: unitId,
-      name: 'Unknown Unit'
-    };
+      const unit = this.unitService.getUnitById(unitId)
 
-    return {id, name, stock, category, unit, images, description, barcode};
+      return {id, name, stock, category, unit, images, description, barcode};
+    } catch (error: any) {
+      this.notificationService.showNotification(error, 'error');
+      return null;
+    }
+
   }
 }

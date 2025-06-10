@@ -75,23 +75,20 @@ export class NavbarComponent implements OnInit {
     });
   }
 
-  loadUserInfo(): void {
+
+  loadUserInfo(): any {
     const userEmail = this.authService.getUserEmail;
     if (userEmail) {
-      this.userService.getByEmail(userEmail).subscribe(
-        user => {
-          if (user && user.firstName) {
+      this.userService.getByEmail(userEmail).subscribe({
+        next: user => {
+          if (user) {
             this.userFirstName = user.firstName;
           }
         },
-        error => {
+        error: error => {
           console.error('Error fetching users details:', error);
         }
-      );
+      });
     }
-  }
-
-  isLoggedIn(): boolean {
-    return this.authService.isLoggedIn();
   }
 }

@@ -12,7 +12,6 @@ export class CategoryService {
   public categories: Category[] = [];
 
   constructor(private http: HttpClient) {
-    this.loadCategories();
   }
 
   getCategories(): Observable<Category[]> {
@@ -61,13 +60,12 @@ export class CategoryService {
     );
   }
 
-  getCategoryById(id: string): Category | undefined {
-    return this.categories.find(c => c.id === id);
-  }
+  getCategoryById(id: string): Category {
+    const res = this.categories.find(c => c.id === id);
+    if (res) {
+      return res;
+    }
 
-  loadCategories() {
-    this.getCategories().subscribe(categories => {
-      this.categories = categories;
-    });
+    throw new Error('Category not found');
   }
 }

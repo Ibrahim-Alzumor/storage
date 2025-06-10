@@ -192,13 +192,13 @@ export class ProductListComponent implements OnInit {
     });
   }
 
-  async hasPermission(functionId: string): Promise<boolean> {
+  hasPermission(functionId: string): boolean {
     const clearanceLevel = this.authService.clearanceLevel;
-    return this.clearanceLevelService.checkPermission(clearanceLevel, functionId);
+    return this.clearanceLevelService.hasPermissionInProject(clearanceLevel, functionId);
   }
 
-  async deleteProduct(id: number): Promise<void> {
-    const hasPermission = await this.hasPermission(PRODUCT_DELETE);
+  deleteProduct(id: number): void {
+    const hasPermission = this.hasPermission(PRODUCT_DELETE);
     if (!hasPermission) {
       this.notificationService.showNotification('You do not have permission to delete products', 'error');
       return;
@@ -217,9 +217,9 @@ export class ProductListComponent implements OnInit {
     this.router.navigate(['/'], {queryParams: {}});
   }
 
-  async toggleEditMode(): Promise<void> {
+  toggleEditMode(): void {
     if (!this.isEditMode) {
-      const hasPermission = await this.hasPermission(PRODUCT_EDIT);
+      const hasPermission = this.hasPermission(PRODUCT_EDIT);
       if (!hasPermission) {
         this.notificationService.showNotification('You do not have permission to edit products', 'error');
         return;
@@ -405,8 +405,8 @@ export class ProductListComponent implements OnInit {
     });
   }
 
-  async confirmScannedAdditions(): Promise<void> {
-    const hasPermission = await this.hasPermission(PRODUCT_SCAN);
+  confirmScannedAdditions(): void {
+    const hasPermission = this.hasPermission(PRODUCT_SCAN);
     if (!hasPermission) {
       this.notificationService.showNotification('You do not have permission to update product stock via scanning', 'error');
       return;
@@ -528,9 +528,9 @@ export class ProductListComponent implements OnInit {
     this.showUnitDropdown = false;
   }
 
-  async toggleOrderMode(): Promise<void> {
+  toggleOrderMode(): void {
     if (!this.isOrderMode) {
-      const hasPermission = await this.hasPermission(ORDER_CREATE);
+      const hasPermission = this.hasPermission(ORDER_CREATE);
       if (!hasPermission) {
         this.notificationService.showNotification('You do not have permission to create orders', 'error');
         return;
@@ -561,8 +561,8 @@ export class ProductListComponent implements OnInit {
     }
   }
 
-  async submitOrder(): Promise<void> {
-    const hasPermission = await this.hasPermission(ORDER_CREATE);
+  submitOrder(): void {
+    const hasPermission = this.hasPermission(ORDER_CREATE);
     if (!hasPermission) {
       this.notificationService.showNotification('You do not have permission to create orders', 'error');
       return;

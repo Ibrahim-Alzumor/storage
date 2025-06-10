@@ -283,7 +283,7 @@
                 <button class="button" color="primary" mat-raised-button (click)="addToOrder(product)">
                   +
                 </button>
-                <span>{{ orderItems.get(product.id) || 0 }}</span>
+                {{ orderItems.get(product.id) || 0 }}
                 <button class="button" color="warn" mat-raised-button (click)="removeFromOrder(product)">
                   -
                 </button>

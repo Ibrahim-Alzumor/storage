@@ -165,19 +165,6 @@ input:focus, textarea:focus, select:focus {
   background-color: rgba(255, 59, 59, 0.1);
 }
 
-.mat-snack-bar-container {
-  background-color: #1c1c1c;
-  color: white;
-}
-
-.success-snackbar {
-  background-color: #28a745;
-}
-
-.error-snackbar {
-  background-color: #ff3b3b;
-}
-
 .mat-icon-button {
   width: auto !important;
   padding: 0 8px !important;

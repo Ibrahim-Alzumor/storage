@@ -10,6 +10,7 @@ export class FunctionInitializerService {
   constructor(private clearanceLevelService: ClearanceLevelService) {
   }
 
+  // for usage when adding new functions to add them the database not useful otherwise
   initializeFunctions(): void {
     const functionPermissions: FunctionPermission[] = ALL_FUNCTIONS.map(functionId => {
       const parts = functionId.split(':');
