@@ -34,10 +34,8 @@ export class ClearanceLevelComponent implements OnInit {
   }
 
   ngOnInit(): void {
-    this.clearanceLevels = this.clearanceLevelService.clearanceLevels;
     this.functions = this.clearanceLevelService.functions;
-
-    this.clearanceLevels = this.clearanceLevelService.clearanceLevels.sort((a, b) => b.level - a.level)
+    this.clearanceLevels = this.clearanceLevelService.clearanceCache.sort((a, b) => b.level - a.level)
   }
 
   selectLevel(level: ClearanceLevel): void {

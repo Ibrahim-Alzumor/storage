@@ -1,6 +1,6 @@
 import {Injectable} from '@angular/core';
 import {HttpClient} from '@angular/common/http';
-import {BehaviorSubject, firstValueFrom, Observable, of} from 'rxjs';
+import {BehaviorSubject, Observable, of} from 'rxjs';
 import {catchError, map, switchMap, tap} from 'rxjs/operators';
 import {environment} from '../enviroments/enviroment';
 import {ClearanceLevel, FunctionPermission} from '../interfaces/clearance-level.interface';
@@ -11,14 +11,16 @@ import {ClearanceLevel, FunctionPermission} from '../interfaces/clearance-level.
 export class ClearanceLevelService {
   functions: FunctionPermission[] = [];
   clearanceLevels: ClearanceLevel[] = [];
+  private clearanceLevelsKey = 'clearance_levels';
   private clearanceLevelsSubject = new BehaviorSubject<ClearanceLevel[]>([]);
-  clearanceLevels$ = this.clearanceLevelsSubject.asObservable();
   private functionsSubject = new BehaviorSubject<FunctionPermission[]>([]);
-  functions$ = this.functionsSubject.asObservable();
 
   constructor(private http: HttpClient) {
-    this.loadFunctions();
-    this.loadClearanceLevels();
+  }
+
+  get clearanceCache(): ClearanceLevel[] {
+    const raw = localStorage.getItem(this.clearanceLevelsKey);
+    return raw ? (JSON.parse(raw) as ClearanceLevel[]) : [];
   }
 
   createClearanceLevel(clearanceLevel: ClearanceLevel): Observable<ClearanceLevel> {
@@ -43,7 +45,9 @@ export class ClearanceLevelService {
     return this.http
       .get<ClearanceLevel[]>(`${environment.apiUrl}/clearance-levels`)
       .pipe(
-        tap(clearanceLevels => this.clearanceLevelsSubject.next(clearanceLevels)),
+        tap(clearanceLevels => {
+          this.clearanceLevelsSubject.next(clearanceLevels);
+        }),
         map(clearanceLevels =>
           this.clearanceLevels = clearanceLevels,
         ),
@@ -91,22 +95,18 @@ export class ClearanceLevelService {
     );
   }
 
-
-  hasPermissionNavigation(userClearanceLevel: number, functionId: string): Observable<boolean> {
-    return this.http.get<boolean>(`${environment.apiUrl}/clearance-levels/${userClearanceLevel}/has-permission/${functionId}`);
-  }
-
   public getClearanceLevelsValue(): ClearanceLevel[] {
     return this.clearanceLevelsSubject.getValue();
   }
 
-  hasPermissionInProject(userClearanceLevel: number, functionId: string): Observable<boolean> {
-    return this.clearanceLevels$.pipe(
-      map(levels => {
-        const level = levels.find(l => l.level === userClearanceLevel);
-        return level ? level.allowedFunctions.includes(functionId) : false;
-      })
-    );
+  hasPermissionInProject(userClearanceLevel: number, functionId: string): boolean {
+    const clearanceLevels = this.clearanceCache;
+    for (const level of clearanceLevels) {
+      if (level.level === userClearanceLevel && level.allowedFunctions.includes(functionId)) {
+        return true;
+      }
+    }
+    return false;
   }
 
   addFunctionToClearanceLevel(level: number, functionId: string): Observable<ClearanceLevel> {
@@ -123,10 +123,6 @@ export class ClearanceLevelService {
     ).pipe(
       tap(() => this.loadClearanceLevels())
     );
-  }
-
-  async checkPermission(userClearanceLevel: number, functionId: string): Promise<boolean> {
-    return await firstValueFrom(this.hasPermissionNavigation(userClearanceLevel, functionId));
   }
 
   loadClearanceLevels(): void {

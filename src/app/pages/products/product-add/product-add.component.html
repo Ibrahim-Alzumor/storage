@@ -31,26 +31,25 @@
         <mat-form-field appearance="outline" class="flex-grow">
           <mat-label>Unit</mat-label>
           <mat-select #unitSelect formControlName="unitId">
-            <mat-select-trigger>
-              {{ getUnitNameById(productForm.get('unitId')?.value) }}
-            </mat-select-trigger>
-            @for (unit of availableUnits; track unit.id) {
-              <mat-option [value]="unit.id">
+            <mat-select-trigger>{{ getUnitNameById(productForm.get('unitId')?.value) }}</mat-select-trigger>
+            <cdk-virtual-scroll-viewport class="viewport" itemSize="48" maxBufferPx="240" minBufferPx="240">
+              <mat-option *cdkVirtualFor="let unit of availableUnits; trackBy: trackById" [value]="unit.id">
                 <div class="option-with-actions">
                   <span>{{ unit.name }}</span>
                   <div class="option-actions">
-                    <button mat-icon-button color="primary" class="edit-button"
-                            (click)="openEditUnitDialog(unit, $event); unitSelect.close()">
+                    <button (click)="openEditUnitDialog(unit, $event); unitSelect.close()" class="edit-button"
+                            color="primary"
+                            mat-icon-button>
                       <mat-icon>edit</mat-icon>
                     </button>
-                    <button mat-icon-button color="warn" class="delete-button"
-                            (click)="deleteUnit(unit.id, $event); unitSelect.close()">
+                    <button (click)="deleteUnit(unit.id, $event); unitSelect.close()" class="delete-button" color="warn"
+                            mat-icon-button>
                       <mat-icon>delete</mat-icon>
                     </button>
                   </div>
                 </div>
               </mat-option>
-            }
+            </cdk-virtual-scroll-viewport>
           </mat-select>
           @if (productForm.controls['unitId'].invalid && productForm.controls['unitId'].touched) {
             <mat-error>
@@ -105,26 +104,27 @@
         <mat-form-field appearance="outline" class="flex-grow">
           <mat-label>Category</mat-label>
           <mat-select #categorySelect formControlName="categoryId">
-            <mat-select-trigger>
-              {{ getCategoryNameById(productForm.get('categoryId')?.value) }}
-            </mat-select-trigger>
-            @for (category of availableCategories; track category.id) {
-              <mat-option [value]="category.id">
+            <mat-select-trigger>{{ getCategoryNameById(productForm.get('categoryId')?.value) }}</mat-select-trigger>
+            <cdk-virtual-scroll-viewport class="viewport" itemSize="48" maxBufferPx="240" minBufferPx="240">
+              <mat-option *cdkVirtualFor="let category of availableCategories; trackBy: trackById"
+                          [value]="category.id">
                 <div class="option-with-actions">
                   <span>{{ category.name }}</span>
                   <div class="option-actions">
-                    <button mat-icon-button color="primary" class="edit-button"
-                            (click)="openEditCategoryDialog(category, $event); categorySelect.close()">
+                    <button (click)="openEditCategoryDialog(category, $event); categorySelect.close()"
+                            class="edit-button" color="primary"
+                            mat-icon-button>
                       <mat-icon>edit</mat-icon>
                     </button>
-                    <button mat-icon-button color="warn" class="delete-button"
-                            (click)="deleteCategory(category.id, $event); categorySelect.close()">
+                    <button (click)="deleteCategory(category.id, $event); categorySelect.close()" class="delete-button"
+                            color="warn"
+                            mat-icon-button>
                       <mat-icon>delete</mat-icon>
                     </button>
                   </div>
                 </div>
               </mat-option>
-            }
+            </cdk-virtual-scroll-viewport>
           </mat-select>
           @if (productForm.controls['categoryId'].invalid && productForm.controls['categoryId'].touched) {
             <mat-error>

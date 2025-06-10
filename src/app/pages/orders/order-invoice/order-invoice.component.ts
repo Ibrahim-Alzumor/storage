@@ -6,7 +6,6 @@ import {NotificationService} from '../../../services/notification.service';
 import {CommonModule} from '@angular/common';
 import {MatButtonModule} from '@angular/material/button';
 import {MatIconModule} from '@angular/material/icon';
-import {Product} from '../../../interfaces/product.interface';
 import {ProductService} from '../../../services/product.service';
 
 @Component({
@@ -23,7 +22,6 @@ import {ProductService} from '../../../services/product.service';
 export class OrderInvoiceComponent implements OnInit {
   orderId: number = 0;
   order: Order | null = null;
-  products: Product[] = [];
 
   constructor(
     private router: Router,

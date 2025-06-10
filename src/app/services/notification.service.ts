@@ -21,23 +21,4 @@ export class NotificationService {
       panelClass
     });
   }
-
-  showAccessDeniedNotification(level: number): void {
-    let message = '';
-    switch (level) {
-      case 0:
-        message = 'Only Employees are allowed!';
-        break;
-      case 1:
-        message = 'Only Associates and higher are allowed!';
-        break;
-      case 2:
-        message = 'Only Managers and higher are allowed!';
-        break;
-      case 3:
-        message = 'Only Owners are allowed!';
-        break;
-    }
-    this.showNotification(message, 'error');
-  }
 }

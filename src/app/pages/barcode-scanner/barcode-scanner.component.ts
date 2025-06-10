@@ -28,6 +28,9 @@ export class BarcodeScannerComponent implements OnInit {
   loading = false;
   pendingBarcode: string | null = null;
   categoryMap: Map<string, string> = new Map();
+  currentPage = 1;
+  pageSize = 50;
+  totalProducts = 0;
 
   constructor(
     private productService: ProductService,
@@ -36,6 +39,10 @@ export class BarcodeScannerComponent implements OnInit {
     private notificationService: NotificationService,
     private categoryService: CategoryService,
   ) {
+  }
+
+  get totalPages(): number {
+    return Math.ceil(this.totalProducts / this.pageSize);
   }
 
   ngOnInit(): void {
@@ -49,13 +56,14 @@ export class BarcodeScannerComponent implements OnInit {
     this.loadProducts();
   }
 
-  loadProducts() {
+  loadProducts(): void {
     this.route.queryParams.subscribe(params => {
       const name = params['name'];
       this.loading = true;
       if (name) {
-        this.productService.getByName(name).subscribe(products => {
-          this.products = products;
+        this.productService.getByName(name, this.currentPage, this.pageSize).subscribe(result => {
+          this.products = result.items;
+          this.totalProducts = result.total;
           this.loading = false;
         });
       } else {
@@ -67,39 +75,41 @@ export class BarcodeScannerComponent implements OnInit {
   loadCategories(): void {
     this.categoryMap.clear();
     this.categoryService.getCategories().subscribe({
-      next: (categories) => {
+      next: categories => {
         categories.forEach(cat => this.categoryMap.set(cat.id, cat.name));
       },
       error: () => {
-        console.log('Failed to load categories');
       }
     });
   }
 
-
   assignBarcodeToProduct(product: Product): void {
     if (!this.pendingBarcode) return;
-
     this.productService.addBarcodeToProduct(product.id, this.pendingBarcode).subscribe({
       next: () => {
         this.notificationService.showNotification(`Barcode ${this.pendingBarcode} assigned to ${product.name}`, 'success');
         this.router.navigate(['/']);
       },
-      error: (err) => {
+      error: err => {
         this.notificationService.showNotification(err.error?.message || 'Error assigning barcode', 'error');
       }
     });
   }
 
   clearSearch(): void {
-    this.router.navigate(['/'], {
-      queryParams: {}
-    });
+    this.router.navigate(['/'], {queryParams: {}});
+  }
+
+  onPageChange(newPage: number): void {
+    this.currentPage = newPage;
+    this.loading = true;
+    this.loadProducts();
   }
 
   private initializeProducts(): void {
-    this.productService.findAllValidBarcodes().subscribe(products => {
-      this.products = products;
+    this.productService.findAllValidBarcodes(this.currentPage, this.pageSize).subscribe(result => {
+      this.products = result.items;
+      this.totalProducts = result.total;
       this.loading = false;
     });
   }

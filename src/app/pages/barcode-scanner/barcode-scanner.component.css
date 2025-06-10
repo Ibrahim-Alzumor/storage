@@ -10,6 +10,14 @@ button {
   margin-left: 10px;
 }
 
+span {
+  color: black !important;
+  background-color: #ff3b3b;
+  padding: 10px 8px;
+  justify-content: center;
+  margin-left: 10px;
+}
+
 button:hover {
   background-color: #c82333;
 }
@@ -109,19 +117,6 @@ input:focus, textarea:focus, select:focus {
 
 .edit-mode {
   background-color: rgba(255, 59, 59, 0.1);
-}
-
-.mat-snack-bar-container {
-  background-color: #1c1c1c;
-  color: white;
-}
-
-.success-snackbar {
-  background-color: #28a745;
-}
-
-.error-snackbar {
-  background-color: #ff3b3b;
 }
 
 .mat-icon-button {

@@ -36,16 +36,14 @@ export class HasPermissionDirective implements OnInit {
 
     const clearanceLevel = this.authService.clearanceLevel;
 
-    this.clearanceLevelService.hasPermissionInProject(clearanceLevel, this.functionId)
-      .subscribe(hasPermission => {
-        if (hasPermission && !this.hasView) {
-          this.viewContainer.createEmbeddedView(this.templateRef);
-          this.hasView = true;
-        } else if (!hasPermission && this.hasView) {
-          this.viewContainer.clear();
-          this.hasView = false;
-        }
-      });
+    const hasPermission = this.clearanceLevelService.hasPermissionInProject(clearanceLevel, this.functionId)
+    if (hasPermission && !this.hasView) {
+      this.viewContainer.createEmbeddedView(this.templateRef);
+      this.hasView = true;
+    } else if (!hasPermission && this.hasView) {
+      this.viewContainer.clear();
+      this.hasView = false;
+    }
   }
 
 }

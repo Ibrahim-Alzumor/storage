@@ -42,4 +42,25 @@
       }
     </tbody>
   </table>
+  <div class="table-actions">
+    <button
+      (click)="onPageChange(currentPage - 1)"
+      [disabled]="currentPage === 1"
+      mat-button
+    >
+      Previous
+    </button>
+
+    <span>
+      Page {{ currentPage }} of {{ totalPages }}
+    </span>
+
+    <button
+      (click)="onPageChange(currentPage + 1)"
+      [disabled]="currentPage === totalPages"
+      mat-button
+    >
+      Next
+    </button>
+  </div>
 </div>

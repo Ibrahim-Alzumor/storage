@@ -3,6 +3,7 @@ import {HttpClient, HttpParams} from '@angular/common/http';
 import {environment} from '../enviroments/enviroment';
 import {User} from '../interfaces/user.interface';
 import {Observable} from 'rxjs';
+import {PaginationResult} from '../interfaces/pagination-result.interface';
 
 @Injectable({
   providedIn: 'root'
@@ -21,13 +22,29 @@ export class UserService {
     return this.http.get<User>(`${environment.apiUrl}/users/by-email`, {params});
   }
 
-  getAllUsers(): Observable<User[]> {
-    return this.http.get<User[]>(`${environment.apiUrl}/users`);
+  getAllUsers(page: number, limit: number): Observable<PaginationResult<User>> {
+    const params = new HttpParams()
+      .set('page', page.toString())
+      .set('limit', limit.toString());
+    return this.http.get<PaginationResult<User>>(
+      `${environment.apiUrl}/users`,
+      {params}
+    );
   }
 
-  searchUsers(searchTerm: string): Observable<User[]> {
-    const params = new HttpParams().set('name', searchTerm.trim());
-    return this.http.get<User[]>(`${environment.apiUrl}/users/search`, {params});
+  searchUsers(
+    name: string,
+    page: number,
+    limit: number
+  ): Observable<PaginationResult<User>> {
+    const params = new HttpParams()
+      .set('name', name.trim())
+      .set('page', page.toString())
+      .set('limit', limit.toString());
+    return this.http.get<PaginationResult<User>>(
+      `${environment.apiUrl}/users/search`,
+      {params}
+    );
   }
 
   updateUser(email: string, userData: Partial<User>): Observable<User> {

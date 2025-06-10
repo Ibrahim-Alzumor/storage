@@ -5,6 +5,8 @@ import {map, Observable} from 'rxjs';
 import {environment} from '../enviroments/enviroment';
 import {CategoryService} from './category.service';
 import {UnitService} from './unit.service';
+import {PaginationResult} from '../interfaces/pagination-result.interface';
+import {NotificationService} from './notification.service';
 
 @Injectable({
   providedIn: 'root'
@@ -13,32 +15,87 @@ export class ProductService {
   constructor(
     private http: HttpClient,
     private categoryService: CategoryService,
-    private unitService: UnitService
+    private unitService: UnitService,
+    private notificationService: NotificationService
   ) {
   }
 
-  getAll(): Observable<Product[]> {
-    return this.http.get<any[]>(`${environment.apiUrl}/products`).pipe(
-      map(products => products.map(dto => this.toProduct(dto)))
-    );
+  getAll(
+    page: number,
+    limit: number
+  ): Observable<PaginationResult<Product>> {
+    let params = new HttpParams().set('page', page.toString()).set('limit', limit.toString());
+
+    return this.http.get<{
+      items: any[];
+      total: number;
+      page: number;
+      limit: number
+    }>(`${environment.apiUrl}/products`, {params})
+      .pipe(
+        map((response) => {
+          return {
+            items: this.filter(response.items),
+            total: response.total,
+            page: response.page,
+            limit: response.limit,
+          };
+        })
+      );
   }
 
-  findAllValidBarcodes(): Observable<Product[]> {
-    return this.http.get<any[]>(`${environment.apiUrl}/products/find-barcodes`).pipe(
-      map(products => products.map(dto => this.toProduct(dto)))
-    );
+  findAllValidBarcodes(page: number, limit: number): Observable<{ items: Product[]; total: number }> {
+    return this.http
+      .get<{ items: any[]; total: number }>(`${environment.apiUrl}/products/find-barcodes`, {
+        params: new HttpParams().set('page', page.toString()).set('limit', limit.toString())
+      })
+      .pipe(
+        map(response => {
+          return {
+            items: this.filter(response.items),
+            total: response.total
+          }
+        })
+      );
   }
 
-  getByName(searchTerm: string): Observable<Product[]> {
-    const params = new HttpParams().set('name', searchTerm.trim());
-    return this.http.get<any[]>(`${environment.apiUrl}/products/search`, {params}).pipe(
-      map(products => products.map(dto => this.toProduct(dto)))
+  filter(response: any) {
+    const items = response.map((dto: any) => this.toProduct(dto)
     );
+    return items.filter((item: any) => item !== null);
+  }
+
+
+  getByName(
+    searchTerm: string,
+    page: number,
+    limit: number
+  ): Observable<PaginationResult<Product>> {
+    let params = new HttpParams()
+      .set('name', searchTerm.trim())
+      .set('page', page.toString())
+      .set('limit', limit.toString());
+
+    return this.http
+      .get<{ items: any[]; total: number; page: number; limit: number }>(
+        `${environment.apiUrl}/products/search`,
+        {params}
+      )
+      .pipe(
+        map((response) => {
+          return {
+            items: this.filter(response.items),
+            total: response.total,
+            page: response.page,
+            limit: response.limit,
+          };
+        })
+      );
   }
 
   getOne(id: number): Observable<Product> {
     return this.http.get<any>(`${environment.apiUrl}/products/${id}`).pipe(
-      map(dto => this.toProduct(dto))
+      map(dto => this.filter([dto]))
     );
   }
 
@@ -54,7 +111,7 @@ export class ProductService {
     };
 
     return this.http.post<any>(`${environment.apiUrl}/products`, productData).pipe(
-      map(response => this.toProduct(response))
+      map(response => this.filter([response]))
     );
   }
 
@@ -86,7 +143,7 @@ export class ProductService {
       updateData.barcode = product.barcode;
     }
     return this.http.put<any>(`${environment.apiUrl}/products/${id}`, updateData).pipe(
-      map(dto => this.toProduct(dto))
+      map(dto => this.filter([dto]))
     );
   }
 
@@ -97,29 +154,29 @@ export class ProductService {
 
   addBarcodeToProduct(id: number, barcodeId: string): Observable<Product> {
     return this.http.put<any>(`${environment.apiUrl}/products/${id}/barcode`, {barcodeId}).pipe(
-      map(dto => this.toProduct(dto))
+      map(dto => this.filter([dto]))
     );
   }
 
   getByBarcode(barcodeId: string): Observable<Product> {
     return this.http.get<any>(`${environment.apiUrl}/products/by-barcode/${barcodeId}`).pipe(
-      map(dto => this.toProduct(dto))
+      map(dto => this.filter([dto]))
     );
   }
 
-  toProduct(dto: any): Product {
-    const {id, name, stock, unitId, categoryId, images, description, barcode} = dto;
+  toProduct(dto: any): Product | null {
+    try {
+      const {id, name, stock, unitId, categoryId, images, description, barcode} = dto;
 
-    const category = this.categoryService.getCategoryById(categoryId) || {
-      id: categoryId,
-      name: 'Unknown Category'
-    };
+      const category = this.categoryService.getCategoryById(categoryId)
 
-    const unit = this.unitService.getUnitById(unitId) || {
-      id: unitId,
-      name: 'Unknown Unit'
-    };
+      const unit = this.unitService.getUnitById(unitId)
 
-    return {id, name, stock, category, unit, images, description, barcode};
+      return {id, name, stock, category, unit, images, description, barcode};
+    } catch (error: any) {
+      this.notificationService.showNotification(error, 'error');
+      return null;
+    }
+
   }
 }

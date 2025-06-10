@@ -18,6 +18,32 @@
   margin-top: 10px;
 }
 
+
+span {
+  color: black !important;
+  background-color: #ff3b3b;
+  padding: 10px 8px;
+  justify-content: center;
+  margin-left: 10px;
+}
+
+button {
+  background-color: #ff3b3b;
+  border: none;
+  color: white;
+  padding: 8px 16px;
+  border-radius: 5px;
+  font-weight: bold;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+  margin-left: 10px;
+}
+
+button:hover {
+  background-color: #c82333;
+}
+
+
 .status {
   display: flex;
   align-items: center;

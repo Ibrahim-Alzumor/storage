@@ -12,7 +12,6 @@ export class UnitService {
   public units: Unit[] = [];
 
   constructor(private http: HttpClient) {
-    this.loadUnits();
   }
 
   getUnits(): Observable<Unit[]> {
@@ -61,13 +60,12 @@ export class UnitService {
     );
   }
 
-  getUnitById(id: string): Unit | undefined {
-    return this.units.find(u => u.id === id);
-  }
+  getUnitById(id: string): Unit {
+    const res = this.units.find(u => u.id === id);
+    if (res) {
+      return res;
+    }
 
-  loadUnits() {
-    this.getUnits().subscribe(units => {
-      this.units = units;
-    });
+    throw new Error('Unit not found');
   }
 }
